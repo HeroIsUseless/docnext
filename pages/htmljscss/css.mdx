@@ -1,0 +1,24 @@
+# CSS
+## 讲一讲css3新特点？
+> 2001年5月23日W3C完成了CSS3的工作草案，主要包括盒子模型、列表模块、超链接方式、语言模块、背景和边框、文字特效、多栏布局等模块。
+* 添加了伪类/伪元素/多重/属性选择器，例如`:hover`，`::before`，`ele1, ele2`，`[attr=value]`。
+* 盒模型，页面中的所有元素都可以看成一个盒子，由4个属性组成的（content（内容），padding（内边距），margin（外边距），border（边框）），
+有标准盒模型和ie盒模型，在标准盒模型中，元素的宽度和高度等于内容区域的宽度和高度，
+在ie盒模型中，元素的宽度和高度定义为内容区域的宽度和高度加上内边距和边框的宽度和高度。
+用box-sizing属性来控制元素使用哪种盒模型。box-sizing属性有两个值：content-box和border-box。content-box是标准盒模型，border-box是IE盒模型。默认值是content-box。
+<div style={{display: 'flex'}}>
+<div style={{boxSizing: 'content-box', width: '150px', height: '100px', padding: '20px', border: '10px solid black', margin: '10px', fontSize: '12px'}}><span>box-sizing: content-box</span></div>
+<div style={{boxSizing: 'border-box', width: '150px', height: '100px', padding: '20px', border: '10px solid black', margin: '10px', fontSize: '12px'}}><span>box-sizing: border-box</span></div>
+</div>
+* 新增边框属性`border-radius`，`border-image`，`box-shadow`
+* 新增背景属性`background-size`，`background-origin`，`background-break`，`background-clip`
+* 新增文字属性
+    * word-wrap: normal|break-word 使用浏览器的默认换行或者允许单词内换行
+    * text-overflow: clip|ellipsis 设置当前行超过指定容器的边界时如何显示，修剪文本或者显示省略符号来代表被修剪的文本
+* 新增颜色透明度
+* 新增颜色渐变
+* transition 过渡，多个属性之间用逗号进行分隔，必须规定过渡效果，持续时间两个内容，语法为：`transition: CSS属性, 花费时间, 效果曲线（默认ease）, 延迟时间（默认0）`
+* transform 转换
+* animation 动画
+* 新增弹性布局，网格布局，多列布局
+* 媒体查询
