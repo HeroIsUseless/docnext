@@ -27,13 +27,140 @@
 * AMD规范，即异步模块加载机制。核心是预加载，先对依赖的全部文件进行加载，加载完了再进行处理。
 * CommonJS规范加载模块是同步的，也就是说，只有加载完成，才能执行后面的操作。模块可以多次加载，但是只会在第一次加载时运行一次，然后运行结果就被缓存了，以后再加载，就直接读取缓存结果。要想让模块再次运行，必须清除缓存。
 模块加载的顺序，按照其在代码中出现的顺序。
+## var，let，const，死区？
+var，let，const声明用法是一样，都是定义变量，var会被提升到全局作用域或函数作用域，但仍然在原地方赋值，let，const并不会提升，在定义之前的代码区域就是暂时性死区。
 ## 闭包是什么？
-## 说一下原型链？
+闭包是指一个函数可以访问和使用其定义外部的变量，让这些变量的值始终保持在内存中，同时提供很好的封装和抽象。
+## 说一下原型和原型链？
+JavaScript 中，万物皆对象，对象分为普通对象和函数对象，所有的函数都是函数对象（`typeof f === 'function'`），其他都是普通对象（`typeof o === 'object'`）。
+
+JS在没有类`class`前，创建一个对象都是通过 `new 函数()` 来实现的，例如：
+```js
+var a = new Object() // 此时a是{}
+var a = {} // 等价于 var a = new Object()
+function b() {}
+var a = new b() // 此时a是{}
+```
+在 JavaScript 中，每当定义一个对象（函数也是对象）时候，对象中都会包含一些预定义的属性。其中每个函数对象都有一个prototype 属性，这个属性指向函数的原型对象。
+
+原型对象是函数内维护的一个对象模版，当 `new 函数()` ，就会把这个对象拷贝一份返回，例如：
+```js
+function b() {
+    b.prototype.c = 1
+    b.prototype.d = '2'
+}
+var a = new b() // 此时a为{c: 1, d: '2'}
+```
+另外，JS 在创建对象（不论是普通对象还是函数对象）的时候，都有一个叫做__proto__的内置属性，用于指向创建它的构造函数的原型对象，例如在上面👆的例子中，`a.__proto__ === b.prototype`。
+
+每个对象都有__proto__属性，但只有函数对象才有 prototype 属性。
+在默认情况下，所有的对象（包括函数对象和原型对象）都会自动获得一个 constructor（构造函数）属性，这个属性（是一个指针）指向 prototype 属性所在的函数，例如在上面👆的例子中，`a.constructor === b.prototype.constructor === b.constructor === b`。
+
+> 注意`Function.prototype`是函数对象，但没有prototype属性，即`Function.prototype.prototype === undefined`
+
+原型链：在多重继承中，一个对象可以是原型的拷贝，同时也是另一个对象的原型。因此，当你尝试访问对象上的属性时，JavaScript引擎开始从对象自身中查找该属性，如果没有，它会继续检查__proto__，一直到没有__proto__或者找到该属性。如果找到最后，此属性不存在时，返回undefined。
+> 原型链的最上层是`Object.prototype`
 ## apply，call，bind的区别？
+三者的功能都是用来改变函数中的 this 指向。
+* call() 方法是预定义的 JavaScript 方法。它可以用来调用所有者对象作为参数的方法。通过 call()，您能够使用属于另一个对象的方法。call传入的参数数量不固定，第一个参数代表函数内的this指向，从第二个参数开始往后，每个参数被依次传入函数。 
+```js
+  const person = {
+    fullName: function (country, city) {
+      return this.firstName + this.lastName + " " + country + " " + city
+    }
+  }
+  const newPerson = {
+    firstName: "fu",
+    lastName: "chaoyang",
+  }
+  person.fullName.call(newPerson, 'china', 'xian') // fuchaoyang china xian 
+```
+* apply() 对比 call() 仅参数上的不同：接受两个参数，第一个参数指定了函数体内的this指向。第二个参数为一个带下标的集合，这个集合可以为数组，也可以为类数组，apply方法把这个集合中的元素作为参数传递给被调用的函数。
+```js
+  const person = {
+    fullName: function (country, city) {
+      return this.firstName + this.lastName + " " + country + " " + city
+    }
+  }
+  const newPerson = {
+    firstName: "fu",
+    lastName: "chaoyang",
+  }
+  person.fullName.apply(newPerson, ['china', 'xian']) // fuchaoyang china xian
+```
+* bind() 相对 call() 而言，仅绑定新对象，不立即执行。
+```js
+  const person = {
+    fullName: function (country, city) {
+      return this.firstName + this.lastName + " " + country + " " + city
+    }
+  }
+  const newPerson = {
+    firstName: "fu",
+    lastName: "chaoyang",
+  }
+  person.fullName.bind(newPerson, 'china', 'xian') // 打印出fullName函数
+  person.fullName.bind(newPerson, 'china', 'xian')() // fuchaoyang china xian
+```
+> 手写call函数
+>```js
+>  // call实现
+>  Function.prototype.myCall = function (context) {
+>    const arg = [...arguments].slice(1)
+>    const fn = Symbol()
+>    context[fn] = this
+>    const result = context[fn](...arg)
+>    delete context[fn]
+>    return result
+>  }
+>```
 ## typeof，instantof是什么？
-## let，var，const，死区？
+* typeof是一个运算符，返回值是一个字符串，用来说明变量的数据类型，可以用此来判断number, string, object, boolean, function, undefined, symbol 这七种类型。对于对象、数组、null 返回的值是 object。
+* instanceof运算符用于指示一个变量是否属于某个对象的实例。返回值为布尔值。instanceof 主要的实现原理就是只要右边变量的 prototype 在左边变量的原型链上即可。
 ## js的this？
 ## 手写new？
-## 手写闭包？
+```js
+//Fun为构造函数, args表示传参
+function myNew(Fun, ...args) {
+    // 1.在内存中创建一个新对象
+    let obj = {};
+    
+    // 2.把新对象的原型指针指向构造函数的原型属性
+    obj.__proto__ = Fun.prototype;
+    
+    // 3.改变this指向，并且执行构造函数内部的代码（传参）
+    let res = Fun.apply(obj, args);
+    
+    // 4.判断函数执行结果的类型
+    if (res instanceof Object) {
+        return res;
+    } else {
+        return obj;
+    }
+}
+
+let obj = myNew(One, "XiaoMing", "18");
+console.log("newObj:", obj);
+```
+## 手写防抖节流？
+* 防抖（debounce）：每次触发定时器后，取消上一个定时器，然后重新触发定时器。防抖一般用于用户未知行为的优化，比如搜索框输入弹窗提示，因为用户接下来要输入的内容都是未知的，所以每次用户输入就弹窗是没有意义的，需要等到用户输入完毕后再进行弹窗提示。
+* 节流（throttle）：每次触发定时器后，直到这个定时器结束之前无法再次触发。一般用于可预知的用户行为的优化，比如为scroll事件的回调函数添加定时器。
 ## 事件循环机制？
-## 穿透与冒泡？
+JS是一门单线程的语言，通过事件循环机制实现单线程异步的。JS所有同步任务都在主线程上执行，即执行栈。主线程之外还存在一个任务队列(也有人称之为消息队列)，用于执行异步任务。事件循环的工作流程如下：
+* 首先，检查执行栈，看看是否有同步任务需要运行。
+* 如果执行栈为空，那么就查看任务队列。
+* 如果任务队列中有待处理的任务，那么就将它移出队列并放入调用堆栈，以便执行它的回调函数。
+
+在JavaScript中，任务队列可以分为宏任务队列和微任务队列。在一个事件循环迭代中，首先会执行一个宏任务，然后执行所有的微任务。当所有的微任务完成后，再执行下一个宏任务。
+宏任务包括如setTimeout，setInterval，setImmediate，I/O，UI rendering等，而微任务包括如Promise,MutationObserver等。
+
+## 捕获与冒泡？
+在 HTML 中，当事件被触发时，事件会经过三个阶段：捕获阶段、目标阶段和冒泡阶段。
+* 捕获阶段（Capture Phase）：从 document 对象开始，逐级向下传递，直到事件源元素。在捕获阶段，事件处理函数会按照由外向内（由父元素到子元素）的顺序被依次执行。
+* 目标阶段（Target Phase）：当事件传递到事件源元素时，就进入了目标阶段。在目标阶段，事件处理函数会被执行，此时可以通过 event.target 属性获取到具体触发事件的元素。
+* 冒泡阶段（Bubble Phase）：从事件源元素开始，逐级向上传递，直到 document 对象。在冒泡阶段，事件处理函数会按照由内向外（由子元素到父元素）的顺序被依次执行。
+
+在捕获阶段中，可以通过 addEventListener() 函数的第三个参数（选项）设置 capture 选项来监听事件的捕获阶段，否则监听将在冒泡阶段触发。
+
+事件传递过程中，如果事件处理函数调用了 event.stopPropagation() 方法，当侦听的事件是捕获时,阻断的就是捕获过程,当侦听的事件是冒泡时,阻断的就是冒泡过程。
+
