@@ -1,4 +1,5 @@
 {
     "react":"react",
-    "vue":"vue"
+    "vue":"vue",
+    "mini":"小程序"
 }

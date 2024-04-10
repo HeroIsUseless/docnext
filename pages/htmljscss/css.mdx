@@ -22,8 +22,27 @@
 * animation 动画
 * 新增弹性布局，网格布局，多列布局
 * 媒体查询
+## css的渲染优先级？
+* 选择器都有一个权值，权值越大越优先
+    * 内联样式表的权值最高 1000
+    * ID 选择器的权值为 100
+    * Class 类选择器的权值为 10
+    * HTML 标签选择器的权值为 1
+* 当权值相等时，后出现的样式表设置要优于先出现的样式表设置
+* 网页编写者设置的CSS 样式会覆盖浏览器所设置的样式，后来指定的CSS 样式会覆盖继承的CSS 样式，后面指定的CSS样式会覆盖之前指定的CSS样式，后定义class会覆盖先定义的class
+* 在同一组属性设置中标有“!important”规则的优先级最大
+
 ## 水平居中的方法，垂直居中的方法？
 ## 使元素消失的方法有哪些？
 ## clientHeight,scrollHeight,offsetHeight ,以及scrollTop, offsetTop,clientTop的区别？
+## 了解float浮动布局吗？
+元素被设置上`float: left`属性后，元素变成‘块’，可设置宽高，位置尽量靠上，尽量靠左。
+脱离文档流，不占据原来的位置，但会影响其他块级元素内部文本。
+<div style={{width: '400px', height: '200px', border: '2px solid black'}}>
+<div style={{float: 'left', width: '100px', height: '90px', background: 'rgba(255, 0,0, 0.5)'}}>float: right</div>
+<div style={{width: '200px', height: '150px', background: 'rgba(0, 255,0, 0.5)', fontSize: '13px'}}>内部文本被影响，这种特性常常被用于实现网页中的多列布局、图像与文本的并排显示等效果。</div>
+</div>
+> 跟`position: absolute`的区别基本上就是文字定位的区别。
 ## 清除浮动的方法？
+浮动元素会脱离正常的文档流，可能导致父元素的高度塌陷（父元素无法正确包裹浮动元素）。
 ## 1rem、1em、1vh、1px各自代表的含义？
