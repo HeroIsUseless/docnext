@@ -1,66 +1,7 @@
 # JavaScript
-## 讲一讲es5/6/7/8/9新特点？
-* **ECMAScript 5 也称为 ES5 和 ECMAScript 2009。**
-    + `"use strict"` 指令。例如，使用严格模式，不能使用未声明的变量
-    + `String.trim()/charAt()` 删除字符串两端的空白字符
-    + `Array.isArray()/forEach()/map()/fliter()/indexOf()/reduce()`
-    + `JSON.parse()/stringify()`
-    + `Date.now()`
-    + `Object.key()/defineProperty()/getPrototypeOf()`等
-    + 属性 Getter 和 Setter
-* **ECMAScript 6，也被称为ES6和ES2015，是JavaScript的第六个版本**
-    + let 和 const 以及块级作用域，在ES6之前，JavaScript只有全局作用域和函数作用域，没有块级作用域。
-    + 模板字符串
-    + 箭头函数
-    + 全局作用域中的 this 指向，在严格模式下，全局作用域中的 this 的值是 undefined。在非严格模式下，它会指向全局对象（浏览器中是 window 对象，Node.js 中是 global 对象）。
-    + 解构赋值，展开运算符
-    + 对象字面量的增强：属性和方法的简洁表示法，方括号表示法
-    + 函数参数的默认值，剩余参数
-    + set和map数据结构
-    + 遍历器与for…of循环
-    + `String.startWith()/endWith()/includes()`
-    + `Array.includes()/find()/from()/fill()`
-    + `Object.keys()/values()/entries()/assign()`
-* **ES2016（ES7）**
-    + 幂运算符**
-## CommonJS 和 AMD/CMD 规范，以及ES6的模块？
-* AMD规范，即异步模块加载机制。核心是预加载，先对依赖的全部文件进行加载，加载完了再进行处理。
-* CommonJS规范加载模块是同步的，也就是说，只有加载完成，才能执行后面的操作。模块可以多次加载，但是只会在第一次加载时运行一次，然后运行结果就被缓存了，以后再加载，就直接读取缓存结果。要想让模块再次运行，必须清除缓存。
-模块加载的顺序，按照其在代码中出现的顺序。
 ## var，let，const，死区？
-var，let，const声明用法是一样，都是定义变量，var会被提升到全局作用域或函数作用域，但仍然在原地方赋值，let，const并不会提升，在定义之前的代码区域就是暂时性死区。
-## 闭包是什么？
-闭包是指一个函数可以访问和使用其定义外部的变量，让这些变量的值始终保持在内存中，同时提供很好的封装和抽象。
-## 说一下原型和原型链？
-JavaScript 中，万物皆对象，对象分为普通对象和函数对象，所有的函数都是函数对象（`typeof f === 'function'`），其他都是普通对象（`typeof o === 'object'`）。
-
-JS在没有类`class`前，创建一个对象都是通过 `new 函数()` 来实现的，例如：
-```js
-var a = new Object() // 此时a是{}
-var a = {} // 等价于 var a = new Object()
-function b() {}
-var a = new b() // 此时a是{}
-```
-在 JavaScript 中，每当定义一个对象（函数也是对象）时候，对象中都会包含一些预定义的属性。其中每个函数对象都有一个prototype 属性，这个属性指向函数的原型对象。
-
-原型对象是函数内维护的一个对象模版，当 `new 函数()` ，就会把这个对象拷贝一份返回，例如：
-```js
-function b() {
-    b.prototype.c = 1
-    b.prototype.d = '2'
-}
-var a = new b() // 此时a为{c: 1, d: '2'}
-```
-另外，JS 在创建对象（不论是普通对象还是函数对象）的时候，都有一个叫做__proto__的内置属性，用于指向创建它的构造函数的原型对象，例如在上面👆的例子中，`a.__proto__ === b.prototype`。
-
-每个对象都有__proto__属性，但只有函数对象才有 prototype 属性。
-在默认情况下，所有的对象（包括函数对象和原型对象）都会自动获得一个 constructor（构造函数）属性，这个属性（是一个指针）指向 prototype 属性所在的函数，例如在上面👆的例子中，`a.constructor === b.prototype.constructor === b.constructor === b`。
-
-> 注意`Function.prototype`是函数对象，但没有prototype属性，即`Function.prototype.prototype === undefined`
-
-原型链：在多重继承中，一个对象可以是原型的拷贝，同时也是另一个对象的原型。因此，当你尝试访问对象上的属性时，JavaScript引擎开始从对象自身中查找该属性，如果没有，它会继续检查__proto__，一直到没有__proto__或者找到该属性。如果找到最后，此属性不存在时，返回undefined。
-> 原型链的最上层是`Object.prototype`
-## apply，call，bind的区别？
+var，let，const声明用法是一样，都是定义变量，var的声明会被提升到全局作用域或函数作用域，但仍然在原地方赋值。let，const并不会声明提升，因此在声明之前的代码区域就是暂时性死区。
+## call，apply，bind的区别？
 三者的功能都是用来改变函数中的 this 指向。
 * call() 方法是预定义的 JavaScript 方法。它可以用来调用所有者对象作为参数的方法。通过 call()，您能够使用属于另一个对象的方法。call传入的参数数量不固定，第一个参数代表函数内的this指向，从第二个参数开始往后，每个参数被依次传入函数。 
 ```js
@@ -114,10 +55,45 @@ var a = new b() // 此时a为{c: 1, d: '2'}
 >    return result
 >  }
 >```
-## typeof，instantof是什么？
-* typeof是一个运算符，返回值是一个字符串，用来说明变量的数据类型，可以用此来判断number, string, object, boolean, function, undefined, symbol 这七种类型。对于对象、数组、null 返回的值是 object。
-* instanceof运算符用于指示一个变量是否属于某个对象的实例。返回值为布尔值。instanceof 主要的实现原理就是只要右边变量的 prototype 在左边变量的原型链上即可。
-## js的this？
+## 说一下原型和原型链？
+JavaScript 中，万物皆对象，对象分为普通对象和函数对象，所有的函数都是函数对象（`typeof f === 'function'`），其他都是普通对象（`typeof o === 'object'`）。
+
+JS在没有类`class`前，创建一个对象都是通过 `new 函数()` 来实现的，例如：
+```js
+var a = new Object() // 此时a是{}
+var a = {} // 等价于 var a = new Object()
+function b() {}
+var a = new b() // 此时a是{}
+```
+在 JavaScript 中，每当定义一个对象（函数也是对象）时候，对象中都会包含一些预定义的属性。其中每个函数对象都有一个prototype 属性，这个属性指向函数的原型对象。
+
+原型对象是函数内维护的一个对象模版，当 `new 函数()` ，就会把这个对象拷贝一份返回，例如：
+```js
+function b() {
+    b.prototype.c = 1
+    b.prototype.d = '2'
+}
+var a = new b() // 此时a为{c: 1, d: '2'}
+```
+另外，JS 在创建对象（不论是普通对象还是函数对象）的时候，都有一个叫做__proto__的内置属性，用于指向创建它的构造函数的原型对象，例如在上面👆的例子中，`a.__proto__ === b.prototype`。
+
+每个对象都有__proto__属性，但只有函数对象才有 prototype 属性。
+在默认情况下，所有的对象（包括函数对象和原型对象）都会自动获得一个 constructor（构造函数）属性，这个属性（是一个指针）指向 prototype 属性所在的函数，例如在上面👆的例子中，`a.constructor === b.prototype.constructor === b.constructor === b`。
+
+> 注意`Function.prototype`是函数对象，但没有prototype属性，即`Function.prototype.prototype === undefined`
+
+原型链：在多重继承中，一个对象可以是原型的拷贝，同时也是另一个对象的原型。因此，当你尝试访问对象上的属性时，JavaScript引擎开始从对象自身中查找该属性，如果没有，它会继续检查__proto__，一直到没有__proto__或者找到该属性。如果找到最后，此属性不存在时，返回undefined。
+> 原型链的最上层是`Object.prototype`
+
+## 讲一讲js的this指针？
+* 全局的this指针指向windows（在严格模式下，全局作用域中的 this 的值是 undefined）。
+* 当一个函数被调用时，this被绑定为全局对象，在浏览器环境下是window对象，非严格模式下，函数中的this指向window。
+* 当一个方法（当函数被保存为一个对象的属性时）被调用时，this被绑定到这个对象上。
+* 如果在一个函数前面加上new关键字来调用（当构造函数用），函数中的this会被绑定到这个新对象上。
+* 对象里的this指向window。例如：`a = {b: this.k}`，此时this指向windows。
+* call/apply/bind，this指针会绑定指定的对象。
+* 事件的this指针指向元素本身。
+* 箭头函数中的this是指向箭头函数定义时的离箭头函数最近的一个函数的this。
 ## 手写new？
 ```js
 //Fun为构造函数, args表示传参
@@ -142,9 +118,73 @@ function myNew(Fun, ...args) {
 let obj = myNew(One, "XiaoMing", "18");
 console.log("newObj:", obj);
 ```
+## 闭包是什么？
+闭包是指一个函数可以访问和使用其定义外部的变量，让这些变量的值始终保持在内存中，同时提供很好的封装和抽象。
 ## 手写防抖节流？
-* 防抖（debounce）：每次触发定时器后，取消上一个定时器，然后重新触发定时器。防抖一般用于用户未知行为的优化，比如搜索框输入弹窗提示，因为用户接下来要输入的内容都是未知的，所以每次用户输入就弹窗是没有意义的，需要等到用户输入完毕后再进行弹窗提示。
-* 节流（throttle）：每次触发定时器后，直到这个定时器结束之前无法再次触发。一般用于可预知的用户行为的优化，比如为scroll事件的回调函数添加定时器。
+* 防抖（debounce）：每次触发定时器后，取消上一个定时器，然后重新触发定时器。防抖一般用于用户未知行为的优化，比如搜索框输入实时提示。
+  ```js
+  let timer;
+  function debounce(cb, time) {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+        cb();
+    }, time)
+  }
+  
+  onInputChange(text) {
+    debounce(() => {
+      // 获取实时提示
+    }, 100)
+  }
+  ```
+  ```js
+  // 复杂一点的
+  function debounce(func, time) {
+    let timer;
+    return function() {
+      const [that, args] = [this, arguments];
+      clearTimeout(timer)
+      timer = setTimeout(() => {
+        func.apply(that, args);
+      }, time);
+    }
+  }
+
+  onInputChange = debounce((text) => {
+    // 获取实时提示
+  }, 1000)
+  ```
+* 节流（throttle）：每次触发定时器后，直到这个定时器结束之前无法再次触发该函数。一般用于可预知的用户行为的优化，比如限制按钮点击的触发频率，防止重复的提交。
+```js
+let previous = 0;
+function throttle(cb, time) {
+  const now = Date.now();
+  if (now - previous > time) {
+    cb();
+    previous = now;
+  }
+}
+
+onButtonClick() {
+  throttle(() => {
+    // 提交表单
+  }, 1000)
+}
+```
+```js
+// 复杂一点的
+function throttle(func, time) {
+  let previous = 0;
+  return function() {
+    const [that, args] = [this, arguments];
+    const now = Date.now();
+    if (now - previous > time) {
+      previous = now;
+      func.apply(that, args);
+    }
+  }
+}
+```
 ## 事件循环机制？
 JS是一门单线程的语言，通过事件循环机制实现单线程异步的。JS所有同步任务都在主线程上执行，即执行栈。主线程之外还存在一个任务队列(也有人称之为消息队列)，用于执行异步任务。事件循环的工作流程如下：
 * 首先，检查执行栈，看看是否有同步任务需要运行。
@@ -163,4 +203,34 @@ JS是一门单线程的语言，通过事件循环机制实现单线程异步的
 在捕获阶段中，可以通过 addEventListener() 函数的第三个参数（选项）设置 capture 选项来监听事件的捕获阶段，否则监听将在冒泡阶段触发。
 
 事件传递过程中，如果事件处理函数调用了 event.stopPropagation() 方法，当侦听的事件是捕获时,阻断的就是捕获过程,当侦听的事件是冒泡时,阻断的就是冒泡过程。
-
+## typeof，instantof是什么？
+* typeof是一个运算符，返回值是一个字符串，用来说明变量的数据类型，可以用此来判断number, string, object, boolean, function, undefined, symbol 这七种类型。对于对象、数组、null 返回的值是 object。
+* instanceof运算符用于指示一个变量是否属于某个对象的实例。返回值为布尔值。instanceof 主要的实现原理就是只要右边变量的 prototype 在左边变量的原型链上即可。
+## 讲一讲es5/6/7/8/9新特点？
+* **ECMAScript 5 也称为 ES5 和 ECMAScript 2009。**
+    + `"use strict"` 指令。例如，使用严格模式，不能使用未声明的变量
+    + `String.trim()/charAt()` 删除字符串两端的空白字符
+    + `Array.isArray()/forEach()/map()/fliter()/indexOf()/reduce()`
+    + `JSON.parse()/stringify()`
+    + `Date.now()`
+    + `Object.key()/defineProperty()/getPrototypeOf()`等
+    + 属性 Getter 和 Setter
+* **ECMAScript 6，也被称为ES6和ES2015，是JavaScript的第六个版本**
+    + let 和 const 以及块级作用域，在ES6之前，JavaScript只有全局作用域和函数作用域，没有块级作用域。
+    + 模板字符串
+    + 箭头函数
+    + 全局作用域中的 this 指向，在严格模式下，全局作用域中的 this 的值是 undefined。在非严格模式下，它会指向全局对象（浏览器中是 window 对象，Node.js 中是 global 对象）。
+    + 解构赋值，展开运算符
+    + 对象字面量的增强：属性和方法的简洁表示法，方括号表示法
+    + 函数参数的默认值，剩余参数
+    + set和map数据结构
+    + 遍历器与for…of循环
+    + `String.startWith()/endWith()/includes()`
+    + `Array.includes()/find()/from()/fill()`
+    + `Object.keys()/values()/entries()/assign()`
+* **ES2016（ES7）**
+    + 幂运算符**
+## CommonJS 和 AMD/CMD 规范，以及ES6的模块？
+* AMD规范，即异步模块加载机制。核心是预加载，先对依赖的全部文件进行加载，加载完了再进行处理。
+* CommonJS规范加载模块是同步的，也就是说，只有加载完成，才能执行后面的操作。模块可以多次加载，但是只会在第一次加载时运行一次，然后运行结果就被缓存了，以后再加载，就直接读取缓存结果。要想让模块再次运行，必须清除缓存。
+模块加载的顺序，按照其在代码中出现的顺序。
