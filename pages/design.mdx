@@ -1,0 +1,8 @@
+# 初级
+## MVC和MVVM的区别？
+* MVC是包括view视图层、controller控制层、model数据层。各部分之间的通信都是单向的。
+View传送指令到ControllerController完成业务逻辑后，要求Model改变状态，Model将新的数据发送到View，用户得到反馈。
+比如说，用户在输入框里输入一个字符，触发controller，controller修改model数据，最后model数据传递给view层进行渲染。
+* MVVM是包括view视图层、viewModel视图模型层、model数据层。各部分之间的通信都是双向的。
+View和Model并没有直接联系，而是通过ViewModel传递，Model和ViewModel之间的交互是双向的。
+比如说，用户在输入框里输入一个字符，同时就会修改model数据，同理，如果model数据发生改变，view也会做出相应的改变，这就是双向绑定。
