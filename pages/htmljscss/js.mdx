@@ -229,8 +229,93 @@ JS是一门单线程的语言，通过事件循环机制实现单线程异步的
     + `Array.includes()/find()/from()/fill()`
     + `Object.keys()/values()/entries()/assign()`
 * **ES2016（ES7）**
-    + 幂运算符**
+    + 幂运算符** 但一般也没有什么需求会用到幂乘
+    + `Array.prototype.includes()`，第二个参数是从第几个下标开始搜，默认0
+* **ES2017 ES8**
+    + `Object.values`, `Object.entries`
+    + 结尾允许逗号
+    + async异步函数
+* **ES2018 ES9**
+    + 异步循环，同步循环中调用能引起等待的异步函数，是不会达到预期目的，循环本身依旧保持同步，并在内部异步函数之前完成。因此新增异步循环`for await(let i of array)`
+    + 异步的finally
+    + 对象的展开运算符，这项特性在ES6中已经引入，但是仅限于数组。
+* **ES2019 ES10**
+    + catch的参数e可以省略掉
+    + `Object.fromEntries()`方便地将键值对列表（例如 Map、数组(符合键值对的)等）转换为一个对象。
+    + `Array.flat()`能将高维数组降一维。
+* **ES 2020 (ES11)**
+    + 可选链操作符
+    + BigInt 它是JavaScript的第7个原始类型，可安全地进行大数整型计算。 只需要在数字后面加上 n 即可。但不能将 BigInt与Number算术计算。
+## `for in`, `for of`区别？
+* `for in`循环返回的值都是对象的键值名(数组即下标)，遍历顺序有可能不是按照实际数组的内部顺序，使用for… in会遍历数组/对象所有的可枚举属性，包括继承属性，原型。所以不适合遍历数组，更适合遍历对象。
+* for… of 循环用来获取一对键值对中的值，相对于forEach而言可以与 break、continue和return 配合使用，可以随时退出循环。但for…of循环内部调用的是数据结构的Symbol.iterator方法。
+因此不能遍历对象，因为没有迭代器对象，可以使用的范围包括数组、Set 和 Map 结构、某些类似数组的对象（比如arguments对象、DOM NodeList 对象）、Generator 对象，以及字符串。
+> 在ECMAScript规范中定义了 「数字属性应该按照索引值⼤⼩升序排列，字符串属性根据创建时的顺序升序排列。」在这⾥我们把对象中的数字属性称为 「排序属性」，在V8中被称为 elements，字符串属性就被称为 「常规属性」， 在V8中被称为 properties。
+## 遍历对象的几种方法？
+* `for...in`
+* `Object.keys()`，参数是一个对象，返回是该对象的key数组
+* `Object.values()`，参数是一个对象，返回是该对象的value数组
+* `Object.entries()`，返回值为Object.values()与Object.keys()的结合，返回一个二维数组，每个小数组都是[ [属性名，属性值],[属性名，属性值] ]
+* `Object.getOwnPropertyNames()`，其返回结果与Object.keys()相似，但会返回对象得所有属性，包括了不可枚举属性
+## JS 的array的函数中，有哪些是直接修改数组本体？
+* 改变原数组的方法：
+`pop()`,`push()`, `shift()`,`unshift()`,`splice()`,`sort()`,`reverse()`
+* 不改变原数组的方法：
+`slice()`,`concat()`
+## 深拷贝浅拷贝的区别？如何实现一个深拷贝？
+* 浅拷贝是拷贝一层，属性为对象时，浅拷贝是复制，两个对象指向同一个地址，`Object.assign()`，拓展运算符都是浅拷贝
+* 深拷贝是递归拷贝深层次，属性为对象时，深拷贝是新开栈，两个对象指向不同的地址，`JSON.stringify()`是深拷贝，但是会忽略undefined、symbol和函数
+```js
+function deepClone(obj, hash = new WeakMap()) {
+  if (typeof obj === 'object') {
+
+  } else {
+    return obj;
+  }
+  if (obj === null) return obj; // 如果是null或者undefined我就不进行拷贝操作
+  if (obj instanceof Date) return new Date(obj);
+  if (obj instanceof RegExp) return new RegExp(obj);
+  // 可能是对象或者普通的值  如果是函数的话是不需要深拷贝
+  if (typeof obj !== "object") return obj;
+  // 是对象的话就要进行深拷贝
+  if (hash.get(obj)) return hash.get(obj);
+  let cloneObj = new obj.constructor();
+  // 找到的是所属类原型上的constructor,而原型上的 constructor指向的是当前类本身
+  hash.set(obj, cloneObj);
+  for (let key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      // 实现一个递归拷贝
+      cloneObj[key] = deepClone(obj[key], hash);
+    }
+  }
+  return cloneObj;
+}
+```
 ## CommonJS 和 AMD/CMD 规范，以及ES6的模块？
 * AMD规范，即异步模块加载机制。核心是预加载，先对依赖的全部文件进行加载，加载完了再进行处理。
 * CommonJS规范加载模块是同步的，也就是说，只有加载完成，才能执行后面的操作。模块可以多次加载，但是只会在第一次加载时运行一次，然后运行结果就被缓存了，以后再加载，就直接读取缓存结果。要想让模块再次运行，必须清除缓存。
 模块加载的顺序，按照其在代码中出现的顺序。
+## JS的隐式转换？
+在使用不同类型的值进行操作时，JavaScript会自动进行类型转换。
+* 我们在对各种非Number类型运用数学运算符(- * /)时，会先将非Number类型转换为Number类型。
+* 我们在对各种非Number类型运用数学运算符(+)时： （以下 3 点，优先级从高到低）
+  * 当一侧为String类型，会将另一侧转换为字符串类型并进行字符串拼接。
+  * 当一侧为Number类型，另一侧为非字符串的其他原始类型，则将原始类型转换为Number类型。
+  * 当一侧为Number类型，另一侧为引用类型，将引用类型和Number类型转换成字符串后拼接。
+* 当我们使用逻辑语句（例如if while for）时，条件值将转为Boolean值，只有 null undefined '' NaN 0 false 这几个是 false，其他的情况都是 true，比如 {} , []。。
+* 当我们使用`==`时： 
+  * NaN和其他任何类型比较永远返回false（包括和他自己）。
+  * Boolean 和其他任何类型比较，Boolean 首先被转换为 Number 类型。
+  * String和Number比较，先将String转换为Number类型。
+  * null == undefined比较结果是true，除此之外，null、undefined和其他任何结果的比较值都为false。
+  * 原始类型和引用类型做比较时，引用类型会依照ToPrimitive规则转换为原始类型。
+# 高级
+## 会babel插件开发吗？
+Babel编译是一个code to code的过程，整个流程分为三步：
+* 解析（parse）：将源码解析成抽象语法树(AST)
+* 转换（transform）：遍历AST，并使用babel api对AST节点进行增删改，babel 维护一个称作 Visitor 的对象，这个对象定义了用于 AST 中获取具体节点的方法，如果当前节点的类型匹配 visitor 中的类型，就会执行对应的方法，
+遍历 AST 节点的时候会遍历两次（进入和退出），这样命中目标节点并进行逻辑处理。
+* 生成（generate）：将转换后的 AST 转换成代码，同时可以创建Source Map映射。
+编写一个文件，里面一个函数，返回值是一个指定类型的对象，visitor就是其中最主要的对象，其他都是一些配置。
+在babel.config.json里的plugins，加上这个文件，就能进行转换了。
+> AST可视化平台：https://astexplorer.net/
