@@ -35,7 +35,6 @@
 
 ## 讲一讲css3新特点？
 > 2001年5月23日W3C完成了CSS3的工作草案，主要包括盒子模型、列表模块、超链接方式、语言模块、背景和边框、文字特效、多栏布局等模块。
-* 添加了伪类/伪元素/多重/属性选择器，例如`:hover`，`::before`，`ele1, ele2`，`[attr=value]`。
 * 盒模型，页面中的所有元素都可以看成一个盒子，由4个属性组成的（content（内容），padding（内边距），margin（外边距），border（边框）），
 有标准盒模型和ie盒模型，在标准盒模型中，元素的宽度和高度等于内容区域的宽度和高度，
 在ie盒模型中，元素的宽度和高度定义为内容区域的宽度和高度加上内边距和边框的宽度和高度。
@@ -44,18 +43,18 @@
 <div style={{boxSizing: 'content-box', width: '150px', height: '100px', padding: '20px', border: '10px solid black', margin: '10px', fontSize: '12px'}}><span>box-sizing: content-box</span></div>
 <div style={{boxSizing: 'border-box', width: '150px', height: '100px', padding: '20px', border: '10px solid black', margin: '10px', fontSize: '12px'}}><span>box-sizing: border-box</span></div>
 </div>
-* 新增边框属性`border-radius`，`border-image`，`box-shadow`
-* 新增背景属性`background-size`，`background-origin`，`background-break`，`background-clip`
 * 新增文字属性
     * word-wrap: normal|break-word 使用浏览器的默认换行或者允许单词内换行
     * text-overflow: clip|ellipsis 设置当前行超过指定容器的边界时如何显示，修剪文本或者显示省略符号来代表被修剪的文本
-* 新增颜色透明度
-* 新增颜色渐变
-* transition 过渡，多个属性之间用逗号进行分隔，必须规定过渡效果，持续时间两个内容，语法为：`transition: CSS属性, 花费时间, 效果曲线（默认ease）, 延迟时间（默认0）`
+* 新增颜色透明度/渐变
+* 新增背景属性`background-size`，`background-origin`，`background-break`，`background-clip`
+* 新增边框属性`border-radius`，`border-image`，`box-shadow`
 * transform 转换
+* transition 过渡，多个属性之间用逗号进行分隔，必须规定过渡效果，持续时间两个内容，语法为：`transition: CSS属性, 花费时间, 效果曲线（默认ease）, 延迟时间（默认0）`
 * animation 动画
 * 新增弹性布局，网格布局，多列布局
 * 媒体查询
+* 添加了伪类/伪元素/多重/属性选择器，例如`:hover`，`::before`，`ele1, ele2`，`[attr=value]`。
 ## css的渲染优先级？
 * 选择器都有一个权值，权值越大越优先
     * 内联样式表的权值最高 1000
@@ -67,14 +66,64 @@
 * 在同一组属性设置中标有“!important”规则的优先级最大
 
 ## clientHeight,scrollHeight,offsetHeight ,以及scrollTop, offsetTop,clientTop的区别？
-## 了解float浮动布局吗？
-元素被设置上`float: left`属性后，元素变成‘块’，可设置宽高，位置尽量靠上，尽量靠左。
-脱离文档流，不占据原来的位置，但会影响其他块级元素内部文本。
-<div style={{width: '400px', height: '200px', border: '2px solid black'}}>
-<div style={{float: 'left', width: '100px', height: '90px', background: 'rgba(255, 0,0, 0.5)'}}>float: right</div>
-<div style={{width: '200px', height: '150px', background: 'rgba(0, 255,0, 0.5)', fontSize: '13px'}}>内部文本被影响，这种特性常常被用于实现网页中的多列布局、图像与文本的并排显示等效果。</div>
+
+## BFC是什么？
+BFC 即 Block Formatting Contexts (块级格式化上下文)，具有 BFC 特性的元素可以看作是隔离了的独立容器，容器里面的元素不会在布局上影响到外面的元素，并且 BFC 具有普通容器所没有的一些特性。
+BFC 特性及应用
+* 阻止外边距重叠。但属于同一个BFC的两个相邻Box的外边距仍会发生重叠。但若两个相邻元素在不同的BFC中，就能避免外边距折叠。
+* 可以包含浮动的元素（清除浮动），其高度能被其内部的浮动元素撑开。
+* 可以阻止元素被浮动元素覆盖
+
+只要元素满足下面任一条件即可触发 BFC 特性：
+* `float: left|right`
+* `overflow: hidden|auto|scroll`，就是不能为visible
+* `display: table-cell|table-caption|inline-block|inline-flex|flex`
+*  `position: absolute|fixed`
+<div style={{overflow:'hidden', width: '300px', backgroundColor: 'rgba(255, 0,0,0.5)'}}>
+    <div style={{float: 'left', margin: '20px', width: '50px', height: '50px', backgroundColor: 'rgba(0, 0,255,0.5)'}}></div>
+    <div style={{float: 'left', margin: '20px', width: '50px', height: '50px', backgroundColor: 'rgba(0, 0,255,0.5)'}}></div>
+    <div style={{float: 'left', margin: '20px', width: '50px', height: '50px', backgroundColor: 'rgba(0, 0,255,0.5)'}}></div>
 </div>
-> 跟`position: absolute`的区别基本上就是文字定位的区别。
+## 了解float浮动布局吗？
+float 属性最初只用于在一段文本内浮动图像, 实现文字环绕的效果，但是早期的CSS标准中并没有提供好的左右布局方案, 因此在一段时间里面它成为网页多列布局的最常用工具。
+
+元素一旦浮动后（`float: left`，此时元素变成‘块’，如果元素没有定义宽度，浮动之后，元素的宽度靠内容撑起，元素浮动后不再区分块级元素/行内元素/行内块级元素，浮动后元素的排布方式只有水平排布），
+脱离标准流，朝着向左或向右方向移动，直到自己的边界紧贴着包含块（一般是父元素）或者其他浮动元素的边界为止，不占据原来的位置，但会影响其他块级元素内部文本。
+当父元素一行内显示不下所有浮动元素时，最后显示不下会换行。被挤落下来的元素，会躲开被上一层元素占据的最大高度。
+
+<div style={{width: '400px', height: '300px', border: '2px solid black'}}>
+<div style={{width: '100px', height: '90px', background: 'rgba(255, 0,0, 0.5)'}}>div1</div>
+<div style={{float: 'left', width: '200px', height: '150px', background: 'rgba(0, 255,0, 0.5)', fontSize: '13px'}}>内部文本被影响，这种特性常常被用于实现网页中的多列布局、图像与文本的并排显示等效果。div2(f)</div>
+<div style={{float: 'left', width: '100px', height: '90px', background: 'rgba(123, 123,123, 0.5)'}}>div3(f)</div>
+<span style={{background: 'rgba(0, 123,123, 0.5)'}}>span3.1</span>
+<div style={{width: '100px', height: '90px', background: 'rgba(0, 0,255, 0.5)'}}>div4</div>
+<div style={{width: '100px', height: '90px', background: 'rgba(123, 123,123, 0.5)'}}>div5</div>
+<div style={{float: 'right', width: '100px', height: '90px', background: 'rgba(0, 0,123, 0.5)'}}>div6(f)</div>
+</div>
+
 ## 清除浮动的方法？
-浮动元素会脱离正常的文档流，可能导致父元素的高度塌陷（父元素无法正确包裹浮动元素）。
+目的：清除浮动效果的影响，使文档流元素不再进行补位。
+* 在文档流中，父元素的高度默认是由子元素撑开的。父元素如果不设置高度，当父元素内所有的子元素都设置了浮动，子元素脱离了文档流，
+没有了子元素来撑起父元素的高度，父元素会认为内部没有内容而将高度height认为0，引起高度坍塌。高度坍塌会导致父元素下的所有元素上移，引起页面布局混乱。
+<div style={{background: 'rgba(0,255,0,0.5)'}}>
+    <div style={{float: 'left', width: '100px', height: '100px', background: 'rgba(255,0,0,0.5)'}}></div>
+</div>
+浮动元素会脱离正常的文档流，可能导致父元素的高度塌陷（本段预期应在下一行展示）。
+<div style={{clear: 'both'}}></div>
+* 在浮动元素后面添加一个元素，并为其添加`clear: both;`样式。这个元素可以是实际的DOM元素，也可以是一个看不见的元素。缺点是它需要在你的HTML中添加额外的元素。
+* 使用::after或::before伪元素并为其添加`clear: both;`样式来清除浮动。这种方法的优点是不需要在HTML中添加额外的元素，但缺点是它可能会影响到其他样式（如背景和边框的渲染）。
+* 转成BFC
+## 外边距合并是什么意思？
+外边距合并是CSS中一个特殊的概念。当两个外边距相邻时，它们会合并为较大的那一个。 
+无论是相邻元素的上下边距，还是父子元素的各自上边距，甚至是同一元素的上下边距（当元素高度为空，上下边距就会接触到一起）。
+
+外边距合并是有意义的，主要体现在文本页面，一般来说，每一文本段都有相同的外边距，这意味着段落之间的空间是页面顶部的两倍。
+如果发生外边距合并，页面顶/底部的空间将转为容器的margin，段落之间的上外边距和下外边距就合并在一起，这样各处的距离就一致了。
+
+因此，合并发生在普通文档流的块级元素的垂直外边距上，并且只有两个外边距直接相邻时才会合并。阻止外边距合并的方法有：
+* 使用内边距或透明的border边框代替外边距
+* 使用flex布局
+* 使用绝对布局
+* 触发BCF（但两个相邻的块级盒子的垂直外边距会触发重叠）
 ## 1rem、1em、1vh、1px各自代表的含义？
+
