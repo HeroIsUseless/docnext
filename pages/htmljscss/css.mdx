@@ -1,4 +1,9 @@
 # 初级
+## 页面导入样式时，使用link和@import有什么区别？
+* link是xhtml标签，除了加载css外，还可以定义RSS等其他事务，无兼容问题；@import属于CSS范畴，只能加载CSS，是在css2.1（2004年）提出来的，低版本的浏览器不支持
+* link引用CSS时候，页面载入时同时加载；@import需要在页面完全加载以后加载，而且@import被引用的CSS会等到引用它的CSS文件被加载完才加载
+* link支持使用javascript控制去改变样式，而@import不支持
+* link方式的样式的权重高于@import的权重
 ## 水平居中的方法，垂直居中的方法？
 * 内联元素居中
     * 通过`text-align: center;`实现水平居中，通过`line-height = height`实现垂直居中。
@@ -29,13 +34,7 @@
     * pre-line:表示文本中多个空格会被合并成一个空格，但是换行会被保留，会自动换行，不会出现水平滚动条。
 > 如果文字不换行，可以用`text-overflow:ellipsis;`显示省略符号来代表被修剪的文本。
 ## 盒模型是什么？
-
-
-
-
-## 讲一讲css3新特点？
-> 2001年5月23日W3C完成了CSS3的工作草案，主要包括盒子模型、列表模块、超链接方式、语言模块、背景和边框、文字特效、多栏布局等模块。
-* 盒模型，页面中的所有元素都可以看成一个盒子，由4个属性组成的（content（内容），padding（内边距），margin（外边距），border（边框）），
+页面中的所有元素都可以看成一个盒子，由4个属性组成的（content（内容），padding（内边距），margin（外边距），border（边框）），
 有标准盒模型和ie盒模型，在标准盒模型中，元素的宽度和高度等于内容区域的宽度和高度，
 在ie盒模型中，元素的宽度和高度定义为内容区域的宽度和高度加上内边距和边框的宽度和高度。
 用box-sizing属性来控制元素使用哪种盒模型。box-sizing属性有两个值：content-box和border-box。content-box是标准盒模型，border-box是IE盒模型。默认值是content-box。
@@ -43,6 +42,9 @@
 <div style={{boxSizing: 'content-box', width: '150px', height: '100px', padding: '20px', border: '10px solid black', margin: '10px', fontSize: '12px'}}><span>box-sizing: content-box</span></div>
 <div style={{boxSizing: 'border-box', width: '150px', height: '100px', padding: '20px', border: '10px solid black', margin: '10px', fontSize: '12px'}}><span>box-sizing: border-box</span></div>
 </div>
+## 讲一讲css3新特点？
+> 2001年5月23日W3C完成了CSS3的工作草案（但至今没有定稿），主要包括盒子模型、列表模块、超链接方式、语言模块、背景和边框、文字特效、多栏布局等模块。
+* 盒模型
 * 新增文字属性
     * word-wrap: normal|break-word 使用浏览器的默认换行或者允许单词内换行
     * text-overflow: clip|ellipsis 设置当前行超过指定容器的边界时如何显示，修剪文本或者显示省略符号来代表被修剪的文本
@@ -75,14 +77,15 @@ BFC 特性及应用
 * 可以阻止元素被浮动元素覆盖
 
 只要元素满足下面任一条件即可触发 BFC 特性：
+* html根标签
 * `float: left|right`
 * `overflow: hidden|auto|scroll`，就是不能为visible
 * `display: table-cell|table-caption|inline-block|inline-flex|flex`
 *  `position: absolute|fixed`
-<div style={{overflow:'hidden', width: '300px', backgroundColor: 'rgba(255, 0,0,0.5)'}}>
-    <div style={{float: 'left', margin: '20px', width: '50px', height: '50px', backgroundColor: 'rgba(0, 0,255,0.5)'}}></div>
-    <div style={{float: 'left', margin: '20px', width: '50px', height: '50px', backgroundColor: 'rgba(0, 0,255,0.5)'}}></div>
-    <div style={{float: 'left', margin: '20px', width: '50px', height: '50px', backgroundColor: 'rgba(0, 0,255,0.5)'}}></div>
+<div style={{overflow: 'hidden', width: '300px', backgroundColor: 'rgba(255, 0,0,0.5)'}}>
+    <div style={{display: 'flex', margin: '20px', width: '50px', height: '50px', backgroundColor: 'rgba(0, 0,255,0.5)'}}></div>
+    <div style={{display: 'flex', margin: '20px', width: '50px', height: '50px', backgroundColor: 'rgba(0, 0,255,0.5)'}}></div>
+    <div style={{display: 'flex', margin: '20px', width: '50px', height: '50px', backgroundColor: 'rgba(0, 0,255,0.5)'}}></div>
 </div>
 ## 了解float浮动布局吗？
 float 属性最初只用于在一段文本内浮动图像, 实现文字环绕的效果，但是早期的CSS标准中并没有提供好的左右布局方案, 因此在一段时间里面它成为网页多列布局的最常用工具。
@@ -126,4 +129,8 @@ float 属性最初只用于在一段文本内浮动图像, 实现文字环绕的
 * 使用绝对布局
 * 触发BCF（但两个相邻的块级盒子的垂直外边距会触发重叠）
 ## 1rem、1em、1vh、1px各自代表的含义？
+# 中级
+## 无样式内容闪烁（FOUC）Flash of Unstyle Content 如何解决？
+@import导入CSS文件会等到文档加载完后再加载CSS样式表。因此，在页面DOM加载完成到CSS导入完成之间会有一段时间页面上的内容是没有样式的。
 
+解决方法：使用link标签加载CSS样式文件。因为link是顺序加载的，这样页面会等到CSS下载完之后再下载HTML文件，这样先布局好，就不会出现FOUC问题。
