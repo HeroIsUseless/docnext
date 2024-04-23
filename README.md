@@ -1,23 +1,13 @@
-# Nextra Docs Template 
+# 简介
+ 
+站长建此网站收集前端面试题，以练代学，因此以基础知识为主，学习完能获得最基础最扎实的前端知识
 
-This is a template for creating documentation with [Nextra](https://nextra.site).
+本站要求读者至少具备最基础的前端知识
 
-[**Live Demo →**](https://nextra-docs-template.vercel.app)
+建议按照目录从上到下依次学完，因为后面的依赖前面的知识
 
-[![](.github/screenshot.png)](https://nextra-docs-template.vercel.app)
+初级是很重要而且日常开发都用得到，中级是一些非常重要的概念但日常开发基本用不到，高级是非常偏难怪，也不是很重要，也基本用不到
 
-## Quick Start
+如果你发现有不对的地方，欢迎点右边的`Edit this page`提PR 👉
 
-Click the button to clone this repository and deploy it on Vercel:
-
-[![](https://vercel.com/button)](https://vercel.com/new/clone?s=https%3A%2F%2Fgithub.com%2Fshuding%2Fnextra-docs-template&showOptionalTeamCreation=false)
-
-## Local Development
-
-First, run `pnpm i` to install the dependencies.
-
-Then, run `pnpm dev` to start the development server and visit localhost:3000.
-
-## License
-
-This project is licensed under the MIT License.
+感觉好用的话，可以收藏本站哦！
