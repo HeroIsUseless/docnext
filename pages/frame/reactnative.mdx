@@ -1,0 +1,107 @@
+# 初级
+# 中级
+## 什么是Metro？
+Metro 是一个针对 React Native的JavaScript模块打包器，他接收一个entry file (入口文件) 和一些配置作为参数，
+返回给你一个单独的JavaScript文件，这个文件包含了你写的所有的JavaScript 代码和所有的依赖。
+也就是说Metro把你写的几十上百个js文件和几百个node_modules的依赖，打包成了一个文件。
+React Native 提供的 metro 自带分包功能。metro我们本来就一直在用，只要在metro打包的时候，提供相应的打包规则。就可以实现rn的分包了。
+Metro 的打包过程有3个独立的阶段
+* Resolution 阶段，Metro 需要建立一个你的入口文件所需要的所有的模块的表，为了找到一个文件依赖了哪些文件，
+Metro 使用了一个resolver。在实际中，Resolution阶段是和transformation阶段并行进行的。
+* Transformation阶段，所有的模块都要经历一个 transformer， transformer 负责把一个模块转换成RN能理解的格式；
+* Serialization阶段，一旦模块被转换完成，就会马上被serialized，通过serializer，
+把上一个阶段转换好的模块组合成一个或多个bundle，bundle 就是字面意思：把一堆模块组合成一个单独的JavaScript文件
+## React Native应用包含哪几个线程，都有什么作用？
+React Native 应用程序包含以下几个线程：
+
+主线程：主线程负责处理 UI 更新和用户输入。它是 React Native 应用程序的“入口点”，所有其他线程都与它通信。
+JS 线程：JS 线程负责执行 React 代码。它与主线程通过事件总线进行通信。
+原生线程：原生线程负责执行原生代码。它与主线程通过 JNI 进行通信。 主线程和 JS 线程是 React Native 应用程序的核心线程。它们负责处理 UI 更新和用户输入，以及执行 React 代码。原生线程负责执行原生代码，例如访问设备硬件或调用系统 API。
+
+对大多数 React Native 应用来说，业务逻辑是运行在 JavaScript 线程上的。这是 React 应用所在的线程，也是发生 API 调用，以及处理触摸事件等操作的线程。更新数据到原生支持的视图是批量进行的，并且在事件循环每进行一次的时候被发送到原生端，这一步通常会在一帧时间结束之前处理完（如果一切顺利的话）。
+
+如果 JavaScript 线程有一帧没有及时响应，就被认为发生了一次丢帧。 例如，你在一个复杂应用的根组件上调用了this.setState，从而导致一次开销很大的子组件树的重绘，可想而知，这可能会花费 200ms 也就是整整 12 帧的丢失。此时，任何由 JavaScript 控制的动画都会卡住。只要卡顿超过 100ms，用户就会明显的感觉到。
+
+这种情况经常发生在老的Navigator导航器的切换过程中：当你 push 一个新的路由时，JavaScript 需要绘制新场景所需的所有组件，以发送正确的命令给原生端去创建视图。由于切换是由 JavaScript 线程所控制，因此经常会占用若干帧的时间，引起一些卡顿。有的时候，组件会在componentDidMount函数中做一些额外的事情，这甚至可能会导致页面切换过程中多达一秒的卡顿。
+## 请简述React Native的新旧架构，以及新架构在哪方面进行了提升？
+React Native 最初的架构是基于 JavaScriptCore 的，它使用 JavaScript 运行时来执行 React 代码。然而，JavaScriptCore 在性能和内存使用方面存在一些问题。为了解决这些问题，React Native 在 2018 年推出了新的架构，该架构基于 Hermes 运行时。
+
+Hermes 运行时是专门为 React Native 设计的，它提供了更好的性能和内存使用。它还支持新的特性，如热重载和代码分割。
+## RN新架构？
+* 新的原生模块体系 - Turbo Modules，一个支持与本地代码高效、灵活集成的框架。
+* Fabric 渲染器和组件，它提供了更好的功能、跨平台的一致性和渲染性能。
+* Codegen，它通过 JavaScript 的静态类型化，生成新架构所需的 C++ 模板。
+
+旧的架构曾经通过使用一个叫做桥（Bridge）的组件将所有必须从 JS 层传递到本地层的数据序列化来工作。桥可以被想象成一条总线，生产者层为消费者层发送一些数据。消费者可以读取数据，将其反序列化并执行所需的操作。
+
+桥有一些固有的限制：
+
+* 它是异步的：某个层将数据提交给桥，再异步地"等待"另一个层来处理它们，即使有时候这并不是真正必要的。
+* 它是单线程的：JS 是单线程的，因此发生在 JS 中的计算也必须在单线程上进行。
+* 它带来了额外的开销：每当一个层必须使用另一个层时，它就必须序列化一些数据。另一层则必须对其进行反序列化。这里选择的格式是 JSON，因为它的简单性和人的可读性，但尽管是轻量级的，它也是有开销的。
+
+新架构放弃了"桥"的概念，转而采用另一种通信机制：JavaScript 接口（JSI）。JSI 是一个接口，允许 JavaScript 对象持有对 C++ 的引用，反之亦然。
+
+一旦一个对象拥有另一个对象的引用，它就可以直接调用该对象的方法。例如一个 C++ 对象现在可以直接调用一个 JavaScript 对象在 JavaScript 环境中执行一个方法，反之亦然。
+
+这个想法可以带来几个好处：
+
+* 同步执行：现在可以同步执行那些本来就不应该是异步的函数。
+* 并发：可以在 JavaScript 中调用在不同线程上执行的函数。
+* 更低的开销：新架构不需要再对数据进行序列化/反序列化，因此可以避免序列化的开销。
+* 代码共享：通过引入 C++，现在有可能抽象出所有与平台无关的代码，并在平台之间轻松共享它。
+* 类型安全：为了确保 JS 可以正确调用 C++ 对象的方法，反之亦然，因此增加了一层自动生成的代码。这些代码必须通过 Flow 或 TypeScript 类型化的 JS 规范来生成。
+
+# 高级
+## TurboModule和Fabric 组件？
+TurboModules 是创建利用某些平台特定 API 的库的首选方法。Fabric 组件是创建可重用 UI 组件的首选方法，为用户提供原生体验。
+
+如果您使用过 React Native，您可能了解过 Native Modules 这个概念。它可以通过 React Native 的「Bridge」帮助 JavaScript 和原生代码进行交互，并使用跨平台的数据格式 JSON 进行通讯。
+
+Turbo Native Modules 与 Native Modules 相比，存在以下优势：
+
+* 各个平台的强类型接口声明是一致的；
+* 您可以使用 C++ 编写模块或迁移其它平台的原生代码，以此避免在跨平台重复实现模块；
+* 模块支持懒加载，可以加快 App 启动速度；
+* 通过替换 Bridge 为 JSI（使用原生代码编写的 JavaScript 接口），提升 JavaScript 与原生代码的通讯效率。
+
+Fabric 组件是一种使用 Fabric 渲染器渲染并展示在屏幕上的 UI 组件。在新架构中，使用 Fabric 组件替代原生组件具有以下优势：
+
+* 各个平台的强类型接口声明是一致的；
+* 您可以使用 C++ 编写组件或迁移其它平台的原生代码，以此避免在跨平台重复实现组件；
+* 通过替换 Bridge 为 JSI（使用原生代码编写的 JavaScript 接口），提升 JavaScript 与原生代码的通讯效率。
+
+## JSI and JSC：
+好了，此功能更加耿直，JSI可以允许JavaScript直接和Native进行交互
+
+在一个原生移动中，JavaScript代码需要一个引擎去解释执行，ReactNative当前架构是使用的JavaScriptCore也是我们所说的JSC，符合苹果IOS开发指南规则
+
+理论上JSI和ReactNative没什么关系，理论上通用与任何JavaScript引擎功能，但是这次在RN的新架构使用后，带来了重要的改进。
+
+有了JSI之后，JSC可以很容易的替换其他的JavaScript引擎，比如谷歌的v8和微软的chakracore。或者进行引擎版本升级，列如0.59所做的。
+
+接下来的改进，几乎可以被称之为“新架构的基石”。有了JSI之后JavaScript可以持有C++对象实例的引用并调用它们的方法。这就意味着从此再也不用通过序列化的JSON消息来通信，容易造成拥堵的“桥”从此成为历史。
+
+一个令人非常激动人心的变化是，一直以来C++都是实现Android和ios共用代码且不用依赖JavaScript的技术方案之一。Android的底层代码使用的C和C++实现的，Java和Kotlin可以通过Java Native interface与C++通讯。ios则默认支持C++，实际上objective-C本身就是C的一个超集。
+
+JSI就是引擎方面而且也是新架构的基石，一切都是从这开始
+
+## Fabric and TurboModules：
+代替“桥”，依赖于JSI。
+
+Fabric的宗旨就是让ReactNative的渲染层更加先进。目前的实现是所有UI最终都是由一系列的跨线程实现，新的实现方式则允许UIManager在C++中直接创建Shadow Tree，也是得力于JSI中C++可以和JavaScript以及原生代码在同一线程直接交互的能力，避免了跨线程的操作。大大的提高了效率，极大的提高了UI的响应速度，列如列表的滚动，navigation或者手势等功能都会变得流畅。
+
+TurboModules是指开发者允许在JavaScript代码中使用某些模块才去加载，且能持有这个模块的引用，可以显著的提高APP应用的启动速度。旧版的是JavaScript端使用Native Modules需要在应用启动时全部完成初始化，即使是没有使用到的模块。
+
+使用到了TurboModules时JavaScript端和Native端的通信可以不需要再借助桥来传递JSON数据，而是可以直接相互调用方法。
+
+Fabric and TurboModules之所以能实现，是完全依赖于JSI
+
+* JSI（JavaScript interface）：这是本次架构重构的核心重点，也正是因为这层的调整，将原有重度依赖的 native bridge 架构解耦，实现了自由通讯。
+* Fabric：依赖 JSI 的设计，并将旧架构下的 shadow tree 层移到 C++ 层，这样可以透过 JSI，实现前端组件对 UI 组件的一对一控制，摆脱了旧架构下对于 UI 的异步、批量操作。
+* TuborModule：新的原生 API 架构，替换了原有的 Java module 架构，数据结构上除了支持基础类型外，开始支持 JSI 对象，让前端和客户端的 API 形成一对一的调用
+
+
+
+
+
