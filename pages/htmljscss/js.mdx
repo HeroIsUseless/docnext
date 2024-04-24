@@ -56,33 +56,40 @@ var，let，const声明用法是一样，都是定义变量，var的声明会被
 >  }
 >```
 ## 说一下原型和原型链？
-JavaScript 中，万物皆对象，对象分为普通对象和函数对象，所有的函数都是函数对象（`typeof f === 'function'`），其他都是普通对象（`typeof o === 'object'`）。
+JavaScript 中，万物皆对象，对象分为普通对象和函数对象。
+所有的函数都是函数对象（`typeof f === 'function'`），其他都是普通对象（`typeof o === 'object'`）。
 
-JS在没有类`class`前，创建一个对象都是通过 `new 函数()` 来实现的，例如：
+JS在没有类`class`前，创建一个对象都是通过 `new 函数()` 来实现的（也就是构造函数），例如：
 ```js
 var a = new Object() // 此时a是{}
 var a = {} // 等价于 var a = new Object()
 function b() {}
 var a = new b() // 此时a是{}
 ```
-在 JavaScript 中，每当定义一个对象（函数也是对象）时候，对象中都会包含一些预定义的属性。其中每个函数对象都有一个prototype 属性，这个属性指向函数的原型对象。
-
-原型对象是函数内维护的一个对象模版，当 `new 函数()` ，就会把这个对象拷贝一份返回，例如：
+在 JavaScript 中，每当定义一个对象（函数也是对象）时候，对象中都会包含一些预定义的属性。
+其中每个函数对象都有一个prototype 属性，这个属性就是所谓的原型对象。
+可以把原型对象是函数内维护的一个对象模版，当 `new 函数()` ，就会把这个对象拷贝一份返回新对象，这样就完成了对象初始化，例如：
 ```js
 function b() {
     b.prototype.c = 1
-    b.prototype.d = '2'
+    this.d = '2' // 在构造函数里，this指向b.prototype
 }
 var a = new b() // 此时a为{c: 1, d: '2'}
 ```
-另外，JS 在创建对象（不论是普通对象还是函数对象）的时候，都有一个叫做__proto__的内置属性，用于指向创建它的构造函数的原型对象，例如在上面👆的例子中，`a.__proto__ === b.prototype`。
+另外，JS 在创建对象（不论是普通对象还是函数对象）的时候，都有一个叫做__proto__的内置预定义属性，
+用于指向创建它的构造函数的原型对象，例如在上面👆的例子中，`a.__proto__ === b.prototype`。
 
 每个对象都有__proto__属性，但只有函数对象才有 prototype 属性。
-在默认情况下，所有的对象（包括函数对象和原型对象）都会自动获得一个 constructor（构造函数）属性，这个属性（是一个指针）指向 prototype 属性所在的函数，例如在上面👆的例子中，`a.constructor === b.prototype.constructor === b.constructor === b`。
 
-> 注意`Function.prototype`是函数对象，但没有prototype属性，即`Function.prototype.prototype === undefined`
+每个对象都有constructor（构造函数）属性，这个属性指向 prototype 属性所在的函数，
+例如在上面👆的例子中，`a.constructor === b.prototype.constructor === b`。
 
-原型链：在多重继承中，一个对象可以是原型的拷贝，同时也是另一个对象的原型。因此，当你尝试访问对象上的属性时，JavaScript引擎开始从对象自身中查找该属性，如果没有，它会继续检查__proto__，一直到没有__proto__或者找到该属性。如果找到最后，此属性不存在时，返回undefined。
+> 注意`Function.prototype`是函数对象，但没有prototype属性，即`Function.prototype.prototype === undefined`，算是一个偏门知识点吧。
+
+原型链：在多重继承中，一个对象可以是原型的拷贝，同时也是另一个对象的原型。
+因此，当你尝试访问对象上的属性时，JavaScript引擎开始从对象自身中查找该属性，
+如果没有，它会继续检查__proto__，一直到没有__proto__或者找到该属性。
+如果找到最后，此属性不存在时，返回undefined。
 > 原型链的最上层是`Object.prototype`
 
 ## 讲一讲js的this指针？
@@ -261,38 +268,28 @@ JS是一门单线程的语言，通过事件循环机制实现单线程异步的
 * 改变原数组的方法：
 `pop()`,`push()`, `shift()`,`unshift()`,`splice()`,`sort()`,`reverse()`
 * 不改变原数组的方法：
-`slice()`,`concat()`
-## 深拷贝浅拷贝的区别？如何实现一个深拷贝？
-* 浅拷贝是拷贝一层，属性为对象时，浅拷贝是复制，两个对象指向同一个地址，`Object.assign()`，拓展运算符都是浅拷贝
-* 深拷贝是递归拷贝深层次，属性为对象时，深拷贝是新开栈，两个对象指向不同的地址，`JSON.stringify()`是深拷贝，但是会忽略undefined、symbol和函数
+`slice()`,`concat()`,`map()`
+## 赋值/浅拷贝/深拷贝的区别？如何实现一个深拷贝？
+* 赋值是拷贝的对象指针，整个对象都是共用的。
+* 浅拷贝是拷贝一层，对象的内容仍是共用的，`Object.assign()`，拓展运算符都是浅拷贝。
+* 深拷贝是递归拷贝深层次，`JSON.stringify()`是深拷贝，但是会忽略undefined、symbol和函数。
 ```js
-function deepClone(obj, hash = new WeakMap()) {
-  if (typeof obj === 'object') {
-
-  } else {
-    return obj;
-  }
-  if (obj === null) return obj; // 如果是null或者undefined我就不进行拷贝操作
-  if (obj instanceof Date) return new Date(obj);
-  if (obj instanceof RegExp) return new RegExp(obj);
-  // 可能是对象或者普通的值  如果是函数的话是不需要深拷贝
-  if (typeof obj !== "object") return obj;
-  // 是对象的话就要进行深拷贝
-  if (hash.get(obj)) return hash.get(obj);
-  let cloneObj = new obj.constructor();
-  // 找到的是所属类原型上的constructor,而原型上的 constructor指向的是当前类本身
-  hash.set(obj, cloneObj);
-  for (let key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      // 实现一个递归拷贝
-      cloneObj[key] = deepClone(obj[key], hash);
+// 一个简单的深拷贝
+function clone(target) {
+    if (typeof target === 'object') {
+        let cloneTarget = Array.isArray(target) ? [] : {}; // 考虑数组
+        for (const key in target) {
+            cloneTarget[key] = clone(target[key]);
+        }
+        return cloneTarget;
+    } else {
+        return target;
     }
-  }
-  return cloneObj;
-}
+};
 ```
 ## CommonJS 和 AMD/CMD 规范，以及ES6的模块？
-* AMD规范，即异步模块加载机制。核心是预加载，先对依赖的全部文件进行加载，加载完了再进行处理。
+* AMD规范，即异步模块加载机制。核心是预加载，先对依赖的全部文件进行加载，加载完了再进行处理。解决的是JS加载引起页面卡顿的问题。
+* CMD规范，是一个同步模块定义，按不同的先后依赖关系对 JavaScript 等文件的进行加载工作，确保各个JS文件的先后加载顺序，确保避免了以前因某些原因某个文件加载慢而导致其它加载快的文件需要依赖其某些功能而出现某函数或某变量找不到的问题。
 * CommonJS规范加载模块是同步的，也就是说，只有加载完成，才能执行后面的操作。模块可以多次加载，但是只会在第一次加载时运行一次，然后运行结果就被缓存了，以后再加载，就直接读取缓存结果。要想让模块再次运行，必须清除缓存。
 模块加载的顺序，按照其在代码中出现的顺序。
 ## JS的隐式转换？
@@ -319,3 +316,32 @@ Babel编译是一个code to code的过程，整个流程分为三步：
 编写一个文件，里面一个函数，返回值是一个指定类型的对象，visitor就是其中最主要的对象，其他都是一些配置。
 在babel.config.json里的plugins，加上这个文件，就能进行转换了。
 > AST可视化平台：https://astexplorer.net/
+## 为什么在JS中0.1+0.2!=0.3？以及IEE 754标准
+
+JavaScript使用Number类型表示数字（整数和浮点数），遵循 IEEE 754 标准 通过64位来表示一个数字。
+
+首先，计算机无法直接对十进制的数字进行运算，这是硬件物理特性已经决定的。这样运算就分成了两个部分：
+先按照IEEE 754转成相应的二进制，然后按照二进制运算。
+
+回到0.1+0.2的例子上，首先转成二进制后，二进制数字是无限循环的，但是由于IEEE 754尾数位数限制，
+需要将后面多余的位截掉，这样在进制之间的转换中精度已经损失。
+
+由于指数位数不相同，运算时需要对阶运算 这部分也可能产生精度损失，两步的精度损失最后的结果转换成十进制之后就是0.30000000000000004。
+
+> 只要是遵循遵循 IEEE 754 标准的语言都会有这个问题。
+## JS的垃圾回收机制？
+
+有两种垃圾回收策略：
+
+* 标记清除：标记阶段即为所有活动对象做上标记，清除阶段则把没有标记（也就是非活动对象）销毁。
+* 引用计数：它把对象是否不再需要简化定义为对象有没有其他对象引用到它。如果没有引用指向该对象（引用计数为 0），对象将被垃圾回收机制回收。
+
+标记清除的缺点：
+
+* 内存碎片化，空闲内存块是不连续的，容易出现很多空闲内存块，还可能会出现分配所需内存过大的对象时找不到合适的块。
+* 分配速度慢，因为即便是使用 First-fit 策略，其操作仍是一个 O(n) 的操作，最坏情况是每次都要遍历到最后，同时因为碎片化，大对象的分配效率会更慢。
+
+引用计数的缺点：
+
+* 需要一个计数器，所占内存空间大，因为我们也不知道被引用数量的上限。
+* 解决不了循环引用导致的无法回收问题。

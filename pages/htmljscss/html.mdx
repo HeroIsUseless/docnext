@@ -30,3 +30,23 @@
 ## link标签和import标签的区别
 ## preventDefault和stopPropagation？
 阻止了事件的默认行为，阻止了事件冒泡
+## 如何使用一个监听给ul下面多个li绑定监听事件
+当逐个给每个li绑定监听事件，当li太多之后，需要绑定很多监听器，如果有1000个li，yin事件代理，又称事件委托。
+简单的来讲就是利用JS中事件的冒泡属性，把原本需要绑定的事件委托给父元素，让父元素担当事件监听的职务。
+```js
+var ul = document.querySelector("ul");
+
+ul.addEventListener('click', (e) => {
+　　var target = e.target;
+　　if (target.tagName.toLowerCase() === "li") {
+　　　　var li = this.querySelectorAll("li");
+　　　　index = Array.prototype.indexOf.call(li, target);
+　　　　alert(target.innerHTML + index);
+　　}
+})
+```
+## script 标签中 defer 和 async 的区别？
+* `<script>` ：会阻碍 HTML 解析，只有下载好并执行完脚本才会继续解析 HTML。
+* `<script async>` ：解析 HTML 过程中进行脚本的异步下载，下载成功立马执行，有可能会阻断 HTML 的解析。
+* `<script defer>` ：完全不会阻碍 HTML 的解析，当页面已完成加载后，才会执行脚本。
+
