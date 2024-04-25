@@ -72,4 +72,32 @@ minimum-scale=1.0: 允许用户的最小缩放值为 1.0
 媒体查询
 
 动态 rem 方案
+## 在HTML5中DOCTYPE的作用是什么？标准与兼容模式（混杂模式）各有什么区别？
+DOCTYPE（文档类型声明）是一种在HTML文档中使用的标记，用于告诉浏览器使用哪个HTML版本解析文档。它的作用是确保浏览器正确地渲染和显示网页内容。
 
+标准模式（严格模式）和兼容模式（混杂模式）是浏览器根据DOCTYPE声明来选择不同的渲染模式。它们有以下区别：
+
+标准模式（严格模式）：在标准模式下，浏览器会按照HTML和CSS规范的最新标准解析和渲染页面。这意味着浏览器会更严格地遵循规范，对错误的处理更加严格。标准模式通常提供更一致的渲染结果，有助于开发者编写符合标准的网页。
+
+兼容模式（混杂模式）：在兼容模式下，浏览器会以一种更宽松的方式解析和渲染页面，以保持与旧版本浏览器的兼容性。这意味着浏览器可能会对一些非标准的HTML和CSS代码进行特殊处理，以尽量显示与旧版本浏览器相同的效果。兼容模式可能导致不同浏览器之间的渲染结果不一致，也可能存在一些不可预测的行为。
+
+通过使用正确的DOCTYPE声明，可以确保浏览器按照所选择的渲染模式来解析网页。一般推荐使用最新的HTML5 DOCTYPE声明（<!DOCTYPE html>），以便在标准模式下进行开发和测试，以获得更好的一致性和可靠性。
+
+# meta标签的作用？
+<meta> 标签定义关于 HTML 文档的元数据。这些数据用于描述整个文档。
+
+<meta> 标签始终位于 <head> 元素 内，通常用于指定字符集、页面描述、关键词、文档作者和视口设置，一个 HTML 文档中可以多个 meta 元素。
+
+meta属性主要有：
+* charset，字符集，规定 HTML 文档的字符编码。
+* name，规定元数据的名称，相当于key。值可以为author，keywords，description，viewport，application-name，generator
+* content，文本，相当于value，规定与 http-equiv 或 name 属性关联的值。
+* http-equiv，为 content 属性的信息/值提供 HTTP 标头。可以为content-security-policy，content-type，default-style，refresh
+
+用法例如：
+```html
+为搜索引擎定义关键字：
+<meta name="keywords" content="HTML, CSS, JavaScript">
+使用 charset 属性声明该页面采用 UTF-8 字符编码：
+<meta charset="UTF-8">
+```
