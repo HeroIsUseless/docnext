@@ -2,16 +2,23 @@
 <html>
     <body>
         <ul id="ul">
-            <li>11111111</li>
-            <li>22222222</li>
-            <li>33333333</li>
-            <li>44444444</li>
+            <li id="z" kk="q">1</li>
+            <li id="zx" kk="qw">2</li>
+            <li id="zc" kk="qe">3</li>
+            <li id="zv" kk="qr">4</li>
         </ul>
     </body>
     <script>
         let ul = document.getElementById('ul')
         ul.addEventListener('click', (e) => {
-            console.log(e)
+            let t = e.target
+            console.log(t.id, t.getAttribute('kk'))
+            switch(t.innerText) {
+                case '1':
+                    break
+                case '2':
+                    break
+            }
         })
     </script>
 </html>
