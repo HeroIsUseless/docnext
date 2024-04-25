@@ -90,6 +90,30 @@ var a = new b() // 此时a为{c: 1, d: '2'}
 因此，当你尝试访问对象上的属性时，JavaScript引擎开始从对象自身中查找该属性，
 如果没有，它会继续检查__proto__，一直到没有__proto__或者找到该属性。
 如果找到最后，此属性不存在时，返回undefined。
+```js
+// 多重继承
+function Animal() {}
+function Bird() {
+  Bird.prototype = new Animal()
+}
+function Crow() {
+  Crow.prototype = new Bird()
+}
+let crow = new Crow() // crow.proto = bird, bird.proto = animal, animal.proto = Object.prototype
+// 或者
+class Animal {}
+class Bird extends Animal {
+  constructor() { // 子类必须在 constructor 方法中调用super方法，否则新建实例时会报错
+		super()
+    }
+}
+class Crow extends Bird {
+  constructor() { // 子类必须在 constructor 方法中调用super方法，否则新建实例时会报错
+		super()
+    }
+}
+let crow = new Crow()
+```
 > 原型链的最上层是`Object.prototype`
 
 ## 讲一讲js的this指针？
