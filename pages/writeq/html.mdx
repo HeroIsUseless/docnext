@@ -2,14 +2,14 @@
 当逐个给每个li绑定监听事件，当li太多之后，需要绑定很多监听器，如果有1000个li，因此需要事件代理，又称事件委托。
 简单的来讲就是利用JS中事件的冒泡属性，把原本需要绑定的事件委托给父元素，让父元素担当事件监听的职务。
 ```js
-var ul = document.querySelector("ul");
-
+let ul = document.getElementById('ul')
 ul.addEventListener('click', (e) => {
-　　var target = e.target;
-　　if (target.tagName.toLowerCase() === "li") {
-　　　　var li = this.querySelectorAll("li");
-　　　　index = Array.prototype.indexOf.call(li, target);
-　　　　alert(target.innerHTML + index);
-　　}
+    let t = e.target
+    switch(t.innerText) {
+        case '1':
+            break
+        case '2':
+            break
+    }
 })
 ```
