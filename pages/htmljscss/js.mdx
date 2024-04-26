@@ -311,6 +311,38 @@ function clone(target) {
     }
 };
 ```
+## 知道JS的set和map的用法吗？
+
+ES6 提供了新的数据结构 Set。它类似于数组，但是成员的值都是唯一的，没有重复的值。Set本身是一个构造函数，用来生成 Set 数据结构。
+```js
+const s = new Set();
+[2, 3, 5, 4, 5, 2, 2].forEach(x => s.add(x));
+for (let i of s) {  
+  console.log(i);
+}// 2 3 5 4
+// 去除数组的重复成员
+[...new Set(array)]
+// Array.from方法可以将 Set 结构转为数组。
+const array = Array.from(s);
+//去除字符串里面的重复字符。
+[...new Set('ababbc')].join('')
+// "abc"
+```
+另外，Set还有`size()`，`delete(v)`，`has(v)`，`clear()`等方法。
+
+Map类似于对象，也是键值对的集合，但是“键”的范围不限于字符串，各种类型的值（包括对象）都可以当作键。
+如果你需要“键值对”的数据结构，Map 比 Object 更合适。
+
+```js
+ const m = new Map();
+ const o = {p: 'Hello World'};
+ m.set(o, 'content')
+ m.get(o) // "content"
+ m.has(o) // true
+ m.delete(o) // true
+ m.has(o) // false
+```
+
 ## NodeJS能用ES6模块吗？CommonJS 和 ES6模块的区别是什么？
 
 JS能写前端web，也能写NodeJS。
