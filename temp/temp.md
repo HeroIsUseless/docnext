@@ -1,7 +1,6 @@
-# 前端面试题 - 元素的innerText outerText innerHTML的区别？
+# 前端面试题 - redux与vuex的区别？
 
-* innerText和outerText取值都是对象起始和结束标签内部的文本内容。但是在设置的时候，outerText会把该标签也替换掉。
-* innerHTML取值是对象起始和结束标签内部的html，不包括对象本身的起始标签和结束标签。设置时是填充该标签内部。
-* outerHTML取值是也是html，但是包括对象本身的起始标签和结束标签。设置时是连该标签也替换掉。
+* redux使用的是不可变数据，每次都是用新的state替换旧的state，通过diff算法比较差异的；而Vuex是可变的，通过getter/setter直接修改。
+* 另外就是在api上有不同，vuex定义了state，getter，mutation，action；redux定义了state，reducer，action。
 
 通俗易懂的前端面试题网站： [https://www.front-interview.com](https://www.front-interview.com)

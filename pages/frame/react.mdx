@@ -120,3 +120,11 @@ React 中的并发，是JS的逻辑代码会跟 UI 渲染竞争主线程。若�
 * 高优先级的更新会打断低优先级的更新，等高优先级更新完成后，再开始低优先级更新。
 ## React.Children.map 和 js 的 map 有什么区别？
 JavaScript 中的 map 不会对为 null 或者 undefined 的数据进行处理，而 React.Children.map 中的 map 可以处理 React.Children 为 null 或者 undefined 的情况。
+## redux与vuex的区别？
+
+* redux使用的是不可变数据，每次都是用新的state替换旧的state，通过diff算法比较差异的；而Vuex是可变的，通过getter/setter直接修改。
+* 另外就是在api上有不同，vuex定义了state，getter，mutation，action；redux定义了state，reducer，action。
+
+## 说一下Redux功能化编程的概念？
+在redux中使用了功能化编程的概念。在参数中可以传递函数。使用了数据流控制, 递归调用, 函数和数组等等。帮助函数, 如reduce和map filter被大量使用。
+允许函数的串联。状态只读。代码执行顺序的优先级没有必要考虑。
