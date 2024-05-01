@@ -408,7 +408,7 @@ CMD 推崇依赖就近（用的时候再声明引用的依赖），AMD 推崇依
 * CommonJS规范加载模块是同步的，也就是说，只有加载完成，才能执行后面的操作。模块可以多次加载，但是只会在第一次加载时运行一次，然后运行结果就被缓存了，以后再加载，就直接读取缓存结果。要想让模块再次运行，必须清除缓存。
 模块加载的顺序，按照其在代码中出现的顺序。
 ## JS的隐式转换？
-在使用不同类型的值进行操作时，JavaScript会自动进行类型转换。
+在使用不同类型的值进行操作时，JavaScript会自动进行类型转换，这称为隐式转换。
 * 我们在对各种非Number类型运用数学运算符(- * /)时，会先将非Number类型转换为Number类型。
 * 我们在对各种非Number类型运用数学运算符(+)时： （以下 3 点，优先级从高到低）
   * 当一侧为String类型，会将另一侧转换为字符串类型并进行字符串拼接。
@@ -421,6 +421,18 @@ CMD 推崇依赖就近（用的时候再声明引用的依赖），AMD 推崇依
   * String和Number比较，先将String转换为Number类型。
   * null == undefined比较结果是true，除此之外，null、undefined和其他任何结果的比较值都为false。
   * 原始类型和引用类型做比较时，引用类型会依照ToPrimitive规则转换为原始类型。
+# 中级
+## null是原始类型，但为什么typeof null的结果是object？如何准确检测一个值是null类型而不是其他类型隐式转换而来？
+造成这个结果的原因是null的内存地址是以000开头，而js会将000开头的内存地址视为object。
+通过`isNull()`来判断一个值是不是null类型，但值得注意的是`isNaN()`会进行隐式转换。
+typeof 无法精确的检测null、Object、Array。获取精确类型的话，可以自己写一个：
+```js
+const getType = (value: any) => {
+  const str: string = Object.prototype.toString.call(value)
+  const typeStrArray = str.substring(1, str.length - 1).split(' ')
+  return typeStrArray[1].toLowerCase()
+}
+```
 # 高级
 ## 会babel插件开发吗？
 Babel编译是一个code to code的过程，整个流程分为三步：

@@ -93,3 +93,11 @@ minimum-scale=1.0: 允许用户的最小缩放值为 1.0
 * outerHTML取值是也是html，但是包括对象本身的起始标签和结束标签。设置时是连该标签也替换掉。
 ## 如何获取标签上的自定义属性？
 使用`.getAttribute('xxx')`，如果是标签上的自有属性，则直接可以`ele.xxx`就行。
+## HTML中childNodes和children有什么区别？
+* Node：在 DOM 树中，所有的节点都是 Node，包括 Element，也就是说 Node 包含了 HTML 元素标签、text、以及注释等等内容，它是所有 DOM 的基类。
+* Element：在 DOM 树中，Element 是所有 HTML 元素的基类，也就是说，Element 只包含 HTML 元素标签。
+
+综上两点可以得出：Node 和 Element 两者是包含关系，Node 包含 Element。
+从而衍生出了两个集合：NodeList 和 HTMLCollection。NodeList 是 Node 的集合，HTMLCollection 是 Element 的集合。
+childNodes会返回所有节点，包括HTML、Text、注释等等内容（甚至包括换行）。children只返回元素节点。
+虽然我们可以通过NodeType=1元素|2属性|3文本来辨别种类，但注释也会算进文本节点。
