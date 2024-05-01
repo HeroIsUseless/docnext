@@ -1,5 +1,13 @@
 # 算法
 ## 经典面试题
+### 最大连续子序和
+动态规划问题，`r(n) = r(n-1)+a(n) > a(n) ? r(n-1)+a(n) : a(n)`
+```js
+// r[n] = r[n-1] > 0? a[n]+r[n-1] : a[n]
+function maxContinueSum(arr) {
+    return arr.reduce((r, a) => a + (r > 0 ? r : 0), 0)
+}
+```
 ### 跳台阶：一个为n的台阶，小明可以一次走一步、两步或者五步，问一共几种走法？
 分析：典型的动态规划问题，那么就是要找到递归公式是什么。
 
@@ -12,7 +20,7 @@ r[n] = r[n-1] + r[n-2] + r[n-5]
 * o(n): 采用普通排序，返回第k个元素。
 * o(logn): 采用快速排序，比较哨兵的index与第k个位置的关系，选第0个当哨兵，也从第0个开始，左边是小于等于哨兵的，右边是大于哨兵的，这就很清楚了，接下来再递归即可。
 ```js
-// k从1开始
+// @param k 从1开始
 function maxK(arr, k) {
     if (!arr || !arr.length) return 
     if (arr.length == 1) return arr[0]
@@ -40,22 +48,6 @@ function maxK(arr, k) {
 首先将前k个元素逆置，然后将后n-k个元素逆置，最后整体逆置一次
 ### 原地旋转图像
 右上-左下对称swap，然后水平翻转180度完成操作，最少也要O(n)的时间复杂度。
-### 最大连续子序和
-动态规划问题，`r(n) = r(n-1)+a(n) > a(n) ? r(n-1)+a(n) : a(n)`
-```js
-// r[n] = r[n-1] > 0? a[n]+r[n-1] : a[n]
-function maxContinueSum(arr) {
-    if (!arr) return 0
-    if (arr.length <= 1) return arr[1] || 0
-    const an = arr[arr.length - 1]
-    const rn_1 = maxContinueSum(arr.slice(0, arr.length - 1))
-    if (rn_1 < 0) {
-        return an
-    } else {
-        return an + rn_1
-    }
-}
-```
 ### 最大连续子序积
 同理动态规划，`r[n] = r[n-1]*a[n] > a[n] ? r[n-1]*a[n] : a[n]`
 ### 如何在一个数组中获取总和是固定值的长度最小的连续子数组？
