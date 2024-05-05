@@ -6,8 +6,8 @@
 // call实现，const args = [...arguments].slice(1)
 Function.prototype.myCall = function (context, ...args) {
     const s = Symbol()
-    context[s] = this
-    const res = context[s](...args)
+    context[s] = this // 该this指向的是调用的函数，函数也是对象
+    const res = context[s](...args) // 此时该函数内的this指向的就是context了
     delete context[s]
     return res
 }

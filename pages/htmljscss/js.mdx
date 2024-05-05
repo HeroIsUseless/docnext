@@ -105,10 +105,10 @@ let crow = new Crow()
 > 原型链的最上层是`Object.prototype`
 
 ## 讲一讲js的this指针？
-* 全局的this指针指向windows（在严格模式下，全局作用域中的 this 的值是 undefined）。
-* 当一个函数被调用时，this被绑定为全局对象，在浏览器环境下是window对象，非严格模式下，函数中的this指向window。
-* 当一个方法（当函数被保存为一个对象的属性时）被调用时，this被绑定到这个对象上。
-* 如果在一个函数前面加上new关键字来调用（当构造函数用），函数中的this会被绑定到这个新对象上。
+* 全局的this指针指向windows。但在严格模式下，全局作用域中的 this 的值是 undefined。
+* 在函数中，this 表示全局对象。但在严格模式下，this 是未定义的(undefined)。
+* 当一个方法被调用时，this被绑定到这个对象上。
+* 如果在一个函数当构造函数用，函数中的this会被绑定到这个新对象上。
 * 对象里的this指向window。例如：`a = {b: this.k}`，此时this指向windows。
 * call/apply/bind，this指针会绑定指定的对象。
 * 事件的this指针指向元素本身。
