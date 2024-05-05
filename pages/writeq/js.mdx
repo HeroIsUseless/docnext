@@ -1,6 +1,17 @@
 ## 如何实现new？
 ```js
 ```
+## 如何实现call？
+```js
+// call实现，const args = [...arguments].slice(1)
+Function.prototype.myCall = function (context, ...args) {
+    const s = Symbol()
+    context[s] = this
+    const res = context[s](...args)
+    delete context[s]
+    return res
+}
+```
 ## 如何实现promise/async？
 * 通过构造函数生成一个promise对象，该构造函数有一个延时函数参数
 * 通过promise.then()或promise.catch()方法实现结果获取

@@ -43,18 +43,6 @@ var，let，const声明用法是一样，都是定义变量，var的声明会被
   person.fullName.bind(newPerson, 'china', 'xian') // 打印出fullName函数
   person.fullName.bind(newPerson, 'china', 'xian')() // fuchaoyang china xian
 ```
-> 手写call函数
->```js
->  // call实现
->  Function.prototype.myCall = function (context) {
->    const arg = [...arguments].slice(1)
->    const fn = Symbol()
->    context[fn] = this
->    const result = context[fn](...arg)
->    delete context[fn]
->    return result
->  }
->```
 ## 说一下原型和原型链？
 JavaScript 中，万物皆对象，对象分为普通对象和函数对象。
 所有的函数都是函数对象（`typeof f === 'function'`），其他都是普通对象（`typeof o === 'object'`）。
