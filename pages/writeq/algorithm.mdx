@@ -4,9 +4,15 @@
 动态规划问题，`r(n) = r(n-1)+a(n) > a(n) ? r(n-1)+a(n) : a(n)`
 ```js
 // r[n] = r[n-1] > 0? a[n]+r[n-1] : a[n]
-function maxContinueSum(arr) {
-    return arr.reduce((r, a) => a + (r > 0 ? r : 0), 0)
-}
+var maxSubArray = function(nums) {
+    let res = nums[0];
+    nums.reduce((sum, num) => {
+        sum = num + Math.max(sum, 0);
+        res = Math.max(res, sum);
+        return sum;
+    })
+    return res;
+};
 ```
 ### 跳台阶：一个为n的台阶，小明可以一次走一步、两步或者五步，问一共几种走法？
 分析：典型的动态规划问题，那么就是要找到递归公式是什么。
