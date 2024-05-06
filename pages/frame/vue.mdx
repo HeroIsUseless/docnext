@@ -5,6 +5,7 @@ vue是一个创建单页应用的Web开源框架，基于数据驱动MVVM（Mode
 它通过动态重写当前页面来与用户交互，避免了页面之间切换打断用户体验。
 ## vue的生命周期？
 Vue生命周期总共可以分为8个阶段：创建前后, 载入前后,更新前后,销毁前销毁后。
+
 ## `v-if`与`v-show`的区别？
 * `v-show`隐藏则是为该元素添加`display:none`，dom元素依旧还在。`v-if`显示隐藏是将dom元素整个添加或删除，因此有较高的切换消耗
 * `v-if`是真正的条件渲染，一开始为false就不会渲染，但`v-show`一定会渲染，因此v-show有较高的初始渲染消耗
@@ -21,13 +22,117 @@ Vue生命周期总共可以分为8个阶段：创建前后, 载入前后,更新�
 * 如果使用了key，Vue会根据keys的顺序记录element，曾经拥有了key的element如果不再出现的话，会被直接remove或者destoryed。
 
 比如插入情况，就能只有一次插入操作，将效率发挥到极致。
+## 如何插入原始HTML？
+文本插值使用的是双大括号语法，双大括号会将数据解释为纯文本，而不是 HTML。若想插入 HTML，你需要使用 v-html 指令：
+```html
+<span v-html="rawHtml"></span>
+```
+**注意：** 在网站上动态渲染任意 HTML 是非常危险的，因为这非常容易造成 XSS 漏洞。请仅在内容安全可信时再使用 v-html，并且永远不要使用用户提供的 HTML 内容。
+## 如何响应式地绑定一个属性？
+v-bind 指令：
+```js
+<div v-bind:myId="dynamicId"></div>
+```
+如果绑定的值是 null 或者 undefined，那么该 attribute 将会从渲染的元素上移除。布尔型 Attribute，当其为其他假值时 attribute 将被忽略（但空字符串不会）。
+
+因为 v-bind 非常常用，我们提供了特定的简写语法：
+```js
+<div :myId="dynamicId"></div>
+3.4+有同名写法：
+<div :myId></div>
+```
+动态绑定多个值：
+```js
+const objectOfAttrs = {
+  id: 'container',
+  class: 'wrapper'
+}
+<div v-bind="objectOfAttrs"></div>
+```
+## 如何绑定一个click事件？
+指令是带有 v- 前缀的特殊 attribute。Vue 提供了许多内置指令，包括上面我们所介绍的 v-bind 和 v-html。
+某些指令会需要一个“参数”，在指令名后通过一个冒号隔开做标识。例如用 v-bind 指令来响应式地更新一个 HTML`v-bind:href="url"`。
+```js
+<a v-on:click="doSomething"> ... </a>
+<!-- 简写 -->
+<a @click="doSomething"> ... </a>
+```
+## 计算属性如何使用？
+```js
+const publishedBooksMessage = computed(() => {
+  return author.books.length > 0 ? 'Yes' : 'No'
+})
+```
+Vue 的计算属性会自动追踪响应式依赖。它会检测到 publishedBooksMessage 依赖于 author.books，
+所以当 author.books 改变时，任何依赖于 publishedBooksMessage 的绑定都会同时更新。
+
+若我们将同样的函数定义为一个方法而不是计算属性，两种方式在结果上确实是完全相同的，然而，不同之处在于计算属性值会基于其响应式依赖被缓存。一个计算属性仅会在其响应式依赖更新时才重新计算。
 ## Vue常用的修饰符有哪些有什么应用场景？
+修饰符是以点开头的特殊后缀，表明指令需要以一些特殊的方式被绑定。例如 .prevent 修饰符会告知 v-on 指令对触发的事件调用 event.preventDefault()。
 * 表单修饰符 lazy,trim，number
 * 事件修饰符 stop，prevent，self，
 * 鼠标按键修饰符
 * 键值修饰符
 * v-bind修饰符
+## 如何进行Class/Style绑定？
+```js
+<div :class="{ active: isActive }"></div>
+上面的语法表示 active 是否存在取决于数据属性 isActive 的真假值。
+:class 指令也可以和一般的 class attribute 共存。
+<div :class="[activeClass, errorClass]"></div>
+绑定数组
+```
+对于只有一个根元素的组件，当你使用了 class attribute 时，这些 class 会被添加到根元素上并与该元素上已有的 class 合并。
+如果你的组件有多个根元素，你将需要指定哪个根元素来接收这个 class。
+```js
+<div :style="{ color: activeColor, fontSize: fontSize + 'px' }"></div>
+<div :style="[baseStyles, overridingStyles]"></div>
+```
+当你在 :style 中使用了需要浏览器特殊前缀的 CSS 属性时，Vue 会自动为他们加上相应的前缀。
+## 如何列表渲染？
+```js
+<li v-for="(item, index|key, [index]) in items" :key="item.id">
+  {{ parentMessage }} - {{ index }} - {{ item.message }}
+</li>
+你也可以使用 of 作为分隔符来替代 in，这更接近 JavaScript 的迭代器语法：
+<div v-for="item of items" :key="item.id"></div>
+注意此处 n 的初值是从 1 开始而非 0。
+<span v-for="n in 10">{{ n }}</span>
+```
+## v-model指令是做什么用的？
+用于表单数据的双向绑定，是:value和@input的结合体：
+```js
+<input v-model="text">
+v-model 会忽略任何表单元素上初始的 value、checked 或 selected attribute。
+它将始终将当前绑定的 JavaScript 状态视为数据的正确来源。
+但antd好像是v-model:value
+<input v-model.trim="msg" />
+```
+对于需要使用 IME 的语言 (中文，日文和韩文等)，你会发现 v-model 不会在 IME 输入还在拼字阶段时触发更新。
+如果你的确想在拼字阶段也触发更新，请直接使用自己的 input 事件监听器和 value 绑定而不要使用 v-model。
 
+默认情况下，v-model 会在每次 input 事件后更新数据 (IME 拼字阶段的状态例外)。你可以添加 lazy 修饰符来改为在每次 change 事件后更新数据
+## 侦听器watch怎么用？
+```js
+// 可以直接侦听一个 ref
+watch(question, async (newQuestion, oldQuestion) => {
+  ...
+})
+注意，你不能直接侦听响应式对象的属性值
+watch(() => obj.count, (count) => {}, { immediate: true })
+直接给 watch() 传入一个响应式对象，会隐式地创建一个深层侦听器——该回调函数在所有嵌套的变更时都会被触发
+我们可以通过传入 immediate: true 选项来强制侦听器的回调立即执行
+```
+## 模版引用如何解决？
+```js
+const input = ref(null)
+<input ref="input" />
+```
+## 如何父子组件传参？
+```js
+const props = defineProps(['foo'])
+console.log(props.foo)
+```
 # 中级
 ## Vue 插件是什么？与组件有什么区别？
 插件 (Plugin) 是用来增强你的技术栈的功能模块，它的目标是 Vue 本身，例如添加全局方法或者属性，添加 Vue 实例方法。
