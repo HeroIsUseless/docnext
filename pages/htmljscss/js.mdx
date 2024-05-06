@@ -113,30 +113,6 @@ let crow = new Crow()
 * call/apply/bind，this指针会绑定指定的对象。
 * 事件的this指针指向元素本身。
 * 箭头函数中的this是指向箭头函数定义时的离箭头函数最近的一个函数的this。
-## 手写new？
-```js
-//Fun为构造函数, args表示传参
-function myNew(Fun, ...args) {
-    // 1.在内存中创建一个新对象
-    let obj = {};
-    
-    // 2.把新对象的原型指针指向构造函数的原型属性
-    obj.__proto__ = Fun.prototype;
-    
-    // 3.改变this指向，并且执行构造函数内部的代码（传参）
-    let res = Fun.apply(obj, args);
-    
-    // 4.判断函数执行结果的类型
-    if (res instanceof Object) {
-        return res;
-    } else {
-        return obj;
-    }
-}
-
-let obj = myNew(One, "XiaoMing", "18");
-console.log("newObj:", obj);
-```
 ## 闭包是什么？
 闭包是指一个函数可以访问和使用其定义外部的变量，让这些变量的值始终保持在内存中，同时提供很好的封装和抽象。
 ## 手写防抖节流？

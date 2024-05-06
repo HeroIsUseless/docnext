@@ -15,25 +15,81 @@ r[n]是第几个台阶，它有多少种走法，与r[n-1]的关系是，首先�
 ```
 r[n] = r[n-1] + r[n-2] + r[n-5]
 ```
+### 任务调度器II
+给你一个下标从 0 开始的正整数数组 tasks ，表示需要 按顺序 完成的任务，其中 tasks[i] 表示第 i 件任务的 类型 。
+
+同时给你一个正整数 space ，表示一个任务完成 后 ，另一个 相同 类型任务完成前需要间隔的 最少 天数。
+
+在所有任务完成前的每一天，你都必须进行以下两种操作中的一种：
+
+* 完成 tasks 中的下一个任务
+* 休息一天
+
+请你返回完成所有任务所需的 最少 天数。
+```
+示例 1：
+
+输入：tasks = [1,2,1,2,3,1], space = 3
+输出：9
+解释：
+9 天完成所有任务的一种方法是：
+第 1 天：完成任务 0 。
+第 2 天：完成任务 1 。
+第 3 天：休息。
+第 4 天：休息。
+第 5 天：完成任务 2 。
+第 6 天：完成任务 3 。
+第 7 天：休息。
+第 8 天：完成任务 4 。
+第 9 天：完成任务 5 。
+可以证明无法少于 9 天完成所有任务。
+示例 2：
+
+输入：tasks = [5,8,8,5], space = 2
+输出：6
+解释：
+6 天完成所有任务的一种方法是：
+第 1 天：完成任务 0 。
+第 2 天：完成任务 1 。
+第 3 天：休息。
+第 4 天：休息。
+第 5 天：完成任务 2 。
+第 6 天：完成任务 3 。
+可以证明无法少于 6 天完成所有任务。
+```
+每次更新 同类型任务需要的最小天数
+
+完成任务的时候 判断 是比上次加1天 还是 受同类型任务影响的 更多天数
+```js
+var taskSchedulerII = function(tasks, space) {
+    let ans = 0, hash = {} 
+    for(let t of tasks){
+        ans = Math.max(ans + 1, hash[t] ?? 0)
+        hash[t] = ans + space + 1
+    }    
+    return ans
+};
+```
 
 ### 如何得到一个数组中第k大的数？
-* o(n): 采用普通排序，返回第k个元素。
+* o(n): 采用普通排序，返回第k个元素。既然有o(n)的做法，实际上就不会出这道题了
 * o(logn): 采用快速排序，比较哨兵的index与第k个位置的关系，选第0个当哨兵，也从第0个开始，左边是小于等于哨兵的，右边是大于哨兵的，这就很清楚了，接下来再递归即可。
 ```js
 // @param k 从1开始
+// @return 第k大的数
 function maxK(arr, k) {
     if (!arr || !arr.length) return 
     if (arr.length == 1) return arr[0]
     let lArr = []
     let rArr = []
     let mid = arr[0]
-    for (let i=1; i<arr.length; i++) {
-        if (arr[i] <= mid) {
-            lArr.push(arr[i])
+    arr.forEach(a => {
+        if (a <= mid) {
+            lArr.push(a)
         } else {
-            rArr.push(arr[i])
+            rArr.push(a)
         }
-    }
+    })
     const i = arr.length - k // 要找的第k大的值的index
     if (lArr.length > i) {
         return maxK(lArr, k - 1 - rArr.length)
