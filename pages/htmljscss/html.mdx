@@ -92,6 +92,9 @@ CSRF就是利用用户的登录态发起恶意请求。
 * innerText和outerText取值都是对象起始和结束标签内部的文本内容。但是在设置的时候，outerText会把该标签也替换掉。
 * innerHTML取值是对象起始和结束标签内部的html，不包括对象本身的起始标签和结束标签。设置时是填充该标签内部。
 * outerHTML取值是也是html，但是包括对象本身的起始标签和结束标签。设置时是连该标签也替换掉。
+* textContent 属性设置或者返回指定节点的文本内容。如果设置了textContent属性，任何子节点都会被移除，然后被指定的字符串的文本节点替换。
+* nodeValue 属性设置或返回指定节点的节点值。
+nodeValue 属性的替代选择是 textContent 属性。nodeValue只适用于文本节点和属性节点，对标签节点不适用，返回null；
 ## 如何获取标签上的自定义属性？
 使用`.getAttribute('xxx')`，如果是标签上的自有属性，则直接可以`ele.xxx`就行。
 ## HTML中childNodes和children有什么区别？
@@ -102,3 +105,7 @@ CSRF就是利用用户的登录态发起恶意请求。
 从而衍生出了两个集合：NodeList 和 HTMLCollection。NodeList 是 Node 的集合，HTMLCollection 是 Element 的集合。
 childNodes会返回所有节点，包括HTML、Text、注释等等内容（甚至包括换行）。children只返回元素节点。
 虽然我们可以通过NodeType=1元素|2属性|3文本来辨别种类，但注释也会算进文本节点。
+## src和href的区别？
+src和href都是用于外部资源的引入，像图片、CSS文件、HTML文件、js文件或其他web页面等。
+* href：用于加上链接，点击跳转到这个链接，例如a标签。
+* src：用于用链接里的内容进行替换，例如img标签。
