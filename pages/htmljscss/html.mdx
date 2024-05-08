@@ -59,8 +59,6 @@ meta属性主要有：
 ## 在地址栏里输入一个URL,到这个页面呈现出来，中间会发生什么？
 浏览器检查当前url是否存在缓存和缓存是否过期，如果过期了则根据本地hosts或者DNS服务器进行域名解析得到ip，然后三次握手建立tcp连接，
 返回页面报文，解析下载的HTML生成DOM树，解析下载的CSS生成CSS树，DOM树和CSS树合并为渲染树，然后根据渲染树绘制节点。
-## preventDefault和stopPropagation？
-阻止了事件的默认行为，阻止了事件冒泡
 ## script 标签中 defer 和 async 的区别？
 * `<script>` ：会阻碍 HTML 解析，只有下载好并执行完脚本才会继续解析 HTML。
 * `<script async>` ：解析 HTML 过程中进行脚本的异步下载，下载成功立马执行，有可能会阻断 HTML 的解析。

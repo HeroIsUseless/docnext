@@ -93,3 +93,91 @@ function* readFile() {
 }
 co(readFile).then((res) => console.log(res));
 ```
+## 手写防抖节流？
+* 防抖（debounce）：每次触发定时器后，取消上一个定时器，然后重新触发定时器。防抖一般用于用户未知行为的优化，比如搜索框输入实时提示。
+  ```js
+  let timer;
+  function debounce(cb, time) {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+        cb();
+    }, time)
+  }
+  
+  onInputChange(text) {
+    debounce(() => {
+      // 获取实时提示
+    }, 100)
+  }
+  ```
+  ```js
+  // 复杂一点的
+  function debounce(func, time) {
+    let timer;
+    return function() {
+      const [that, args] = [this, arguments];
+      clearTimeout(timer)
+      timer = setTimeout(() => {
+        func.apply(that, args);
+      }, time);
+    }
+  }
+
+  onInputChange = debounce((text) => {
+    // 获取实时提示
+  }, 1000)
+  ```
+* 节流（throttle）：每次触发定时器后，直到这个定时器结束之前无法再次触发该函数。一般用于可预知的用户行为的优化，比如限制按钮点击的触发频率，防止重复的提交。
+```js
+let previous = 0;
+function throttle(cb, time) {
+  const now = Date.now();
+  if (now - previous > time) {
+    cb();
+    previous = now;
+  }
+}
+
+onButtonClick() {
+  throttle(() => {
+    // 提交表单
+  }, 1000)
+}
+```
+```js
+// 复杂一点的
+function throttle(func, time) {
+  let previous = 0;
+  return function() {
+    const [that, args] = [this, arguments];
+    const now = Date.now();
+    if (now - previous > time) {
+      previous = now;
+      func.apply(that, args);
+    }
+  }
+}
+```
+## 如何实现一个深拷贝？
+```js
+// 一个简单的深拷贝
+function clone(target) {
+    if (typeof target === 'object') {
+        let cloneTarget = Array.isArray(target) ? [] : {}; // 考虑数组
+        for (const key in target) {
+            cloneTarget[key] = clone(target[key]);
+        }
+        return cloneTarget;
+    } else {
+        return target;
+    }
+};
+```
+## 如何准确检测一个值是null类型而不是其他类型隐式转换而来？
+```js
+const getType = (value: any) => {
+  const str: string = Object.prototype.toString.call(value)
+  const typeStrArray = str.substring(1, str.length - 1).split(' ')
+  return typeStrArray[1].toLowerCase()
+}
+```

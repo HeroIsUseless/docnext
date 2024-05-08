@@ -115,71 +115,6 @@ let crow = new Crow()
 * 箭头函数中的this是指向箭头函数定义时的离箭头函数最近的一个函数的this。
 ## 闭包是什么？
 闭包是指一个函数可以访问和使用其定义外部的变量，让这些变量的值始终保持在内存中，同时提供很好的封装和抽象。
-## 手写防抖节流？
-* 防抖（debounce）：每次触发定时器后，取消上一个定时器，然后重新触发定时器。防抖一般用于用户未知行为的优化，比如搜索框输入实时提示。
-  ```js
-  let timer;
-  function debounce(cb, time) {
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-        cb();
-    }, time)
-  }
-  
-  onInputChange(text) {
-    debounce(() => {
-      // 获取实时提示
-    }, 100)
-  }
-  ```
-  ```js
-  // 复杂一点的
-  function debounce(func, time) {
-    let timer;
-    return function() {
-      const [that, args] = [this, arguments];
-      clearTimeout(timer)
-      timer = setTimeout(() => {
-        func.apply(that, args);
-      }, time);
-    }
-  }
-
-  onInputChange = debounce((text) => {
-    // 获取实时提示
-  }, 1000)
-  ```
-* 节流（throttle）：每次触发定时器后，直到这个定时器结束之前无法再次触发该函数。一般用于可预知的用户行为的优化，比如限制按钮点击的触发频率，防止重复的提交。
-```js
-let previous = 0;
-function throttle(cb, time) {
-  const now = Date.now();
-  if (now - previous > time) {
-    cb();
-    previous = now;
-  }
-}
-
-onButtonClick() {
-  throttle(() => {
-    // 提交表单
-  }, 1000)
-}
-```
-```js
-// 复杂一点的
-function throttle(func, time) {
-  let previous = 0;
-  return function() {
-    const [that, args] = [this, arguments];
-    const now = Date.now();
-    if (now - previous > time) {
-      previous = now;
-      func.apply(that, args);
-    }
-  }
-}
-```
 ## 事件循环机制？
 JS是一门单线程的语言，通过事件循环机制实现单线程异步的。JS所有同步任务都在主线程上执行，即执行栈。主线程之外还存在一个任务队列(也有人称之为消息队列)，用于执行异步任务。事件循环的工作流程如下：
 * 首先，检查执行栈，看看是否有同步任务需要运行。
@@ -246,35 +181,16 @@ JS是一门单线程的语言，通过事件循环机制实现单线程异步的
 * for… of 循环用来获取一对键值对中的值，相对于forEach而言可以与 break、continue和return 配合使用，可以随时退出循环。但for…of循环内部调用的是数据结构的Symbol.iterator方法。
 因此不能遍历对象，因为没有迭代器对象，可以使用的范围包括数组、Set 和 Map 结构、某些类似数组的对象（比如arguments对象、DOM NodeList 对象）、Generator 对象，以及字符串。
 > 在ECMAScript规范中定义了 「数字属性应该按照索引值⼤⼩升序排列，字符串属性根据创建时的顺序升序排列。」在这⾥我们把对象中的数字属性称为 「排序属性」，在V8中被称为 elements，字符串属性就被称为 「常规属性」， 在V8中被称为 properties。
-## 遍历对象的几种方法？
-* `for...in`
-* `Object.keys()`，参数是一个对象，返回是该对象的key数组
-* `Object.values()`，参数是一个对象，返回是该对象的value数组
-* `Object.entries()`，返回值为Object.values()与Object.keys()的结合，返回一个二维数组，每个小数组都是[ [属性名，属性值],[属性名，属性值] ]
-* `Object.getOwnPropertyNames()`，其返回结果与Object.keys()相似，但会返回对象得所有属性，包括了不可枚举属性
 ## JS 的array的函数中，有哪些是直接修改数组本体？
 * 改变原数组的方法：
 `pop()`,`push()`, `shift()`,`unshift()`,`sort()`,`reverse()`,`splice()`
 * 不改变原数组的方法：
 `slice()`,`concat()`,`map()`,`forEach()`
-## 赋值/浅拷贝/深拷贝的区别？如何实现一个深拷贝？
+## 赋值/浅拷贝/深拷贝的区别？
 * 赋值是拷贝的对象指针，整个对象都是共用的。
 * 浅拷贝是拷贝一层，对象的内容仍是共用的，`Object.assign()`，拓展运算符都是浅拷贝。
 * 深拷贝是递归拷贝深层次，`JSON.stringify()`是深拷贝，但是会忽略undefined、symbol和函数。
-```js
-// 一个简单的深拷贝
-function clone(target) {
-    if (typeof target === 'object') {
-        let cloneTarget = Array.isArray(target) ? [] : {}; // 考虑数组
-        for (const key in target) {
-            cloneTarget[key] = clone(target[key]);
-        }
-        return cloneTarget;
-    } else {
-        return target;
-    }
-};
-```
+
 ## 知道JS的set和map的用法吗？
 
 ES6 提供了新的数据结构 Set。它类似于数组，但是成员的值都是唯一的，没有重复的值。Set本身是一个构造函数，用来生成 Set 数据结构。
@@ -369,7 +285,6 @@ AMD/CMD都是浏览器的
 CMD 推崇依赖就近（用的时候再声明引用的依赖），AMD 推崇依赖前置（先声明引用的依赖）。
 * AMD规范，即异步模块加载机制。require/define，核心是预加载，先对依赖的全部文件进行加载，加载完了再进行处理。解决的是JS加载引起页面卡顿的问题。
 * CMD规范，是一个同步模块定义，require/define，按不同的先后依赖关系对 JavaScript 等文件的进行加载工作，确保各个JS文件的先后加载顺序，确保避免了以前因某些原因某个文件加载慢而导致其它加载快的文件需要依赖其某些功能而出现某函数或某变量找不到的问题。
-* CommonJS规范加载模块是同步的，也就是说，只有加载完成，才能执行后面的操作。模块可以多次加载，但是只会在第一次加载时运行一次，然后运行结果就被缓存了，以后再加载，就直接读取缓存结果。要想让模块再次运行，必须清除缓存。
 模块加载的顺序，按照其在代码中出现的顺序。
 ## JS的隐式转换？
 在使用不同类型的值进行操作时，JavaScript会自动进行类型转换，这称为隐式转换。
@@ -386,17 +301,10 @@ CMD 推崇依赖就近（用的时候再声明引用的依赖），AMD 推崇依
   * null == undefined比较结果是true，除此之外，null、undefined和其他任何结果的比较值都为false。
   * 原始类型和引用类型做比较时，引用类型会依照ToPrimitive规则转换为原始类型。
 # 中级
-## null是原始类型，但为什么typeof null的结果是object？如何准确检测一个值是null类型而不是其他类型隐式转换而来？
+## null是原始类型，但为什么typeof null的结果是object？
 造成这个结果的原因是null的内存地址是以000开头，而js会将000开头的内存地址视为object。
 通过`isNull()`来判断一个值是不是null类型，但值得注意的是`isNaN()`会进行隐式转换。
-typeof 无法精确的检测null、Object、Array。获取精确类型的话，可以自己写一个：
-```js
-const getType = (value: any) => {
-  const str: string = Object.prototype.toString.call(value)
-  const typeStrArray = str.substring(1, str.length - 1).split(' ')
-  return typeStrArray[1].toLowerCase()
-}
-```
+typeof 无法精确的检测null、Object、Array。
 # 高级
 ## 会babel插件开发吗？
 Babel编译是一个code to code的过程，整个流程分为三步：
