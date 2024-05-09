@@ -107,3 +107,83 @@ childNodes会返回所有节点，包括HTML、Text、注释等等内容（甚�
 src和href都是用于外部资源的引入，像图片、CSS文件、HTML文件、js文件或其他web页面等。
 * href：用于加上链接，点击跳转到这个链接，例如a标签。
 * src：用于用链接里的内容进行替换，例如img标签。
+## ArrayBuffer 和 Blob 对象的区别？
+
+ArrayBuffer 对象是 ES6 才纳入正式 ECMAScript 规范，是 JavaScript 操作二进制数据的一个接口。
+ArrayBuffer 对象是以数组的语法处理二进制数据，也称二进制数组。代表储存二进制数据的一段内存，它不能直接读写。
+浏览器原生提供 ArrayBuffer() 构造函数，用来生成实例。
+```js
+// 一个指定大小的 ArrayBuffer 对象，其内容被初始化为 0，表示实例对象 buffer 占用 32 个字节。
+const buffer = new ArrayBuffer(32);
+buffer.byteLength; // 32
+// ArrayBuffer 对象有实例方法 slice()，用来复制一部分内存。
+const buffer2 = buffer.slice(0); // 从0开始，复制到结束
+```
+
+Blob 全称：Binary Large Object （二进制大型对象）。表示一个二进制文件的数据内容，通常用来读写文件，比如一个图片文件的内容就可以通过 Blob 对象读写。
+与 ArrayBuffer 区别是，Blob 用于操作二进制文件，ArrayBuffer 用于操作内存。浏览器原生提供 Blob() 构造函数，用来生成实例。
+```js
+// Blob 的内容由参数数组中给出的值的串联组成。
+const leoBlob = new Blob(array [, options]);
+// array，必填，成员是字符串或二进制对象，表示新生成的Blob实例对象的内容；
+成员可以是一个由 ArrayBuffer ,  ArrayBufferView , Blob ,  DOMString 等对象构成的 Array ，
+或者其他类似对象的混合体，它将会被放进 Blob。DOMStrings会被编码为UTF-8。
+```
+
+* Blob: 前端的一个专门用于支持文件操作的二进制对象
+* ArrayBuffer：前端的一个通用的二进制缓冲区，类似数组，但在API和特性上却有诸多不同
+* Buffer：Node.js提供的一个二进制缓冲区，常用来处理I/O操作 
+
+arraybuffer转blob很方便，作为参数传入就行了。
+```js
+var buffer = new ArrayBuffer(16);
+var blob = new Blob([buffer]);
+```
+Blob转ArrayBuffer
+此处需要借助fileReader对象了，
+```js
+var blob = new Blob([1,2,3,4,5]);
+var reader = new FileReader();
+
+reader.onload = function() {
+    console.log(this.result);
+}
+reader.readAsArrayBuffer(blob);
+```
+
+前端方面，利用原生的XMLHttpRequest发送请求，并设置responseType就行了，
+```
+xhr.responseType = 'arraybuffer';
+xhr.responseType = 'blob';
+```
+
+ArrayBuffer其实就是⼀块连续内存，所以是low-level的。你可以将这块内存映射为某种数组
+（TypedArray）或者是⾃定义的数据视图（DataView），将来如果JS有了Struct（或TypedObject），
+有可能可以映射为结构体（Struct）或结构体数组。
+
+Blob（binary large object）则是⼀个相对high-level的概念，来⾃于数据库，可以认为就是「⽂件」
+（所以blob是有⽂件类型的，即mime type），只不过是脱离具体⽂件系统的⽂件（不需要有⽂件名、⽂件路径之类的东⻄）。
+Blob对象并不对应内存，⼀个blob引⽤更像⽂件句柄，你读取blob的内容，可以是全放进⼀个ArrayBuffer⾥，
+也可以直接得到⼀个字符串（如果是⽂本⽂件），还可以通过Stream来读取，特别是blob很⼤的情况下内存也放不下，只能通过流处理。
+
+注意，Blob并不像ArrayBuffer是JS语⾔内置的，⽽是Web API，Node.js的API⾥就没有Blob。这也是为什
+么MDN说「Blobs can represent data that isn't necessarily in a JavaScript-native format」（中⽂版的翻
+译「Blob表示的不⼀定是JavaScript原⽣格式的数据」反⽽⽐英⽂原⽂难理解）。
+
+Buffer是nodejs独有的。ArrayBuffer是符合ES标准的。Buffer是Nodejs提供的可以直接操作二进制数据的类。
+
+ArrayBuffer[1] 对象用来表示通用的、固定长度的原始二进制数据缓冲区，是一个字节数组，可读但不可直接写。
+
+Buffer[2] 是 Node.JS 中用于操作 ArrayBuffer 的视图，是 TypedArray[3] 的一种。
+
+TypedArray是一种特殊的数组，用于以特定的数值类型来读写ArrayBuffer的内容。
+
+DataView提供了一种用于读写ArrayBuffer内容的低级接口。与TypedArray不同，DataView允许你以任意顺序和字节序来读写ArrayBuffer的不同部分。
+
+当我们创建了一个 Buffer 对象后，我们可以通过Buffer对象的 buffer 属性来直接访问其对应的 ArrayBuffer 对象。
+
+从Node的代码来看，一个 Buffer 对象（或者说是 FastBuffer）继承自 Uint8Array。
+
+在 Buffer.from(arrayBuffer[, byteOffset[, length]]) 方法中，你可以传入一个 ArrayBuffer及其视图的位置和长度来创建一个 Buffer 对象。
+
+

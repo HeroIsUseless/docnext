@@ -173,11 +173,61 @@ function clone(target) {
     }
 };
 ```
+## 如何实现assign？
+```js
+export function assign(target) {
+	var sources = [].slice.call(arguments, 1);
+	sources.forEach(function (source) {
+		if(!source) return;
+		Object.getOwnPropertyNames(source).forEach(function(propName) {
+			// Object.defineProperty(obj,property,descriptor)
+			// getOwnPropertyDescriptor返回一个对象，该对象描述给定对象上特定属性（即直接存在于对象上而不在对象的原型链中的属性）的配置。
+			// 返回的对象是可变的，但对其进行更改不会影响原始属性的配置（即不是const的，深拷贝的）。
+			Object.defineProperty(target, propName, Object.getOwnPropertyDescriptor(source, propName));
+		});
+	});
+	return target;
+}
+```
 ## 如何准确检测一个值是null类型而不是其他类型隐式转换而来？
 ```js
 const getType = (value: any) => {
   const str: string = Object.prototype.toString.call(value)
   const typeStrArray = str.substring(1, str.length - 1).split(' ')
   return typeStrArray[1].toLowerCase()
+}
+```
+## 如何实现rxjs的defer函数？
+```js
+function defer() {
+	this.resolve = null;
+	this.reject = null;
+	this.promise = new Promise((resolve, reject) => {
+		this.resolve = resolve;
+		this.reject = reject;
+	});
+}
+```
+## 如何实现promise.all？
+```js
+let p1 = new Promise((resolve) => {
+    resolve(1)
+})
+let p2 = new Promise((resolve) => {
+    resolve(2)
+})
+let pa = Promise.myAll([p1, p2])
+pa.then(args => {
+
+})
+Promise.myAll = function(...args) {
+    let n = 0;
+    for (let arg of args) {
+        arg.then(() => {
+            n += 1
+            if (n >= args.length)
+                resolve(true)
+        })
+    }
 }
 ```
