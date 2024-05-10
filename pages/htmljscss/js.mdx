@@ -1,53 +1,29 @@
 # 初级
 ## var，let，const，死区？
-var，let，const声明用法是一样，都是定义变量，var的声明会被提升到全局作用域或函数作用域，但仍然在原地方赋值。let，const并不会声明提升，因此在声明之前的代码区域就是暂时性死区。
+var，let，const声明用法是一样，都是定义变量。
+* var的声明会被提升到全局作用域或函数作用域，但仍然在原地方赋值。
+* let，const并不会声明提升，因此在声明之前的代码区域就是暂时性死区。
+
 ## call，apply，bind的区别？
 三者的功能都是用来改变函数中的 this 指向。
-* call() 方法是预定义的 JavaScript 方法。它可以用来调用所有者对象作为参数的方法。通过 call()，您能够使用属于另一个对象的方法。call传入的参数数量不固定，第一个参数代表函数内的this指向，从第二个参数开始往后，每个参数被依次传入函数。 
-```js
-  const person = {
-    fullName: function (country, city) {
-      return this.firstName + this.lastName + " " + country + " " + city
-    }
-  }
-  const newPerson = {
-    firstName: "fu",
-    lastName: "chaoyang",
-  }
-  person.fullName.call(newPerson, 'china', 'xian') // fuchaoyang china xian 
-```
-* apply() 对比 call() 仅参数上的不同：接受两个参数，第一个参数指定了函数体内的this指向。第二个参数为一个带下标的集合，这个集合可以为数组，也可以为类数组，apply方法把这个集合中的元素作为参数传递给被调用的函数。
-```js
-  const person = {
-    fullName: function (country, city) {
-      return this.firstName + this.lastName + " " + country + " " + city
-    }
-  }
-  const newPerson = {
-    firstName: "fu",
-    lastName: "chaoyang",
-  }
-  person.fullName.apply(newPerson, ['china', 'xian']) // fuchaoyang china xian
-```
-* bind() 相对 call() 而言，仅绑定新对象，不立即执行。
-```js
-  const person = {
-    fullName: function (country, city) {
-      return this.firstName + this.lastName + " " + country + " " + city
-    }
-  }
-  const newPerson = {
-    firstName: "fu",
-    lastName: "chaoyang",
-  }
-  person.fullName.bind(newPerson, 'china', 'xian') // 打印出fullName函数
-  person.fullName.bind(newPerson, 'china', 'xian')() // fuchaoyang china xian
-```
-## 说一下原型和原型链？
-JavaScript 中，万物皆对象，对象分为普通对象和函数对象。
-所有的函数都是函数对象（`typeof f === 'function'`），其他都是普通对象（`typeof o === 'object'`）。
+* call() 方法第一个参数代表函数内this的指向对象，从第二个参数开始往后都是作为函数参数传递给函数。 
+* apply() 对比 call() 仅参数上的不同，第二个参数为一个列表，这个列表中的元素作为函数参数传递给函数。
+* bind() 相对 call() 而言，仅绑定新对象并返回该函数，而不立即执行。
 
-JS在没有类`class`前，创建一个对象都是通过 `new 函数()` 来实现的（也就是构造函数），例如：
+## 说一下原型和原型链？
+JavaScript 中，万物皆对象，每个对象都有一个私有属性指向另一个名为原型的对象。
+
+
+
+原型对象也有一个自己的原型，层层向上直到一个对象的原型为 null。根据定义，null 没有原型，并作为这个原型链（prototype chain）中的最后一个环节。
+
+
+JS在没有类`class`前，创建一个对象都是通过构造函数来实现的。
+
+
+> JavaScript 中，万物皆对象，对象分为普通对象和函数对象。
+所有的函数都是函数对象（`typeof f === 'function'`），其他都是普通对象（`typeof o === 'object'`）。
+，例如：
 ```js
 var a = new Object() // 此时a是{}
 var a = {} // 等价于 var a = new Object()

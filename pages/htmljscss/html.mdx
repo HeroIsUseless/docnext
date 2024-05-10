@@ -1,100 +1,69 @@
 # 初级
-## 在HTML5中DOCTYPE的作用是什么？标准与兼容模式（混杂模式）各有什么区别？
+## 在HTML5中DOCTYPE的作用是什么？
 DOCTYPE（文档类型声明）是一种在HTML文档中使用的标记，用于告诉浏览器使用哪个HTML版本解析文档。它的作用是确保浏览器正确地渲染和显示网页内容。
 
-标准模式（严格模式）和兼容模式（混杂模式）是浏览器根据DOCTYPE声明来选择不同的渲染模式。它们有以下区别：
+## 标准与兼容模式（混杂模式）各有什么区别？
 
-标准模式（严格模式）：在标准模式下，浏览器会按照HTML和CSS规范的最新标准解析和渲染页面。
-浏览器会严格地遵循规范，对错误的处理更加严格。能提供更一致的渲染结果。
+* 标准模式（严格模式）：在标准模式下，浏览器会按照HTML和CSS规范的最新标准解析和渲染页面。对错误的处理更加严格。能提供更一致的渲染结果。
+* 兼容模式（混杂模式）：在兼容模式下，浏览器会以一种更宽松的方式解析和渲染页面，以保持与旧版本浏览器的兼容性，也可能导致不同浏览器之间的渲染结果不一致。
 
-兼容模式（混杂模式）：在兼容模式下，浏览器会以一种更宽松的方式解析和渲染页面，以保持与旧版本浏览器的兼容性。
-但也可能导致不同浏览器之间的渲染结果不一致。
-
-通过使用正确的DOCTYPE声明，可以确保浏览器按照所选择的渲染模式来解析网页。一般推荐使用最新的HTML5 DOCTYPE声明（`<!DOCTYPE html>`），以便在标准模式下进行开发和测试，以获得更好的一致性和可靠性。
+一般推荐使用最新的HTML5 DOCTYPE声明（`<!DOCTYPE html>`），以获得更好的一致性和可靠性。
 
 ## meta标签的作用？
 `<meta>` 标签定义关于 HTML 文档的元数据。这些数据用于描述整个文档。
+`<meta>` 标签位于 `<head>` 元素 内，通常用于指定字符集、页面描述、关键词、文档作者和视口设置，一个 HTML 文档中可以多个 meta 元素。
 
-`<meta>` 标签始终位于 `<head>` 元素 内，通常用于指定字符集、页面描述、关键词、文档作者和视口设置，一个 HTML 文档中可以多个 meta 元素。
+> meta属性主要有：
+> * name，规定元数据的名称，相当于key。值可以为author，keywords，description，viewport，application-name，generator
+> * content，文本，相当于value，规定与 http-equiv 或 name 属性关联的值。
+> * charset，字符集，规定 HTML 文档的字符编码。
+> * http-equiv，为 content 属性的信息/值提供 HTTP 标头。可以为content-security-policy，content-type，default-style，refresh
 
-meta属性主要有：
-* charset，字符集，规定 HTML 文档的字符编码。
-* name，规定元数据的名称，相当于key。值可以为author，keywords，description，viewport，application-name，generator
-* content，文本，相当于value，规定与 http-equiv 或 name 属性关联的值。
-* http-equiv，为 content 属性的信息/值提供 HTTP 标头。可以为content-security-policy，content-type，default-style，refresh
-
-用法例如：
-```html
-为搜索引擎定义关键字：
-<meta name="keywords" content="HTML, CSS, JavaScript">
-使用 charset 属性声明该页面采用 UTF-8 字符编码：
-<meta charset="UTF-8">
-```
+用法例如：`<meta charset="UTF-8">`
 
 ## 哪些是行内（内联）元素，哪些是块级元素？
 * 行内元素不从新行开始，只占用必要宽度，不可以设置宽高，只能包含数据和其他行内元素。例如大部分文字有关的标签，如`<a>、<span>`等。
 * 块级元素从新行开始，占用全部宽度（除非设置了宽度），可以包含其他块级或内联元素。例如`<div>、<p>、<table>、<h>`等。
 * 还有一些行内块级元素，它可以自由设置元素宽度和高度，也可以在一行中放置多个行内块级元素。比如：`<input>、<img>、<button>、<textarea>`
-* 可以通过css属性`display: inline|block`改变元素的行内/块级属性。
+
+可以通过css属性`display: inline|block`改变元素的行内/块级属性。
+
 ## 了解重绘和重排吗？
-* 当Dom的变化影响到了元素的几何属性（宽和高等）——比如说修改了边框的宽度，或者是修改了高度，又或者给文章增加了内容导致元素的高度增加等，会引起浏览器进行重新计算元素的几何属性，同样，其他元素的几何属性和位置也会因此受到影响。浏览器会使渲染树中受到影响的部分失效。并重新构建渲染树，这个过程称为重排。
-完成重排之后，浏览器会重新绘制受影响的元素，这个过程被称为重绘。
-* 当一个元素发生外观上的变化就会重绘，以下几点会发生重排：
-    * 页面渲染器初始化
-    * 元素尺寸，位置，内容发生改变
-    * 浏览器窗口尺寸发生改变
-* 优化重排效率
-    * 批量修改Dom，合并Dom的多次修改
-    * 使用absolute或fixed样式脱离文档流修改
-    * 使用GPU加速
-    * 使用虚拟Dom
+* 当Dom的变化影响到了元素的几何属性例如宽和高等，会引起浏览器进行重新计算元素的几何属性，并重新构建渲染树，这个过程称为重排。
+* 当一个元素发生外观上的变化就会重绘例如颜色背景，就会重绘。重排必然引起重绘。
+
 ## 讲一讲HTML5有什么新特点？
-> HTML5是超文本标记语言(HTML)的第五版，在2014年10月正式获得“推荐”的地位，上一版HTML4.x是在2000年左右发布的。
 * 添加了许多语义化的标签。
 * 增强了表单能力。
 * 支持音/视频的控制。
 * 支持Canvas/SVG绘图。
 * 增加了web storage。
 * 增加web socket长联能力。
+
+> HTML5是2014年发布的，上一版HTML4.x是在2000年左右发布的。
+
 ## 在地址栏里输入一个URL,到这个页面呈现出来，中间会发生什么？
-浏览器检查当前url是否存在缓存和缓存是否过期，如果过期了则根据本地hosts或者DNS服务器进行域名解析得到ip，然后三次握手建立tcp连接，
-返回页面报文，解析下载的HTML生成DOM树，解析下载的CSS生成CSS树，DOM树和CSS树合并为渲染树，然后根据渲染树绘制节点。
+* 浏览器检查当前url是否存在缓存和缓存是否过期
+* 如果过期了则根据DNS服务器进行域名解析得到ip，然后三次握手建立tcp连接
+* 返回页面报文，解析下载的HTML生成DOM树，解析下载的CSS生成CSS树
+* DOM树和CSS树合并为渲染树，然后根据渲染树绘制节点
+
 ## script 标签中 defer 和 async 的区别？
 * `<script>` ：会阻碍 HTML 解析，只有下载好并执行完脚本才会继续解析 HTML。
 * `<script async>` ：解析 HTML 过程中进行脚本的异步下载，下载成功立马执行，有可能会阻断 HTML 的解析。
 * `<script defer>` ：完全不会阻碍 HTML 的解析，当页面已完成加载后，才会执行脚本。
-## XSS 攻击/ CSRF 攻击是什么？
-* Cross Site Script,跨站脚本攻击。是指攻击者在网站上注入恶意script代码，
-通过恶意脚本对客户端网页进行篡改，从而在用户浏览网页时，对用户浏览器进行控制或者获取用户隐私数据的一种攻击方式。
-比如攻击者在社区或论坛上写下一篇包含恶意 JavaScript 代码的文章或评论，文章或评论发表后，所有访问该文章或评论的用户，
-都有可能在他们的浏览器中执行这段恶意的 JavaScript 代码。
-
-CSRF就是利用用户的登录态发起恶意请求。
-## 响应式布局，怎么做移动端适配
-首先，需要设置viewport的meta标签，将width设置为device-width：
-```js
-<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-```
-* width=device-width: 让当前 viewport 宽度等于设备的宽度
-* user-scalable=no: 禁止用户缩放
-* initial-scale=1.0: 设置页面的初始缩放值为不缩放
-* maximum-scale=1.0: 允许用户的最大缩放值为 1.0
-* minimum-scale=1.0: 允许用户的最小缩放值为 1.0
-
-然后可以使用：
-* 媒体查询方案
-* 动态 rem 方案
 
 ## 元素的innerText outerText innerHTML的区别？
- 
 * innerText和outerText取值都是对象起始和结束标签内部的文本内容。但是在设置的时候，outerText会把该标签也替换掉。
 * innerHTML取值是对象起始和结束标签内部的html，不包括对象本身的起始标签和结束标签。设置时是填充该标签内部。
 * outerHTML取值是也是html，但是包括对象本身的起始标签和结束标签。设置时是连该标签也替换掉。
 * textContent 属性设置或者返回指定节点的文本内容。如果设置了textContent属性，任何子节点都会被移除，然后被指定的字符串的文本节点替换。
 * nodeValue 属性设置或返回指定节点的节点值。
 nodeValue 属性的替代选择是 textContent 属性。nodeValue只适用于文本节点和属性节点，对标签节点不适用，返回null；
+
 ## 如何获取标签上的自定义属性？
 使用`.getAttribute('xxx')`，如果是标签上的自有属性，则直接可以`ele.xxx`就行。
+
 ## HTML中childNodes和children有什么区别？
 * Node：在 DOM 树中，所有的节点都是 Node，包括 Element，也就是说 Node 包含了 HTML 元素标签、text、以及注释等等内容，它是所有 DOM 的基类。
 * Element：在 DOM 树中，Element 是所有 HTML 元素的基类，也就是说，Element 只包含 HTML 元素标签。
@@ -112,78 +81,36 @@ src和href都是用于外部资源的引入，像图片、CSS文件、HTML文件
 ArrayBuffer 对象是 ES6 才纳入正式 ECMAScript 规范，是 JavaScript 操作二进制数据的一个接口。
 ArrayBuffer 对象是以数组的语法处理二进制数据，也称二进制数组。代表储存二进制数据的一段内存，它不能直接读写。
 浏览器原生提供 ArrayBuffer() 构造函数，用来生成实例。
-```js
-// 一个指定大小的 ArrayBuffer 对象，其内容被初始化为 0，表示实例对象 buffer 占用 32 个字节。
-const buffer = new ArrayBuffer(32);
-buffer.byteLength; // 32
-// ArrayBuffer 对象有实例方法 slice()，用来复制一部分内存。
-const buffer2 = buffer.slice(0); // 从0开始，复制到结束
-```
-
 Blob 全称：Binary Large Object （二进制大型对象）。表示一个二进制文件的数据内容，通常用来读写文件，比如一个图片文件的内容就可以通过 Blob 对象读写。
-与 ArrayBuffer 区别是，Blob 用于操作二进制文件，ArrayBuffer 用于操作内存。浏览器原生提供 Blob() 构造函数，用来生成实例。
-```js
-// Blob 的内容由参数数组中给出的值的串联组成。
-const leoBlob = new Blob(array [, options]);
-// array，必填，成员是字符串或二进制对象，表示新生成的Blob实例对象的内容；
-成员可以是一个由 ArrayBuffer ,  ArrayBufferView , Blob ,  DOMString 等对象构成的 Array ，
-或者其他类似对象的混合体，它将会被放进 Blob。DOMStrings会被编码为UTF-8。
-```
+浏览器原生提供 Blob() 构造函数，用来生成实例。
 
-* Blob: 前端的一个专门用于支持文件操作的二进制对象
-* ArrayBuffer：前端的一个通用的二进制缓冲区，类似数组，但在API和特性上却有诸多不同
-* Buffer：Node.js提供的一个二进制缓冲区，常用来处理I/O操作 
+> 注意，Blob并不像ArrayBuffer是JS语⾔内置的，⽽是Web API，Node.js的API⾥就没有Blob。
 
-arraybuffer转blob很方便，作为参数传入就行了。
-```js
-var buffer = new ArrayBuffer(16);
-var blob = new Blob([buffer]);
-```
-Blob转ArrayBuffer
-此处需要借助fileReader对象了，
-```js
-var blob = new Blob([1,2,3,4,5]);
-var reader = new FileReader();
-
-reader.onload = function() {
-    console.log(this.result);
-}
-reader.readAsArrayBuffer(blob);
-```
-
-前端方面，利用原生的XMLHttpRequest发送请求，并设置responseType就行了，
-```
-xhr.responseType = 'arraybuffer';
-xhr.responseType = 'blob';
-```
-
-ArrayBuffer其实就是⼀块连续内存，所以是low-level的。你可以将这块内存映射为某种数组
-（TypedArray）或者是⾃定义的数据视图（DataView），将来如果JS有了Struct（或TypedObject），
-有可能可以映射为结构体（Struct）或结构体数组。
-
-Blob（binary large object）则是⼀个相对high-level的概念，来⾃于数据库，可以认为就是「⽂件」
-（所以blob是有⽂件类型的，即mime type），只不过是脱离具体⽂件系统的⽂件（不需要有⽂件名、⽂件路径之类的东⻄）。
-Blob对象并不对应内存，⼀个blob引⽤更像⽂件句柄，你读取blob的内容，可以是全放进⼀个ArrayBuffer⾥，
-也可以直接得到⼀个字符串（如果是⽂本⽂件），还可以通过Stream来读取，特别是blob很⼤的情况下内存也放不下，只能通过流处理。
-
-注意，Blob并不像ArrayBuffer是JS语⾔内置的，⽽是Web API，Node.js的API⾥就没有Blob。这也是为什
-么MDN说「Blobs can represent data that isn't necessarily in a JavaScript-native format」（中⽂版的翻
-译「Blob表示的不⼀定是JavaScript原⽣格式的数据」反⽽⽐英⽂原⽂难理解）。
-
-Buffer是nodejs独有的。ArrayBuffer是符合ES标准的。Buffer是Nodejs提供的可以直接操作二进制数据的类。
-
-ArrayBuffer[1] 对象用来表示通用的、固定长度的原始二进制数据缓冲区，是一个字节数组，可读但不可直接写。
-
-Buffer[2] 是 Node.JS 中用于操作 ArrayBuffer 的视图，是 TypedArray[3] 的一种。
+Buffer是nodejs独有的。Buffer 是 Node.JS 中用于操作 ArrayBuffer 的视图，是 TypedArray 的一种。
 
 TypedArray是一种特殊的数组，用于以特定的数值类型来读写ArrayBuffer的内容。
 
 DataView提供了一种用于读写ArrayBuffer内容的低级接口。与TypedArray不同，DataView允许你以任意顺序和字节序来读写ArrayBuffer的不同部分。
 
-当我们创建了一个 Buffer 对象后，我们可以通过Buffer对象的 buffer 属性来直接访问其对应的 ArrayBuffer 对象。
+## XSS 攻击/ CSRF 攻击是什么？
+* Cross Site Script,跨站脚本攻击。是指攻击者在网站上注入恶意script代码，
+通过恶意脚本对客户端网页进行篡改，从而在用户浏览网页时，对用户浏览器进行控制或者获取用户隐私数据的一种攻击方式。
+比如攻击者在社区或论坛上写下一篇包含恶意 JavaScript 代码的文章或评论，文章或评论发表后，所有访问该文章或评论的用户，
+都有可能在他们的浏览器中执行这段恶意的 JavaScript 代码。
 
-从Node的代码来看，一个 Buffer 对象（或者说是 FastBuffer）继承自 Uint8Array。
+CSRF就是利用用户的登录态发起恶意请求。
 
-在 Buffer.from(arrayBuffer[, byteOffset[, length]]) 方法中，你可以传入一个 ArrayBuffer及其视图的位置和长度来创建一个 Buffer 对象。
+## 响应式布局，怎么做移动端适配
+首先，需要设置viewport的meta标签，将width设置为device-width：
+```js
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+```
+* width=device-width: 让当前 viewport 宽度等于设备的宽度
+* user-scalable=no: 禁止用户缩放
+* initial-scale=1.0: 设置页面的初始缩放值为不缩放
+* maximum-scale=1.0: 允许用户的最大缩放值为 1.0
+* minimum-scale=1.0: 允许用户的最小缩放值为 1.0
 
-
+然后可以使用：
+* 媒体查询方案
+* 动态 rem 方案
