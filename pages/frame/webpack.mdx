@@ -1,0 +1,9 @@
+## 会babel插件开发吗？
+Babel编译是一个code to code的过程，整个流程分为三步：
+* 解析（parse）：将源码解析成抽象语法树(AST)
+* 转换（transform）：遍历AST，并使用babel api对AST节点进行增删改，babel 维护一个称作 Visitor 的对象，这个对象定义了用于 AST 中获取具体节点的方法，如果当前节点的类型匹配 visitor 中的类型，就会执行对应的方法，
+遍历 AST 节点的时候会遍历两次（进入和退出），这样命中目标节点并进行逻辑处理。
+* 生成（generate）：将转换后的 AST 转换成代码，同时可以创建Source Map映射。
+编写一个文件，里面一个函数，返回值是一个指定类型的对象，visitor就是其中最主要的对象，其他都是一些配置。
+在babel.config.json里的plugins，加上这个文件，就能进行转换了。
+> AST可视化平台：https://astexplorer.net/
