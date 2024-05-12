@@ -1,3 +1,22 @@
+## Webpack构建流程简单说一下？
+webpack获取到配置后，根据配置中的 entry 找到入口文件，
+从入口文件出发，调用所有配置的 Loader 对模块进行转译，再找出该模块依赖的模块，递归得到整个依赖树。
+
+## 请说说常见的 plugins
+
+## 有哪些常见的Loader？你用过哪些Loader？
+* babel-loader 使用 Babel 加载 ES2015+ 代码并将其转换为 ES5
+* ts-loader 像加载 JavaScript 一样加载 TypeScript 2.0+
+* style-loader 将模块导出的内容作为样式并添加到 DOM 中
+* css-loader 加载 CSS 文件并解析 import 的 CSS 文件，最终返回 CSS 代码
+* postcss-loader 使用 PostCSS 加载并转换 CSS/SSS 文件
+## webpack中的 loader 和 plugin 有什么区别？
+## webpack 如何优化构建体积跟速度
+## 说一下 Webpack 的热更新原理吧
+## Webpack proxy 为什么能解决跨域
+## 手写一个Loader来瞧瞧
+## 手写一个Plugin插件
+
 ## 会babel插件开发吗？
 Babel编译是一个code to code的过程，整个流程分为三步：
 * 解析（parse）：将源码解析成抽象语法树(AST)
