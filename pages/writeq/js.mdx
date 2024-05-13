@@ -247,3 +247,37 @@ Promise.myAll = function(...args) {
     }
 }
 ```
+
+## 手写一个Loader？
+```js
+// 解析css文件并插入到dom中
+module.exports = function (content) {
+  let str = `
+    var style = document.createElement("style");
+    style.innerHTML = ${JSON.stringify(content)};
+    document.head.appendChild(style);
+  `;
+  return str;
+};
+// test: /\.css$/,
+// use: [resolve(__dirname, "../loader/testSytleLoader.js")],
+```
+## 手写一个Plugin插件
+```js
+const pluginName = 'ConsoleLogOnBuildWebpackPlugin';
+class ConsoleLogOnBuildWebpackPlugin {
+  constructor(options) {
+    console.log("current plugin option is" + JSON.stringify(options))
+  }
+  apply(compiler) { // apply 方法是一个插件所必须的
+    // compiler 继承自 tapable
+    // tapable  提供了多种 hooks  https://github.com/webpack/tapable#hook-types
+    // run      是 AsyncSeriesHook实例 [tapable提供的多种hooks的一种]
+    compiler.hooks.run.tap(pluginName, compilation => {
+      console.log('webpack 构建过程开始！');
+    });
+  }
+}
+
+module.exports = ConsoleLogOnBuildWebpackPlugin
+```

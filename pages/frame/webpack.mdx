@@ -1,8 +1,15 @@
 ## Webpack构建流程简单说一下？
-webpack获取到配置后，根据配置中的 entry 找到入口文件，
-从入口文件出发，调用所有配置的 Loader 对模块进行转译，再找出该模块依赖的模块，递归得到整个依赖树。
+webpack获取到配置后，根据配置中的 entry 找到入口文件，从入口文件出发，调用配置的 Loader 对模块进行转译，
+再找出该模块依赖的模块，递归得到整个依赖树。
+最后对编译后的模块组合成 Chunk，把 Chunk 转换成文件，输出到文件系统。
 
-## 请说说常见的 plugins
+## webpack到config文件主要包括什么参数？
+* mode，模式（例如development/production）
+* entry，入口（字符串或者字符串数组，表示多个入口）
+* output，输出`{filename: '[name].js', path: __dirname + '/dist'}`
+* module，加载（例如loader，`module.rules: [{test:/\.json$/, exclude...}]`）
+* plugins，插件`[new A(), new B()]`
+* [resolve]，解析（例如alias，extensions（尝试按顺序解析这些后缀名。['.js', '.json', '.wasm']））
 
 ## 有哪些常见的Loader？你用过哪些Loader？
 * babel-loader 使用 Babel 加载 ES2015+ 代码并将其转换为 ES5
@@ -10,12 +17,28 @@ webpack获取到配置后，根据配置中的 entry 找到入口文件，
 * style-loader 将模块导出的内容作为样式并添加到 DOM 中
 * css-loader 加载 CSS 文件并解析 import 的 CSS 文件，最终返回 CSS 代码
 * postcss-loader 使用 PostCSS 加载并转换 CSS/SSS 文件
+* mdx-loader 将 MDX 文件转换成 JS 模块
+
+## 请说说常见的 plugins？
+* HtmlWebpackPlugin，根据模板文件自动生成 html 文件，并且将输出文件JS自动插入到 html 中
+* CopyWebpackPlugin，将文件从某一目录复制到另一目录，可以用于 public 下的静态文件，无需参与编译但是需要输出到 dist 目录
+* MiniCssExtractPlugin，抽离 css 到独立的文件中，否则将会以内嵌的方式嵌在 html 中
+* BundleAnalyzerPlugin，文件分析插件，可以用于打包后资源的依赖及大小分析
+* UglifyJsPlugin，压缩JS
+
 ## webpack中的 loader 和 plugin 有什么区别？
+* Loader用于对源代码文件进行转换和处理。定义在module.rules里，一个Loader对象通常包括以下几个属性：
+    * test：用于匹配需要处理的文件类型，通常是一个正则表达式。
+    * use：指定需要使用的Loader，可以是一个字符串或一个字符串数组，每一个字符串是一个Loader。
+    * exclude/include：指定需要排除/包含的文件夹。
+* Plugin用于对Webpack的编译过程进行扩展和增强。例如生成HTML文件、代码压缩、分离CSS文件等。
+定义在module.plugins里，每个元素是一个Plugin实例。Plugin通常包括以下几个方法：
+    * apply：用于安装插件，接收一个compiler对象作为参数。
+    * 一些Webpack钩子函数的实现。
+
 ## webpack 如何优化构建体积跟速度
 ## 说一下 Webpack 的热更新原理吧
 ## Webpack proxy 为什么能解决跨域
-## 手写一个Loader来瞧瞧
-## 手写一个Plugin插件
 
 ## 会babel插件开发吗？
 Babel编译是一个code to code的过程，整个流程分为三步：
