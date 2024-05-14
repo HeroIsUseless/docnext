@@ -1,4 +1,43 @@
 # 算法
+## 二分法
+比较适合有序数组搜索
+```js
+function search(arr, v) {
+    if (!arr.length) return -1
+    let start = 0
+    let end = arr.length - 1
+    let mid = Math.floor((start + end) / 2)
+    while (true) {
+        if (arr[mid] < v) {
+            start = mid
+        } else if (arr[mid] > v) {
+            end = mid
+        } else {
+            break
+        }
+        if (end - start <= 1) {
+            break
+        }
+    }
+    if (arr[mid] === v) {
+        return mid
+    }
+    if (arr[start] === v) {
+        return start
+    }
+    if (arr[end] === v) {
+        return end
+    }
+    return -1
+}
+```
+## 深搜，广搜
+比较适合树，图，迷宫等
+## 动态规划
+比较适用于求解最值问题
+## 贪心算法
+
+
 ## 经典面试题
 ### 最大连续子序和
 动态规划问题，`r(n) = r(n-1)+a(n) > a(n) ? r(n-1)+a(n) : a(n)`
