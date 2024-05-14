@@ -20,10 +20,8 @@
 
 ## JS有多少种继承方式？
 
-> class继承的关系
-首先，所有继承归根结底都是原型继承。
-* 原型链继承，在构造函数外将子构造函数的原型对象prototype指向父对象实例实现继承。
-但新实例无法向父类构造函数传参，继承单一，所有新实例都会共享父类实例的属性。
+* 原型链继承，在构造函数外将子构造函数的原型属性prototype指向父类对象实例实现继承。
+但子类新实例无法向父类构造函数传参，继承单一，所有子类新实例都会共享父类实例的属性。
 ```js
 child.__proto__ === Child.prototype === parent
 parent.__proto__ === Parent.prototype
@@ -31,16 +29,32 @@ Parent.prototype.__proto__ === Object.prototype
 Parent.__proto__ === Function.prototype
 Child.__proto__ === Function.prototype
 ```
-* 构造函数内继承，在子构造函数内调用父构造函数的call函数绑定子对象并初始化，解决了原型链继承的问题。
-但是完全没有用到原型，因此无法继承父类原型链上的属性。父类属性不复用的同时父类方法也不会复用。
-* 组合继承，组合原型链继承和构造函数内继承。解决了原型链继承和构造函数继承的问题。
-既能私有化父类对象的属性，又能继承父类原型上的属性。
-但每次都会调用两次父类构造函数，子类原型上有一份多余的父类实例属性。
-* 原型式继承，即Object.create(proto)，每次构造时都让prototype指向一个指定原型对象。
-其原型链取决于构建对象时用的原型对象是什么。
-* 寄生式继承，在原型继承的基础上再封装一次，给对象增加方法和属性。原型式看起开更像继承。
-* 寄生式组合式继承，修改组合式继承的“子类原型指向父类实例”为“子类原型指向父类原型”，从而解决父类调用两次的缺陷，
-但这时constructor会指向父类构造函数，因此最后还是需要将子类实例的constructor指回子类，这个问题可以用Object.create()可以解决。
+* 构造函数内继承，在子构造函数内调用父构造函数的call函数绑定子对象并初始化，解决了原型链继承方式的问题。
+但是这样就完全没有用到原型，因此无法继承父类原型链上的属性。父类的属性方法也不会复用。
+* 组合继承，组合原型链继承和构造函数内继承合在一起。这样就能同时解决了原型链继承和构造函数继承的问题。
+但每次都会调用两遍父类构造函数，子类原型上也有一份多余的父类实例属性。
+* 寄生式继承，每次构造时都拷贝一份原型对象，并给对象增加子类方法和属性。但这样是浅拷贝，因此引用类属性将被共享。
+* 寄生式组合式继承，将组合寄生式继承和组合式继承合在一起。
+通过借用构造函数来继承属性, 在原型上添加共用的方法, 通过寄生式实现继承.
+
+```js
+function Parent(name, age){
+    this.name = name;
+    this.age = age;
+}
+Parent.prototype.getName = function(){
+    return this.name;
+}
+function Child(name){
+    Parent.call(this, name, 12);
+}
+Child.prototype = Object.create(Parent.prototype);
+Child.prototype.constructor = Child;
+
+let child = New Child('mike');
+console.log(child.getName(), child.age); // mike 12
+```
+
 > 每个对象都有constructor（构造函数）属性，这个属性指向 prototype 属性所在的函数，
 `a.constructor === A.prototype.constructor === b`。
 
@@ -74,36 +88,39 @@ Parent.__proto__ === Function.prototype; // 意思是Parent是函数
 Child.__proto__ === Parent; // true，只能说合理，es5的话只能硬写出来
 ```
 ## 讲一讲js的this指针？
-* 全局的this指针指向windows。但在严格模式下，全局作用域中的 this 的值是 undefined。
-* 在函数中，this 表示全局对象。但在严格模式下，this 是未定义的(undefined)。
+* 全局的this指针指向windows。在严格模式下，全局的this指针是undefined。
+* 在函数中，this 表示全局对象。在严格模式下，this是undefined。
 * 当一个方法被调用时，this被绑定到这个对象上。
-* 如果在一个函数当构造函数用，函数中的this会被绑定到这个新对象上。
-* 对象里的this指向window。例如：`a = {b: this.k}`，此时this指向windows。
-* call/apply/bind，this指针会绑定指定的对象。
+* 如果一个函数当构造函数用，函数中的this会被绑定到这个新对象上。
 * 事件的this指针指向元素本身。
-* 箭头函数中的this是指向箭头函数定义时的离箭头函数最近的一个函数的this。
+* call/apply/bind，this指针会绑定指定的对象。
+* 箭头函数中的this是指向箭头函数外的this，即箭头函数没有自己的this指针。
 ## 闭包是什么？
-闭包是指一个函数可以访问和使用其定义外部的变量，让这些变量的值始终保持在内存中，同时提供很好的封装和抽象。
+闭包是指一个函数可以访问和使用定义在函数外部的变量，这些变量会始终保持在内存中，能提供很好的封装和抽象。
 ## 事件循环机制？
-JS是一门单线程的语言，事件循环是JS的异步执行机制。事件循环的工作流程如下：
-* 首先，检查执行栈，看看是否有同步任务需要运行。
-* 如果执行栈为空，那么就查看任务队列。
+JS是一门单线程的语言，事件循环是JS的异步执行机制。事件循环的工作流程是
+* 首先，检查执行栈，看看是否有同步任务需要执行。
+* 如果执行栈为空，那么就检查任务队列。
 * 如果任务队列中有待处理的任务，那么就将它移出队列并放入调用堆栈并执行这个任务。
 
-任务队列可以分为宏任务队列和微任务队列。在一个事件循环迭代中，首先会执行一个宏任务，然后执行所有的微任务。当所有的微任务完成后，再执行下一个宏任务。
-> 宏任务包括如setTimeout，setInterval，setImmediate，I/O，UI rendering等，而微任务包括如Promise,MutationObserver等。
+任务队列分为宏任务队列和微任务队列。在一个事件循环迭代中，首先执行一个宏任务，然后执行所有的微任务。当所有的微任务完成后，再执行下一个宏任务。
+> 宏任务包括如setTimeout，setInterval，setImmediate，I/O，UI rendering等（setTimeout里的回调函数算宏任务），
+而微任务包括如Promise,MutationObserver等（注意promise内的回调函数会当作同步代码立即执行，then/catch里才是微任务）
+（微任务中如果新建了一个微任务，那么将继续执行微任务而不去执行宏任务）。
 
 ## 捕获与冒泡？
 在 HTML 中，当事件被触发时，事件会经过三个阶段：捕获阶段、目标阶段和冒泡阶段。
-* 捕获阶段：从 document 对象开始逐级向下传递，直到事件源元素。事件处理函数会按照由父元素到子元素的顺序被依次执行。
-* 目标阶段：当事件传递到事件源元素时，就进入了目标阶段。在目标阶段可以通过 event.target 属性获取到具体触发事件的元素。
+* 捕获阶段：从 document 对象开始逐级向下传递直到事件源元素。事件处理函数会按照由父元素到子元素的顺序被依次执行。
+* 目标阶段：当事件传递到事件源元素时，就进入了目标阶段。在目标阶段可以通过event.target获取到触发事件的具体元素。
 * 冒泡阶段：从事件源元素开始逐级向上传递直到 document 对象。事件处理函数会按照由子元素到父元素的顺序被依次执行。
 
 > 可以通过 addEventListener() 函数的第三个参数（选项）设置 capture 选项来监听事件的捕获阶段，否则监听将在冒泡阶段触发。
 > 事件传递过程中，如果事件处理函数调用了 event.stopPropagation() 方法，当侦听的事件是捕获时,阻断的就是捕获过程,当侦听的事件是冒泡时,阻断的就是冒泡过程。
+> 捕获stop会阻断冒泡。
 
 ## typeof，instantof是什么？
-* typeof是一个运算符，返回值是一个字符串，用来说明变量的数据类型，可以用此来判断number, string, object, boolean, function, undefined, symbol 这七种类型。对于对象、数组、null 返回的值是 object。
+* typeof是一个运算符，返回值是一个字符串，用来说明变量的数据类型，可以用此来判断number, string, object, boolean, function, undefined, symbol 这七种类型。
+但是对于对象、数组、null 返回的值是 object。
 * instanceof运算符用于指示一个变量是否属于某个对象的实例。返回值为布尔值。instanceof 主要的实现原理就是只要右边变量的 prototype 在左边变量的原型链上即可。
 ## 讲一讲es5/6/7/8/9新特点？
 * **ECMAScript 5 也称为 ES5 和 ECMAScript 2009。**
@@ -116,17 +133,15 @@ JS是一门单线程的语言，事件循环是JS的异步执行机制。事件�
     + 属性 Getter 和 Setter
 * **ECMAScript 6，也被称为ES6和ES2015，是JavaScript的第六个版本**
     + let 和 const 以及块级作用域，在ES6之前，JavaScript只有全局作用域和函数作用域，没有块级作用域。
-    + 模板字符串
-    + `String.startWith()/endWith()`
+    + 模板字符串，`String.startWith()/endWith()`
     + 箭头函数
-    + 函数参数的默认值，剩余参数
-    + 解构赋值，展开运算符
-    + 对象字面量的增强：属性和方法的简洁表示法，方括号表示法
-    + `Object.keys()/values()/entries()/assign()`
-    + 全局作用域中的 this 指向，在严格模式下，全局作用域中的 this 的值是 undefined。在非严格模式下，它会指向全局对象（浏览器中是 window 对象，Node.js 中是 global 对象）。
-    + `Array.includes()/find()/from()/fill()`
+    + 函数参数的默认值，剩余参数，解构赋值，展开运算符
     + set和map数据结构
     + 遍历器与for…of循环
+    + `Object.keys()/values()/entries()/assign()`
+    + 对象字面量的增强：属性和方法的简洁表示法，方括号表示法
+    + 全局作用域中的 this 指向，在严格模式下，全局作用域中的 this 的值是 undefined。在非严格模式下，它会指向全局对象（浏览器中是 window 对象，Node.js 中是 global 对象）。
+    + `Array.includes()/find()/from()/fill()`
 * **ES2016（ES7）**
     + 幂运算符** 但一般也没有什么需求会用到幂乘
     + `Array.prototype.includes()`，第二个参数是从第几个下标开始搜，默认0
@@ -146,9 +161,11 @@ JS是一门单线程的语言，事件循环是JS的异步执行机制。事件�
     + 可选链操作符
     + BigInt 它是JavaScript的第7个原始类型，可安全地进行大数整型计算。 只需要在数字后面加上 n 即可。但不能将 BigInt与Number算术计算。
 ## `for in`, `for of`区别？
-* `for in`循环返回的值都是对象的键值名(数组即下标)，遍历顺序有可能不是按照实际数组的内部顺序，使用for… in会遍历数组/对象所有的可枚举属性，包括继承属性，原型。所以不适合遍历数组，更适合遍历对象。
-* for… of 循环用来获取一对键值对中的值，相对于forEach而言可以与 break、continue和return 配合使用，可以随时退出循环。但for…of循环内部调用的是数据结构的Symbol.iterator方法。
-因此不能遍历对象，因为没有迭代器对象，可以使用的范围包括数组、Set 和 Map 结构、某些类似数组的对象（比如arguments对象、DOM NodeList 对象）、Generator 对象，以及字符串。
+* `for in`循环返回的值都是对象的键值名(数组即下标)，遍历顺序有可能按照实际数组的内部顺序，
+使用for… in会遍历数组或对象所有的可枚举属性，包括继承属性和原型。所以不适合遍历数组，更适合遍历对象。
+* for… of 循环用来获取一对键值对中的值，但for…of循环内部调用的是数据结构的迭代器。因此不能遍历对象，因为普通对象没有迭代器，
+，可以使用的范围包括数组、Set 和 Map 结构、某些类似数组的对象（比如arguments对象、DOM NodeList 对象）、Generator 对象，以及字符串。
+相对于forEach而言可以与 break、continue和return 配合使用，可以随时退出循环。
 > 在ECMAScript规范中定义了 「数字属性应该按照索引值⼤⼩升序排列，字符串属性根据创建时的顺序升序排列。」在这⾥我们把对象中的数字属性称为 「排序属性」，在V8中被称为 elements，字符串属性就被称为 「常规属性」， 在V8中被称为 properties。
 ## JS 的array的函数中，有哪些是直接修改数组本体？
 * 改变原数组的方法：
@@ -196,8 +213,8 @@ Map类似于对象，也是键值对的集合，但是“键”的范围不限�
 
 * Node.js 的模块系统采用 CommonJS 规范，它并不是 JavaScript 语言规范的正式组成部分。
 使用require()加载和module.exports输出，代码运行阶段同步加载JS文件。
-* 前端的模块系统则采用ES6模块规范，这是 JavaScript 语言规范的正式组成部分。
-静态解析阶段分析依赖关系，输出符号引用。ES6模块JS文件相当于自带 defer属性，即异步加载JS文件，不阻塞DOM构建。
+* 前端的模块系统则采用ES6模块规范，这是 JavaScript 语言规范的正式组成部分。使用import加载和export输出，
+在静态解析阶段分析依赖关系，输出符号引用。ES6模块JS文件相当于自带defer属性，异步加载JS文件，不阻塞DOM构建。
 
 不同点：
 * ES6输入的模块变量是一个引用，变量是只读的，对它进行重新赋值会报错。
