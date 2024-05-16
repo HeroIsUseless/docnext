@@ -1,14 +1,12 @@
-# 前端面试题 - null是原始类型，但为什么typeof null的结果是object？
+# 前端面试题 - Node与浏览器的事件循环的差异？
+浏览器环境下，每执行完一个宏任务就执行所有微任务队列。
 
-造成这个结果的原因是null的内存地址是以000开头，而js会将000开头的内存地址视为object。
-通过`isNull()`来判断一个值是不是null类型，但值得注意的是`isNaN()`会进行隐式转换。
-typeof 无法精确的检测null、Object、Array。获取精确类型的话，可以自己写一个：
-```js
-const getType = (value: any) => {
-  const str: string = Object.prototype.toString.call(value)
-  const typeStrArray = str.substring(1, str.length - 1).split(' ')
-  return typeStrArray[1].toLowerCase()
-}
-```
+在Node 10之前，微任务会在事件循环的各个阶段之间执行，
+Node的事件循环分为6个阶段，它们会按照顺序反复运行。
+每当进入某一个阶段的时候，都会从对应的回调队列中取出函数去执行。
+当队列为空或者执行的回调函数数量到达系统设定的阈值，就会进入下一阶段。
+每当一个阶段执行完毕，就会去执行微任务队列的任务。
+
+Node 11以后和浏览器的行为统一了，都是每执行一个宏任务就执行完所有微任务队列。
 
 通俗易懂的前端面试题网站： [https://www.front-interview.com](https://www.front-interview.com)

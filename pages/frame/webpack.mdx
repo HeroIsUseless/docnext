@@ -38,7 +38,14 @@ webpack获取到配置后，根据配置中的 entry 找到入口文件，从入
 
 ## webpack 如何优化构建体积跟速度
 ## 说一下 Webpack 的热更新原理吧
-## Webpack proxy 为什么能解决跨域
+热更新Hot Module Replacement，简称 HMR，这个机制可以做到不用刷新整个页面而将新变更的模块替换旧的模块。
+
+通过webpack-dev-server创建两个服务器：提供静态资源的服务（express）和 Socket 服务
+express server 负责直接提供静态资源的服务（打包后的资源直接被浏览器请求和解析）
+socket server 是一个 websocket 的长连接，双方可以通信
+当 socket server 监听到对应的模块发生变化时，会生成两个文件.json（manifest 文件）和.js 文件（update chunk）
+通过长连接，socket server 可以直接将这两个文件主动发送给客户端（浏览器）
+浏览器拿到两个新的文件后，通过 HMR runtime 机制，加载这两个文件，并且针对修改的模块进行更
 
 ## 会babel插件开发吗？
 Babel编译是一个code to code的过程，整个流程分为三步：
