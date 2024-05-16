@@ -1,0 +1,17 @@
+## 如何实现new？
+```js
+function myNew(Fun, ...args) {
+    let obj = {};
+    obj.__proto__ = Fun.prototype;
+    let res = Fun.apply(obj, args); // 最关键的一步
+    return (res instanceof Object ? res : obj);
+}
+let obj = myNew(One, "XiaoMing", "18");
+console.log("newObj:", obj);
+```
+## 写一个模拟class继承的构造函数？
+```js
+```
+
+
+

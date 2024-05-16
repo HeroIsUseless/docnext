@@ -1,0 +1,69 @@
+## 如何实现call？
+```js
+Function.prototype.myCall = function (context, ...args) {
+    const s = Symbol()
+    context[s] = this // 该this指向的是调用的函数`func.myCall(...)`
+    const res = context[s](...args) // 此时该函数内的this指向的就是context了
+    delete context[s]
+    return res
+}
+```
+## 如何修改一个闭包里的数据？
+Object上有一个valueOf属性，该属性为一个函数，执行可以返回对象自身，但是会有this指向问题，因此不行。
+因此需要自己写一个类似的
+```js
+Object.defineProperty(Object.prototype, 'myValueOf', {
+  get: function() {
+    return this
+  }
+})
+o.get('myValueOf').a = 100 // 这样就能修改闭包内数据
+```
+如何避免这种修改，可以在读取obj的属性的时候加一个判断
+```js
+get: function(k) {
+    if (obj.hasOwnProperty(k)) {
+        return obj[k]
+    }
+    return undefined
+}
+```
+## 如何实现assign？
+```js
+export function assign(target) {
+	var sources = [].slice.call(arguments, 1);
+	sources.forEach(function (source) {
+		if(!source) return;
+		Object.getOwnPropertyNames(source).forEach(function(propName) {
+			// Object.defineProperty(obj,property,descriptor)
+			// getOwnPropertyDescriptor返回一个对象，该对象描述给定对象上特定属性（即直接存在于对象上而不在对象的原型链中的属性）的配置。
+			// 返回的对象是可变的，但对其进行更改不会影响原始属性的配置（即不是const的，深拷贝的）。
+			Object.defineProperty(target, propName, Object.getOwnPropertyDescriptor(source, propName));
+		});
+	});
+	return target;
+}
+```
+## 如何实现一个深拷贝？
+```js
+// 一个简单的深拷贝
+function clone(target) {
+    if (typeof target === 'object') {
+        let cloneTarget = Array.isArray(target) ? [] : {}; // 考虑数组
+        for (const key in target) {
+            cloneTarget[key] = clone(target[key]);
+        }
+        return cloneTarget;
+    } else {
+        return target;
+    }
+};
+```
+
+
+
+
+
+
+
+

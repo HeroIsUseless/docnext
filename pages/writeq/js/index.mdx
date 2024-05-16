@@ -1,0 +1,107 @@
+## 如何准确检测一个值是null类型而不是其他类型隐式转换而来？
+```js
+const getType = (value: any) => {
+  const str: string = Object.prototype.toString.call(value)
+  const typeStrArray = str.substring(1, str.length - 1).split(' ')
+  return typeStrArray[1].toLowerCase()
+}
+```
+## 手写防抖节流？
+* 防抖（debounce）：每次触发定时器后，取消上一个定时器，然后重新触发定时器。防抖一般用于用户未知行为的优化，比如搜索框输入实时提示。
+  ```js
+  let timer;
+  function debounce(cb, time) {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+        cb();
+    }, time)
+  }
+  
+  onInputChange(text) {
+    debounce(() => {
+      // 获取实时提示
+    }, 100)
+  }
+  ```
+  ```js
+  // 复杂一点的
+  function debounce(func, time) {
+    let timer;
+    return function() {
+      const [that, args] = [this, arguments];
+      clearTimeout(timer)
+      timer = setTimeout(() => {
+        func.apply(that, args);
+      }, time);
+    }
+  }
+
+  onInputChange = debounce((text) => {
+    // 获取实时提示
+  }, 1000)
+  ```
+
+* 节流（throttle）：每次触发定时器后，直到这个定时器结束之前无法再次触发该函数。一般用于可预知的用户行为的优化，比如限制按钮点击的触发频率，防止重复的提交。
+```js
+let previous = 0;
+function throttle(cb, time) {
+  const now = Date.now();
+  if (now - previous > time) {
+    cb();
+    previous = now;
+  }
+}
+
+onButtonClick() {
+  throttle(() => {
+    // 提交表单
+  }, 1000)
+}
+```
+```js
+// 复杂一点的
+function throttle(func, time) {
+  let previous = 0;
+  return function() {
+    const [that, args] = [this, arguments];
+    const now = Date.now();
+    if (now - previous > time) {
+      previous = now;
+      func.apply(that, args);
+    }
+  }
+}
+```
+## 手写一个Loader？
+```js
+// 解析css文件并插入到dom中
+module.exports = function (content) {
+  let str = `
+    var style = document.createElement("style");
+    style.innerHTML = ${JSON.stringify(content)};
+    document.head.appendChild(style);
+  `;
+  return str;
+};
+// test: /\.css$/,
+// use: [resolve(__dirname, "../loader/testSytleLoader.js")],
+```
+## 手写一个Plugin插件
+```js
+const pluginName = 'ConsoleLogOnBuildWebpackPlugin';
+class ConsoleLogOnBuildWebpackPlugin {
+  constructor(options) {
+    console.log("current plugin option is" + JSON.stringify(options))
+  }
+  apply(compiler) { // apply 方法是一个插件所必须的
+    // compiler 继承自 tapable
+    // tapable  提供了多种 hooks  https://github.com/webpack/tapable#hook-types
+    // run      是 AsyncSeriesHook实例 [tapable提供的多种hooks的一种]
+    compiler.hooks.run.tap(pluginName, compilation => {
+      console.log('webpack 构建过程开始！');
+    });
+  }
+}
+
+module.exports = ConsoleLogOnBuildWebpackPlugin
+```
