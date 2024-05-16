@@ -47,6 +47,17 @@ socket server 是一个 websocket 的长连接，双方可以通信
 通过长连接，socket server 可以直接将这两个文件主动发送给客户端（浏览器）
 浏览器拿到两个新的文件后，通过 HMR runtime 机制，加载这两个文件，并且针对修改的模块进行更
 
+## babel如何使用？
+在webpack配置里加上babel-loader配置。用于语法降级。babel配置里面有“presets”和“plugins”，presets实际是plugins的集合。
+
+presets 按照配置的顺序逆序执行，例如["es2015", "stage-0"]，plugins 按照配置的顺序依此正序执行。
+
+目前babel官网维护的只有四个presets，'@babel/preset-env' 是预设是一系列插件的集合，包含了我们在babel6中常用es2015,es2016, 
+es2017 等最新的语法转化插件，允许我们使用最新的js语法。
+
+刚接触babel的时候都是使用babel-preset-es2015，显然目前而言babel-preset-env会是一个更好的选择，
+可以根据配置的目标浏览器或者运行环境来自动将ES2015+的代码转换为es5。
+
 ## 会babel插件开发吗？
 Babel编译是一个code to code的过程，整个流程分为三步：
 * 解析（parse）：将源码解析成抽象语法树(AST)

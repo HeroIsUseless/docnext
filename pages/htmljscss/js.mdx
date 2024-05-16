@@ -103,6 +103,7 @@ Child.__proto__ === Parent; // true，只能说合理，es5的话只能硬写出
 * 箭头函数中的this是指向箭头函数外的this，即箭头函数没有自己的this指针。
 ## 闭包是什么？
 闭包是指一个函数可以访问和使用定义在函数外部的变量，这些变量会始终保持在内存中，能提供很好的封装和抽象。
+但是也可能会导致内存泄漏。
 ## 事件循环机制？
 JS是一门单线程的语言，事件循环是JS的异步执行机制。事件循环的工作流程是
 * 首先，检查执行栈，看看是否有同步任务需要执行。
@@ -125,8 +126,9 @@ JS是一门单线程的语言，事件循环是JS的异步执行机制。事件�
 > 捕获stop会阻断冒泡。
 
 ## typeof，instantof是什么？
-* typeof是一个运算符，返回值是一个字符串，用来说明变量的数据类型，可以用此来判断number, string, object, boolean, function, undefined, symbol 这七种类型。
-但是对于对象、数组、null 返回的值是 object。
+* typeof是一个运算符，返回值是一个字符串，用来说明变量的数据类型，
+可以用此来判断number, string, object, boolean, function, undefined, symbol 这七种类型。
+但是对于对象、数组、null 返回的值是 object。可以通过Array.isArray()，instanceof，Object.prototype.toString().call()
 * instanceof运算符用于指示一个变量是否属于某个对象的实例。返回值为布尔值。instanceof 主要的实现原理就是只要右边变量的 prototype 在左边变量的原型链上即可。
 ## 讲一讲es5/6/7/8/9新特点？
 * **ECMAScript 5 也称为 ES5 和 ECMAScript 2009。**
