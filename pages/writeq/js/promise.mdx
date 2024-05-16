@@ -100,26 +100,11 @@ function defer() {
 	});
 }
 ```
-## 如何实现promise.all？
+## 如何实现能限流的promise.all？
 ```js
-let p1 = new Promise((resolve) => {
-    resolve(1)
-})
-let p2 = new Promise((resolve) => {
-    resolve(2)
-})
-let pa = Promise.myAll([p1, p2])
-pa.then(args => {
-
-})
-Promise.myAll = function(...args) {
-    let n = 0;
-    for (let arg of args) {
-        arg.then(() => {
-            n += 1
-            if (n >= args.length)
-                resolve(true)
-        })
-    }
+Promise.myAll = function(promises) {
+  return new Promise((resolve, reject) => {
+    
+  })
 }
 ```

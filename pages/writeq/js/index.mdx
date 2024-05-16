@@ -9,27 +9,14 @@ const getType = (value: any) => {
 ## 手写防抖节流？
 * 防抖（debounce）：每次触发定时器后，取消上一个定时器，然后重新触发定时器。防抖一般用于用户未知行为的优化，比如搜索框输入实时提示。
   ```js
-  let timer;
-  function debounce(cb, time) {
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-        cb();
-    }, time)
-  }
-  
-  onInputChange(text) {
-    debounce(() => {
-      // 获取实时提示
-    }, 100)
-  }
-  ```
-  ```js
-  // 复杂一点的
   function debounce(func, time) {
     let timer;
     return function() {
-      const [that, args] = [this, arguments];
+      const [that, args] = [this, arguments]; // 因为有可能是方法在调用，所以保留指针
       clearTimeout(timer)
+      // setTimeout内的函数中的this往往指向全局
+      // 因为setTimeout里调用这个回调只是普通调用，那么此时的环境是window
+      // 箭头函数会帮你把this绑定到声明时的上下文->debounce的上下文->onInputChange的上下文，就不是很有意义了
       timer = setTimeout(() => {
         func.apply(that, args);
       }, time);
@@ -43,23 +30,6 @@ const getType = (value: any) => {
 
 * 节流（throttle）：每次触发定时器后，直到这个定时器结束之前无法再次触发该函数。一般用于可预知的用户行为的优化，比如限制按钮点击的触发频率，防止重复的提交。
 ```js
-let previous = 0;
-function throttle(cb, time) {
-  const now = Date.now();
-  if (now - previous > time) {
-    cb();
-    previous = now;
-  }
-}
-
-onButtonClick() {
-  throttle(() => {
-    // 提交表单
-  }, 1000)
-}
-```
-```js
-// 复杂一点的
 function throttle(func, time) {
   let previous = 0;
   return function() {

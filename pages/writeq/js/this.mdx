@@ -14,7 +14,7 @@ Object上有一个valueOf属性，该属性为一个函数，执行可以返回�
 ```js
 Object.defineProperty(Object.prototype, 'myValueOf', {
   get: function() {
-    return this
+    return this // value, get(), set()
   }
 })
 o.get('myValueOf').a = 100 // 这样就能修改闭包内数据
