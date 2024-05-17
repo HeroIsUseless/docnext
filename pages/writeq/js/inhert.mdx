@@ -11,16 +11,10 @@ console.log("newObj:", obj);
 ```
 ## 写一个模拟class继承的构造函数？
 ```js
-Function.__proto__ === Function // 虽然是function，但直接相等还是false，注意`Function.prototype`是函数对象，但没有prototype属性
-Function.__proto__ === Object.__proto__
-Function.prototype.__proto__ === Object.prototype; // true
-Object.prototype.__proto__ === null; // true
-
-child.__proto__ === Child.prototype === parent;
-parent.__proto__ === Parent.prototype; // true 这个就是继承
-Parent.prototype.__proto__ === Object.prototype; // true
-Parent.__proto__ === Function.prototype; // 意思是Parent是函数
-Child.__proto__ === Parent; // true，只能说合理，es5的话只能硬写出来
+child.__proto__ === Child.prototype === Parent.prototype
+child.constructor === Child
 ```
-
+## 如何实现多继承？
+```js
+```
 

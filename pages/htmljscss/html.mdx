@@ -1,6 +1,4 @@
-# 初级
-## 在HTML5中DOCTYPE的作用是什么？
-DOCTYPE（文档类型声明）是HTML中的一种标记，用于告诉浏览器使用哪个HTML版本解析文档。确保浏览器正确地渲染和显示网页内容。
+# 高频
 
 ## 标准（严格模式）与兼容模式（混杂模式）各有什么区别？
 
@@ -8,18 +6,6 @@ DOCTYPE（文档类型声明）是HTML中的一种标记，用于告诉浏览器
 * 在兼容模式下，浏览器会以一种更宽松的方式解析和渲染页面，以保持与旧版本浏览器的兼容性，但也可能导致不同浏览器之间的渲染结果不一致。
 
 > 一般推荐使用最新的HTML5 DOCTYPE声明（`<!DOCTYPE html>`），以获得更好的一致性和可靠性。
-
-## meta标签的作用？
-`<meta>` 标签定义关于 HTML 文档的元数据。这些数据用于描述整个文档。
-通常用于指定字符集、页面描述、关键词、文档作者和视口设置，一个 HTML 文档中可以多个 meta 元素。
-
-> meta属性主要有：
-> * name，规定元数据的名称，相当于key。值可以为author，keywords，description，viewport，application-name，generator
-> * content，文本，相当于value，规定与 http-equiv 或 name 属性关联的值。
-> * charset，字符集，规定 HTML 文档的字符编码。
-> * http-equiv，为 content 属性的信息/值提供 HTTP 标头。可以为content-security-policy，content-type，default-style，refresh
-
-用法例如：`<meta charset="UTF-8">`
 
 ## 哪些是行内（内联）元素，哪些是块级元素？
 * 行内元素不从新行开始，只占用必要宽度，不可以设置宽高，只能包含数据和其他行内元素。例如`<a>、<span>`等。
@@ -118,3 +104,19 @@ CSRF就是利用用户的登录态发起恶意请求。
 然后可以使用：
 * 媒体查询方案
 * 动态 rem 方案
+# 低频
+## 在HTML5中DOCTYPE的作用是什么？
+DOCTYPE（文档类型声明）是HTML中的一种标记，用于告诉浏览器使用哪个HTML版本解析文档。确保浏览器正确地渲染和显示网页内容。
+
+## meta标签的作用？
+`<meta>` 标签定义关于 HTML 文档的元数据。这些数据用于描述整个文档。
+通常用于指定字符集、页面描述、关键词、文档作者和视口设置，一个 HTML 文档中可以多个 meta 元素。
+
+> meta属性主要有：
+> * name，规定元数据的名称，相当于key。值可以为author，keywords，description，viewport，application-name，generator
+> * content，文本，相当于value，规定与 http-equiv 或 name 属性关联的值。
+> * charset，字符集，规定 HTML 文档的字符编码。
+> * http-equiv，为 content 属性的信息/值提供 HTTP 标头。可以为content-security-policy，content-type，default-style，refresh
+
+用法例如：`<meta charset="UTF-8">`
+
