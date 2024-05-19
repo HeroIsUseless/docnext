@@ -75,3 +75,27 @@ class ConsoleLogOnBuildWebpackPlugin {
 
 module.exports = ConsoleLogOnBuildWebpackPlugin
 ```
+
+## 如何获取时区差值？
+首先，我们需要获取本地时区与其他时区之间的时间差值。JavaScript提供了一个Date对象，可以获取本地时间和UTC时间之间的差值。我们可以利用这个差值得到本地时间和其他时区时间之间的差值。
+```js
+// 获取本地时间与UTC时间之间的差值（单位为分钟）
+var offset = new Date().getTimezoneOffset();
+
+// 计算将本地时间转换为指定时区所需要加上的分钟数
+var timeZoneOffset = offset / 60 + timeZoneDiff; // timeZoneDiff为目标时区与UTC时间之间的差值（单位为小时）
+```
+有了时区差值，我们就可以将其他时区的时间转换为本地时间了。
+```js
+// 获取指定时区的本地时间字符串表示形式
+function getLocalTimeInTimeZone(timeZoneDiff) {
+  var localTime = new Date().getTime() + timeZoneDiff * 60 * 60 * 1000;
+  var localTimeStr = new Date(localTime).toLocaleString();
+  return localTimeStr;
+}
+
+// 转换到目标时区的本地时间
+var timeZoneDiff = 8; // 假设目标时区为东八区
+var localTimeInTimeZone = getLocalTimeInTimeZone(timeZoneDiff);
+```
+
