@@ -98,4 +98,24 @@ function getLocalTimeInTimeZone(timeZoneDiff) {
 var timeZoneDiff = 8; // 假设目标时区为东八区
 var localTimeInTimeZone = getLocalTimeInTimeZone(timeZoneDiff);
 ```
+## 用setTimeout实现setInterval？*
+```js
+var mySetInterval = function(func, duration){
+    function interval(){
+        setTimeout(interval, duration);
+        func()
+    }
+    setTimeout(interval, duration);
+}
+```
+## 一个准确的setTimeout/setInterval？*
+setTimeout是延迟delay毫秒后, 将回调函数加入事件队列, 事件什么时候执行到此处不一定, 所以会有延迟;如果delay为0, 就代表立刻插入到事件队列。
 
+setInterval是延迟delay毫秒后, 看看事件队列中是否存在还没有执行的回调函数, 如果还存在, 就不要再往事件队列中添加回调函数了。
+
+定时器指定的时间间隔，表示的是何时将定时器的代码添加到消息队列，而不是何时执行代码。所以真正何时执行代码的时间是不能保证的，取决于何时被主线程的事件循环取到，并执行。
+```js
+```
+## 以此打出0，1，2，3，4？
+```js
+```
