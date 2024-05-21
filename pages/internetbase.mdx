@@ -6,7 +6,7 @@
 跨源资源共享是用于在不同的源中获取资源的一种机制。解决跨域问题的方案：
 * jsonp（json+padding，填充式的json）：Js跨域请求ajax数据是不可以的，但是js跨域请求js脚本是可以的。
 `<src><link><img>`自带跨域属性，（js创建的img标签不带，需要添加`crossOrigin: "anonymous"`属性）。
-JSONP原理就是动态插入带有跨域url的script标签，执行完script后，会调用callback函数，参数就是获取到的数据。
+JSONP原理就是动态插入带有跨域url的script标签，执行完script后，会调用callback函数，参数就是获取到的数据（而Ajax是页面无刷新请求数据操作）。
 缺点是只能进行get请求，容易被劫持（类似csrf），优点是兼容性好。
 * nginx反向代理：利用nginx把跨域反向代理为不跨域，将`server.server_name`设置为前端网址，
 在`server.location`里设置`proxy_pass 后端网址`，这样就不存在跨域了。

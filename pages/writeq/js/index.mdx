@@ -122,3 +122,17 @@ setInterval是延迟delay毫秒后, 看看事件队列中是否存在还没有�
 ## 实现图片懒加载？
 ```js
 ```
+## 输出今天的日期，以 YYYY-MM-DD 的方式，比如今天是2014年9月26日，则输出 2014-09-26 
+```js
+var d = new Date();
+// 获取年，getFullYear()返回 4 位的数字
+var year = d.getFullYear();
+// 获取月，月份比较特殊，0 是 1 月，11 是 12 月
+var month = d.getMonth() + 1;
+// 变成两位
+month = month < 10 ? '0' + month : month;
+// 获取日
+var day = d.getDate();
+day = day < 10 ? '0' + day : day;
+alert(year + '-' + month + '-' + day);
+```
