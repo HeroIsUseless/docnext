@@ -1,5 +1,42 @@
 ## 如何实现promise？
 ```js
+// 简单的
+function MyPromise(func) {
+    this.status = 'pending';
+    this.res = '';
+    this.thenCb;
+    this.catchCb;
+    const resolve = (data) => {
+        this.status = 'fulfilled';
+        this.res = data;
+        this.thenCb?(data);
+    }
+    const reject = (data) => {
+        this.status = 'rejected';
+        this.res = data;
+        this.catchCb?(data);
+    }
+    this.then = function (cb) {
+        if (this.status == 'pending') {
+            this.thenCb = cb;
+        }
+        if (this.status == 'fulfilled') {
+            cb(this.res)
+        }
+    }
+    this.catch = function (cb) {
+        if (this.status == 'pending') {
+            this.catchCb = cb;
+        }
+        if (this.status == 'rejected') {
+            cb(this.res)
+        }
+    }
+    func(resolve, reject)
+}
+```
+```js
+// 复杂一点的
 function MyPromise(func) {
     this.status = 'pending';
     this.res = '';

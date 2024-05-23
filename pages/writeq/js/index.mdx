@@ -115,12 +115,77 @@ setInterval是延迟delay毫秒后, 看看事件队列中是否存在还没有�
 
 定时器指定的时间间隔，表示的是何时将定时器的代码添加到消息队列，而不是何时执行代码。所以真正何时执行代码的时间是不能保证的，取决于何时被主线程的事件循环取到，并执行。
 ```js
+// 模拟代码 
+// window.requestAnimationFrame() 告诉浏览器——你希望执行一个动画，并且要求浏览器在下次重绘之前调用指定的回调函数更新动画。
+// 看来每次只执行一次，就是下一帧一次，大概16.7 ms 间隔执行一次
+function setTimeout2 (cb, delay) { 
+    let startTime = Date.now() 
+    loop() 
+   
+    function loop () { 
+      const now = Date.now() 
+      if (now - startTime >= delay) { 
+        cb(); 
+        return; 
+      } 
+      requestAnimationFrame(loop) 
+    } 
+}
 ```
-## 以此打出0，1，2，3，4？
 ```js
+// setTimeout系统时间补偿
+const speed = 500
+let counter = 1
+let start = new Date().getTime(); 
+    
+function instance() { 
+    let real = (counter * speed);
+    let ideal = (new Date().getTime() - start); 
+    counter++; 
+    const diff = (ideal - real); 
+    window.setTimeout(function() { instance(); }, (speed - diff)); // 通过系统时间进行修复 
+}; 
+setTimeout(function() { instance(); }, speed); 
 ```
 ## 实现图片懒加载？
 ```js
+function isVisible(img) {
+  // 判断是否在可视区域，并返回true或false
+  const imgRect = img.getBoundingClientRect() // getBoundingClientRect 获取图片的动态信息
+  return imgRect.bottom > 0 && imgRect.top < window.innerHeight // 不然就在上面或下面
+}
+const images = [...document.querySelectorAll('img')]
+// 利用循环判断每张图片是否属于可视区域
+function lazyLoad(){
+    for (let i = 0; i < images.length; i++) {
+      if (isVisible(images[i])) {
+        img.setAttribute('src', img.getAttribute('data-src'))
+      }
+    }
+}
+lazyLoad()
+```
+```js
+// 利用Intersection Observer实现
+window.addEventListener('scroll', lazyLoad)
+const observer = new IntersectionObserver(callback)
+// 给每一个图片绑定观察方法
+imagess.forEach(img => {
+  // 图片进入视野+离开视野时会触发callback回调函数
+  observer.observe(img)
+})
+// callback 接收的参数为带有监听所有图片交叉属性的集合
+const callback = (imgArr) => {
+  console.log('视图交叉时触发，离开交叉时也触发', imgArr) 
+  imgArr.forEach(e => {
+    // 判断是否在视野区域
+    if (e.isIntersecting) {
+      e.target.src = e.target.dataset.src
+      // 取消监听，避免重复加载同一张图片
+      observer.unobserve(e.target)
+    }
+  })
+}
 ```
 ## 输出今天的日期，以 YYYY-MM-DD 的方式，比如今天是2014年9月26日，则输出 2014-09-26 
 ```js
@@ -136,3 +201,7 @@ var day = d.getDate();
 day = day < 10 ? '0' + day : day;
 alert(year + '-' + month + '-' + day);
 ```
+## 请将一个 URL 的 search 部分参数与值转换成一个 json 对象？
+## 如何获取对象 a 拥有的所有属性（可枚举的、不可枚举的，不包括继承来的属性）？
+## 统计 1 到 400 亿之间的自然数中含有多少个 1？比如 1-21 中，有 1、10、11、
+21 这四个自然数有 5 个 1 *

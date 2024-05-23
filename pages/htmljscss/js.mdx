@@ -241,6 +241,26 @@ CMD 推崇依赖就近（用的时候再声明引用的依赖），AMD 推崇依
 * AMD规范，是异步模块加载机制，推崇依赖前置。核心是预加载，先对依赖的全部文件进行加载，加载完了再进行处理。解决的是JS加载引起页面卡顿的问题。require/define。
 * CMD规范，是同步模块加载机制，推崇依赖就近。按不同的先后依赖关系对 JavaScript 等文件的进行加载工作，
 确保各个JS文件的先后加载顺序，确保避免了以前因某些原因某个文件加载慢而导致其它加载快的文件需要依赖其某些功能而出现某函数或某变量找不到的问题。require/define。
+## JS 添加 删除 替换 插入到某个接点的方法？
+* obj.appendChidl()
+* obj.removeChild()
+* obj.replaceChild()
+## 在 Javascript 中什么是伪数组？如何将伪数组转化为标准数组？* 
+答案：
+伪数组（类数组）：无法直接调用数组方法或期望 length 属性有什么特殊的行为，但仍可
+以对真正数组遍历方法来遍历它们。典型的是函数的 argument 参数，还有像调用
+getElementsByTagName,document.childNodes 之类的,它们都返回 NodeList 对象都属
+于伪数组。可以使用 Array.prototype.slice.call(fakeArray)将数组转化为真正的 Array 对
+象。
+
+## javascript 的本地对象，内置对象和宿主对象？*
+本地对象为独立于宿主环境的 ECMAScript 提供的对象，包括 Array Object RegExp 等
+可以 new 实例化的对象
+150
+内置对象为 Gload，Math 等不可以实例化的(他们也是本地对象，内置对象是本地对象
+的一个子集)
+宿主对象为所有的非本地对象，所有的 BOM 和 DOM 对象都是宿主对象，如浏览器自带的
+document,window 等对象
 
 ## JS的隐式转换？
 在使用不同类型的值进行操作时，JavaScript会自动进行类型转换，这称为隐式转换。
