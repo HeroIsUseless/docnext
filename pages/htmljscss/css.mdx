@@ -65,6 +65,7 @@
 * 当权值相等时，后出现的样式表设置要优于先出现的样式表设置
 * 网页编写者设置的CSS 样式会覆盖浏览器所设置的样式，后来指定的CSS 样式会覆盖继承的CSS 样式，后面指定的CSS样式会覆盖之前指定的CSS样式，后定义class会覆盖先定义的class
 * 在同一组属性设置中标有“!important”规则的优先级最大
+* 先写的div会被后写的div覆盖住，点击不会穿透到下面的兄弟节点，你可以用`document.elementsFromPoint(event.clientX, event.clientY);`
 
 ## clientHeight,scrollHeight,offsetHeight ,以及scrollTop, offsetTop,clientTop的区别？
 
