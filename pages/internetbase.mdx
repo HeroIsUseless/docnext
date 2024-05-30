@@ -5,8 +5,9 @@
 
 跨源资源共享是用于在不同的源中获取资源的一种机制。解决跨域问题的方案：
 * jsonp（json+padding，填充式的json）：Js跨域请求ajax数据是不可以的，但是js跨域请求js脚本是可以的。
-`<src><link><img>`自带跨域属性，（js创建的img标签不带，需要添加`crossOrigin: "anonymous"`属性）。
-JSONP原理就是动态插入带有跨域url的script标签，执行完script后，会调用callback函数，参数就是获取到的数据（而Ajax是页面无刷新请求数据操作）。
+`<src><link><img>`自带跨域属性，
+JSONP原理就是动态插入带有跨域url的script标签，执行完script后，会调用callback函数，
+参数就是获取到的数据（而Ajax是页面无刷新请求数据操作）。
 缺点是只能进行get请求，容易被劫持（类似csrf），优点是兼容性好。
 * nginx反向代理：利用nginx把跨域反向代理为不跨域，将`server.server_name`设置为前端网址，
 在`server.location`里设置`proxy_pass 后端网址`，这样就不存在跨域了。
@@ -14,23 +15,102 @@ JSONP原理就是动态插入带有跨域url的script标签，执行完script后
 浏览器一旦发现AJAX请求跨源，就会自动添加一些附加的头信息，有时还会多出一次附加的请求（预检），
 服务端返回头信息中需要返回`Access-Control-*`相关字段，这是需要后端配置的。
 
-## jsonp如何防csrf？
+## XSS 攻击是什么？
+* Cross Site Script,跨站脚本攻击。是指攻击者在网站上注入恶意script代码，
+通过恶意脚本对客户端网页进行篡改，从而在用户浏览网页时，对用户浏览器进行控制或者获取用户隐私数据的一种攻击方式。
+比如攻击者在社区或论坛上写下一篇包含恶意 JavaScript 代码的文章或评论，文章或评论发表后，所有访问该文章或评论的用户，
+都有可能在他们的浏览器中执行这段恶意的 JavaScript 代码。
 
-## 跨域如何减少预检请求？
+XSS攻击分为：
+* 反射式
+* 存储式
+
+## 如何防范XSS攻击？
+第一个是输入过滤，第二个是通过HTML转译，对于JS插入，比如说a标签里的跳转，只能通过手动判断处理，或者禁用。
+
+## CSRF 攻击是什么？
+CSRF（Cross-site request forgery），跨站请求伪造，利用用户的登录态发起恶意请求，攻击原理：
+* 用户登录受信任网站A，并在本地生成Cookie。
+* 在不登出A的情况下，访问危险网站B。
+* 危险网站B向网站A发送请求，利用A的Cookie实现冒充用户对网站A进行操作。
+
+CSRF的两个特点是通常发生在第三方域名，以及攻击者不能获取到Cookie等信息，只是使用。
+
+在满足简单请求的情况下，浏览器会自动携带Cookie发送跨域请求，因为简单请求只请求一次，这时候不带就没机会带了。
+也就是说进行身份校验的会话凭证如果存储在Cookie中，并且Web应用中的一些很重要的操作是用简单请求的方式完成，
+那么就很容易遭受CSRF攻击。
+
+如果跨域请求为非简单请求，则浏览器会先发送OPTIONS预检请求，后端服务器在接收到OPTIONS请求后，
+会返回针对实际请求的要求，如果符合要求的话，则会继续发送实际请求，如果不符合的话就不会发送实际请求了。
+这个时候后端服务器会有`Access-Control-Allow-Credentials`参数确定这个请求是否要携带cookies。
+只有当允许携带的时候，并且前端发送设置`withCredentials`参数为true的时候，就有可能携带cookie了。
+但不同的浏览器不一定会携带cookie，例如此时FireFox会携带，但Chrome不会。
+
+因为80版本chrome对三方cookie的限制加强了，还要去设置Cookie的SameSite属性，这又引出一个三方cookie的概念：
+
+例如第一方cookie就是用户登录的身份凭证cookie，而第三方Cookie主要用于跨网站追踪用户记录，
+* domain 指定cookie未来使用时，可以被携带到哪些域名。
+* path：指定cookie未来使用时，可以被携带到合法域名的哪些URI。
+* expire/max-age: 指定cookie的有效期，其中expire是一个绝对时间，max-age是相对时间
+* secure：只能在HTTPS环境中被下发以及携带
+* http-only：禁止客户端脚本通过 document.cookie 获取 cookie，避免 XSS 攻击。
+
+cookie的取用规则是去看请求的目的地，同源的就叫第一方cookie，跨域的就叫第三方cookie。
+「不认来源，只看目的」规矩在2020年开始被打破，这种变化体现在浏览器将same-site:lax设置为默认属性。
+也就是说现在cookie的取用是「既看来源，又看目的」了。
+same-site是cookie的一个属性，它制约第三方cookie的携带，其值有三个none、strict、lax。
+* strict代表完全禁止三方cookie，但同属一个主体运营的网站不得不重复登录。
+* Lax则是折中，在某些情况下会限制三方cookie的携带，某些情况又放行，这也是浏览器的默认值（包括safari）。
+* none代表完全不做限制，即之前「不认来源，只看目的」的cookie取用原则。
+
+可以这么理解，浏览器将same-site的默认值从none调整到了lax，
+SameSite Lax 仅在顶部窗口导航（例如<a>标签、window.open()）中的GET请求中发送 cookie 。
+
+same-party可以把.taobao.com、.tmall.com和.alimama.com三个站合起来，
+它们设置的cookie在这个集合内部不会被当作第三方cookie对待。
+需要注意的是，使用same-party属性时，必须要同时使用https(secure属性)，并且same-site不能是strict。
+
+不同子站同样认为跨域，怎么办呢
+
+解决方法呢，基本上就是禁用跨域，禁用三方cookie；
+比如说检查请求头的Referer或者Origin，禁用跨域：
+* Referer Header 包含了源页面的 URI，包含路径，可能在用户隐私方面存在一些敏感性问题。
+可以通过 Referrer Policy 来禁止请求携带 referer。
+* Origin Header 包含协议、主机和端口，不包含路径，
+Origin 主要用于跨站请求的安全性检查，
+而 Referer 则是提供请求来源信息的通用手段，可用于日志记录、统计分析等。
+
+这两个Header在浏览器发起请求时，大多数情况会自动带上，并且不能由前端自定义内容。 
+服务器可以通过解析这两个Header中的域名，确定请求的来源域。
+
+但是，页面请求的GET不能被过滤，但相应的，页面请求就暴露在了CSRF的攻击范围之中。
+仍然有很多网站经常把主文档GET请求挂上参数来实现产品功能，
+但是这样做对于自身来说是存在安全风险的。
+
+CSRF大多数情况下来自第三方域名，但并不能排除本域发起。
+如果攻击者有权限在本域发布UGC内容，那么他就能发起一个XSS攻击。
+
+同源验证是一个相对简单的防范方法，但这并不是万无一失的。
+
+要么在服务器生成一个token，存在服务器session里，下发在
+第二个方法是token，token一般是服务器生成的一个令牌，存在服务器的session中，下发在第一方的dom中。
+本质也是来判断这是不是第一方网站。
+
+或者使用双重Cookie：
+在加一个scrfcookie，发送时，传到参数上，因为任何跨域都会导致前端无法获取Cookie中的字段（包括子域名之间）。
+因此这个cookie只能种在总域名上，但其中一个子域名有xss漏洞，那么就会被攻击了。
+
+或者使用Samesite Cookie属性：
+为Set-Cookie响应头新增Samesite属性，它用来标明这个 Cookie是个“同站 Cookie”。
+如果SamesiteCookie被设置为Strict，浏览器在任何跨域请求中都不会该携带Cookie，所以说CSRF攻击基本没有机会。
+
+但实际上跨域cookie也是有用处的，比如说一个子站登录了，另一个子站也能在登录态，因此对于跨域cookie可用的话，就需要
+后端针对不同跨域进行判断哪个是合法的，cookie也有一个same-party属性专门用来处理
+
+## 如何减少预检请求？
 * 预检缓存，预检缓存的行为与浏览器缓存机制类似。`Access-Control-Max-Age` 响应头表示结果可以在浏览器缓存中缓存多长时间。
-* 使用websocket
-* 使用简单请求
-
-## 讲一讲什么是URL编码？
-
-Url编码通常也称为百分号编码，通过使用%百分号加上该字节的十六进制组成编码。
-因为URL中有些字符会引起歧义，例如URL参数字符串中如果包含”&”或者”%”就会造成服务器解析错误，因此就需要对其进行编码。
-
-encodeURI用于将字符串作为 URI 进行编码。其目的是对目标URI进行编码使之成为一个合格的URI。
-
-encodeURIComponent用于将字符串作为URI参数进行编码。因此encodeURIComponent还必须转义用于分隔URI各个部分的标点符号，以防止歧义。
-
->Url编码默认使用的字符集是US-ASCII[ˈæski]。对于Unicode字符，则使用%百分号加上该字节的utf-8字节组成编码。
+* 使用websocket。
+* 使用简单请求。
 
 ## 强制缓存和协商缓存有什么区别？
 * 强制缓存：根据响应头里的过期时间Expires判断，当浏览器再次加载资源时，如果在这个过期时间内，则命中强缓存并返回，
@@ -50,6 +130,71 @@ encodeURIComponent用于将字符串作为URI参数进行编码。因此encodeUR
 post请求用于提交数据，不是幂等的，会对服务器状态产生影响，不能缓存。
 * 在参数上，get传参通过地址URL传递，只支持ASCII字符，只能URL编码，长度最多2KB左右；
 post将参数存放在HTTP的包体内，没有字符类型限制，有多种编码格式，长度最多在10MB左右。
+
+## Cookie、localStorage、sessionStorage、IndexedDB的区别？
+* Cookie有过期时间，Cookie的信息会在http请求的时候携带到服务器。
+* sessionStorage是会话存储，浏览器关闭就会消失。
+* localStorage是永久存储，最大限制一般为5-10MB，所有数据都将作为字符串存储。
+* IndexedDB是前端数据库，能存储几百MB的数据，api比较复杂。
+
+## 如何优化页面加载时间？*
+* React的懒加载
+* 图片的懒加载库
+* 合并/简化后端接口
+* 接口数据的缓存
+
+其实问题一个就是后端接口太慢，第二个是图片加载太慢
+
+* nginx压缩配置，缓存配置
+
+## TCP与UDP是什么？
+* UDP是一种无连接的，不可靠的，基于报文的传输层通信协议，能够多播广播。
+* TCP是一种面向连接的、可靠的、基于字节流的传输层通信协议，使用三次握手协议建立连接、四次挥手断开连接。
+    * 三次握手最主要的目的就是双方确认自己与对方的发送与接收是正常的：
+        * 第一次握手（客户端发送 SYN 报文给服务器，服务器接收该报文）：客户端什么都不能确认；服务器确认了对方发送正常，自己接收正常
+        * 第二次握手（服务器响应 SYN 报文给客户端，客户端接收该报文）：客户端确认了：自己发送、接收正常，对方发送、接收正常；服务器确认了：对方发送正常，自己接收正常
+        * 第三次握手（客户端发送 ACK 报文给服务器）：客户端确认了：自己发送、接收正常，对方发送、接收正常；服务器确认了：自己发送、接收正常，对方发送、接收正常
+    > 服务器收到客户端第一次握手信息之后，此时双方还没有完全建立其连接，服务器会把这种状态下的请求连接放在一个队列里，我们把这种队列称之为半连接队列。同样，在关闭时，
+        TCP 提供了连接的一端在结束它的发送后还能接收来自另一端数据的能力，这叫半关闭特性。
+    * 终止一个 TCP 连接要经过四次挥手。这是由于 TCP 的半关闭（half-close）特性造成的，因此需要同时关闭客户端和服务端，双方都应该知道对方已关闭，客户端或服务端均可主动发起挥手动作。例如客户端先发起的关闭请求：
+        * 第一次挥手客户端发送给服务端一个信息，客户端关闭TCP链接，但并不知道服务端关闭，因此处于等待状态1。
+        * 第二次挥手服务端发送给客户端一个信息，客户端接受到后知道服务端已经知道自己打算关闭了，于是客户端到服务端的连接释放，客户端处于等待状态2，此时的 TCP 处于半关闭状态，服务端仍可发送数据到客户端。
+        * 第三次挥手服务端发送给客户端一个信息，表示服务端也想关闭连接，此时服务端处于一种等待状态，客户端接收到后处于等待状态3
+        * 第四次挥手客户端发送给服务端一个信息，服务端收到后关闭连接，
+
+## UserAgent是什么？*
+UserAgent，简称UA，是一个使服务器能够识别用户使用的浏览器类型、版本以及运行浏览器的操作系统等信息的字符串。
+它作为浏览器请求头部信息的一部分发送给服务器，以便服务器可以返回合适格式和版本的内容。
+```js
+Chrome User Agent
+Windows电脑上，Chrome浏览器的UA：
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Firefox User Agent
+Windows电脑上，Firefox浏览器的UA：
+Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0
+Safari User Agent
+Mac电脑上，Safari浏览器的UA：
+Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Safari/605.1.15
+Android User Agent
+Android手机上，Chrome浏览器的UA：
+Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36
+iOS User Agent
+iPhone手机上，Safari浏览器的UA：
+Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1
+```
+
+# 低频
+
+## 讲一讲什么是URL编码？
+
+Url编码通常也称为百分号编码，通过使用%百分号加上该字节的十六进制组成编码。
+因为URL中有些字符会引起歧义，例如URL参数字符串中如果包含”&”或者”%”就会造成服务器解析错误，因此就需要对其进行编码。
+
+encodeURI用于将字符串作为 URI 进行编码。其目的是对目标URI进行编码使之成为一个合格的URI。
+
+encodeURIComponent用于将字符串作为URI参数进行编码。因此encodeURIComponent还必须转义用于分隔URI各个部分的标点符号，以防止歧义。
+
+>Url编码默认使用的字符集是US-ASCII[ˈæski]。对于Unicode字符，则使用%百分号加上该字节的utf-8字节组成编码。
 
 ## 讲一讲https以及证书（SSL）
 * https是密文传输，通过非对称密钥，数字证书等方式完成数据加密传输。解决了http明文传输易受到中间人攻击的问题。
@@ -86,27 +231,6 @@ post将参数存放在HTTP的包体内，没有字符类型限制，有多种编
 * 500：服务器错误。
 * 501：请求还没有被实现。服务器不支持请求的功能，无法完成请求。
 
-## Cookie、localStorage、sessionStorage、IndexedDB的区别？
-* Cookie有过期时间，Cookie的信息会在http请求的时候携带到服务器。
-* sessionStorage是会话存储，浏览器关闭就会消失。
-* localStorage是永久存储，最大限制一般为5-10MB，所有数据都将作为字符串存储。
-* IndexedDB是前端数据库，能存储几百MB的数据，api比较复杂。
-
-## TCP与UDP是什么？
-* UDP是一种无连接的，不可靠的，基于报文的传输层通信协议，能够多播广播。
-* TCP是一种面向连接的、可靠的、基于字节流的传输层通信协议，使用三次握手协议建立连接、四次挥手断开连接。
-    * 三次握手最主要的目的就是双方确认自己与对方的发送与接收是正常的：
-        * 第一次握手（客户端发送 SYN 报文给服务器，服务器接收该报文）：客户端什么都不能确认；服务器确认了对方发送正常，自己接收正常
-        * 第二次握手（服务器响应 SYN 报文给客户端，客户端接收该报文）：客户端确认了：自己发送、接收正常，对方发送、接收正常；服务器确认了：对方发送正常，自己接收正常
-        * 第三次握手（客户端发送 ACK 报文给服务器）：客户端确认了：自己发送、接收正常，对方发送、接收正常；服务器确认了：自己发送、接收正常，对方发送、接收正常
-    > 服务器收到客户端第一次握手信息之后，此时双方还没有完全建立其连接，服务器会把这种状态下的请求连接放在一个队列里，我们把这种队列称之为半连接队列。同样，在关闭时，
-        TCP 提供了连接的一端在结束它的发送后还能接收来自另一端数据的能力，这叫半关闭特性。
-    * 终止一个 TCP 连接要经过四次挥手。这是由于 TCP 的半关闭（half-close）特性造成的，因此需要同时关闭客户端和服务端，双方都应该知道对方已关闭，客户端或服务端均可主动发起挥手动作。例如客户端先发起的关闭请求：
-        * 第一次挥手客户端发送给服务端一个信息，客户端关闭TCP链接，但并不知道服务端关闭，因此处于等待状态1。
-        * 第二次挥手服务端发送给客户端一个信息，客户端接受到后知道服务端已经知道自己打算关闭了，于是客户端到服务端的连接释放，客户端处于等待状态2，此时的 TCP 处于半关闭状态，服务端仍可发送数据到客户端。
-        * 第三次挥手服务端发送给客户端一个信息，表示服务端也想关闭连接，此时服务端处于一种等待状态，客户端接收到后处于等待状态3
-        * 第四次挥手客户端发送给服务端一个信息，服务端收到后关闭连接，
-
 ## 什么是防盗链机制？*
 防盗链技术用于防止网站资源被未经授权的第三方网站引用，导致原网站的带宽资源被过度消耗。
 
@@ -134,32 +258,9 @@ HTTP中并没有指定如何生成ETag，哈希是比较理想的选择。
 浏览器请求获得文件后，服务器返回该文件的最后修改时间Last-Modified。
 某些文件修改非常频繁,比如在秒以下的时间内进行修改(比方说 1s 内修改了 N 次),If-Modified-Since能检查到的粒度时 s 级的,这种修改无法判断(或者说 UNIX 记录 MTIME只能精确到秒)
 
-## user-agent是什么？*
-UserAgent，简称UA，是一个使服务器能够识别用户使用的浏览器类型、版本以及运行浏览器的操作系统等信息的字符串。
-它作为浏览器请求头部信息的一部分发送给服务器，以便服务器可以返回合适格式和版本的内容。
-```js
-Chrome User Agent
-Windows电脑上，Chrome浏览器的UA：
-Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
-Firefox User Agent
-Windows电脑上，Firefox浏览器的UA：
-Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0
-Safari User Agent
-Mac电脑上，Safari浏览器的UA：
-Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Safari/605.1.15
-Android User Agent
-Android手机上，Chrome浏览器的UA：
-Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36
-iOS User Agent
-iPhone手机上，Safari浏览器的UA：
-Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1
-```
+## 如何大文件分片上传？*
 
-## 如何大文件分片上传？-
-
-## websock知道多少？-
-
-## 如何优化白屏时间？-
+## websock知道多少？*
 
 ## QUIC协议是什么？
 QUIC 全称：Quick UDP Internet Connections，是一种基于 UDP 的传输层协议。由 Google 自研，2012 年部署上线，2013 年提交 IETF，2021 年 5 月，IETF 推出标准版 RFC9000。
@@ -213,4 +314,3 @@ QUIC 协议的优秀特性：
 * 图片懒加载
 * CDN加速
 ## 请简要描述 web 前端性能需要考虑哪方面，你的优化思路是什么？*
-

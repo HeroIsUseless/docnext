@@ -18,3 +18,13 @@ App路由更新一些，可以使用server components和streaming
 * favicon：.ico 
 * icon：app icon
 
+## astro的群岛模式是什么？
+在服务器上渲染 HTML 页面，并在高度动态的区域周围注入占位符或插槽 […] 这些区域随后可以在客户端 “激活” 成为小型独立的小部件，重用它们服务器渲染的初始 HTML。
+在 Astro 中，“岛屿”指的是页面上的任何交互式 UI 组件。 你可以将岛屿想象成一个个交互式小组件，漂浮在静态、轻量级、服务器渲染的 HTML 海洋中。
+
+相比之下，大多数基于 JavaScript 的 Web 框架会将整个网站作为一个大型 JavaScript 应用程序
+（也被称为单页应用程序，或 SPA）进行激活和渲染。SPA 提供了简单性和强大的功能，
+但由于大量使用客户端 JavaScript 也导致存在一些页面加载的性能问题。
+
+默认情况下，Astro 会自动将每个 UI 组件渲染成仅包含 HTML 和 CSS 的形式，并自动剥离掉所有客户端 JavaScript。
+
