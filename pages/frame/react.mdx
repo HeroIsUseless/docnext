@@ -11,7 +11,7 @@
 * 使用Memoization，使用useMemo和useCallback来避免不必要的函数重新计算，减少渲染开销。
 
 ## useCallback解决了什么问题？解决事件问题了吗？
-即便不用useCallback，事件回调也不会有state过期啊，除非setTimeout会。
+即便不用useCallback，事件回调也不会有state过期啊，会有过期的，例如只在onMount阶段绑定，除非setTimeout会。
 js创建一个函数的成本是非常小的，这点计算对于计算机来说是小case，useCallback的作用其实是用来避免子组件不必要的reRender。
 防止React.memo破功。
 ## React的「更新」和「重新渲染」有什么区别？

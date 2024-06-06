@@ -5,7 +5,7 @@
 * 在标准模式下，浏览器会按照HTML和CSS规范的最新标准解析和渲染页面，能提供更一致的渲染结果，但对错误的处理更加严格。
 * 在兼容模式下，浏览器会以一种更宽松的方式解析和渲染页面，以保持与旧版本浏览器的兼容性，但也可能导致不同浏览器之间的渲染结果不一致。
 
-> 一般推荐使用最新的HTML5 DOCTYPE声明（`<!DOCTYPE html>`），以获得更好的一致性和可靠性。
+> 用声明：`<!DOCTYPE html>`定义标准模式。
 
 ## 哪些是行内（内联）元素，哪些是块级元素？
 * 行内元素不从新行开始，只占用必要宽度，不可以设置宽高，只能包含数据和其他行内元素。例如`<a>、<span>`等。padding/margin上下无法设置，左右还是起作用的。
@@ -18,12 +18,6 @@
 * float布局，中间用margin
 * absolute布局，中间用margin
 * flex，table，gird布局
-
-## alt与title的区别？
-alt 属性的实质是通过文字来代替图片的内容，而 title 属性的实质是对图片的描述或注释。
-* alt属性的特点:1.倘若图片加载不成功未能显示出来，就会在图片未显示的地方出现一段文字。
-2.搜索引擎可以通过这个属性的文字描述获取图片。
-* title 属性的特点:title 属性可以用在任何元素上，当用户把鼠标移动到元素上时，就会出现 title的内容，起到对图片说明的作用
 
 ## 了解重绘和重排吗？
 * 当Dom的变化影响到了元素的几何属性例如宽和高等，会引起浏览器重新计算元素的几何属性，并重新构建渲染树，这个过程称为重排。
@@ -45,53 +39,6 @@ alt 属性的实质是通过文字来代替图片的内容，而 title 属性的
 * 返回页面报文，解析下载的HTML生成DOM树，解析下载的CSS生成CSS树
 * DOM树和CSS树合并为渲染树，然后根据渲染树绘制节点
 > window.onload是在dom文档树加载完和所有文件加载完之后执行
-## script 标签中 defer 和 async 的区别？
-* `<script>` ：会阻碍 HTML 解析，只有下载好并执行完脚本才会继续解析 HTML。
-* `<script async>` ：解析 HTML 过程中进行脚本的异步下载，下载成功立马执行，有可能会阻断 HTML 的解析。
-* `<script defer>` ：完全不会阻碍 HTML 的解析，当页面已完成加载后，才会执行脚本。
-
-## 元素的innerText outerText innerHTML的区别？
-* innerText和outerText取值都是对象起始和结束标签内部的文本内容。但是在设置的时候，outerText会把该标签也替换掉。
-* innerHTML取值是对象起始和结束标签内部的html，不包括对象本身的起始标签和结束标签。设置时是填充该标签内部。
-* outerHTML取值是也是html，但是包括对象本身的起始标签和结束标签。设置时是连该标签也替换掉。
-* textContent 属性设置或者返回指定节点的文本内容。如果设置了textContent属性，任何子节点都会被移除，然后被指定的字符串的文本节点替换。
-* nodeValue 属性设置或返回指定节点的节点值。
-nodeValue 属性的替代选择是 textContent 属性。nodeValue只适用于文本节点和属性节点，对标签节点不适用，返回null；
-
-## 如何获取标签上的自定义属性？
-使用`.getAttribute('xxx')`，如果是标签上的自有属性，则直接可以`ele.xxx`就行。
-
-## HTML中childNodes和children有什么区别？
-* Node：在 DOM 树中，所有的节点都是 Node，也就是说 Node 包含了 HTML 元素标签、文本、以及注释等等内容，它是所有 DOM 的基类。
-* Element：Element 是所有 HTML 标签的基类，也就是说 Element 只包含 HTML 元素标签。
-
-Node 和 Element 两者是包含关系，Node 包含 Element。
-从而衍生出了两个集合：NodeList 和 HTMLCollection。
-* NodeList 是 Node 的集合（childNodes）。
-* HTMLCollection 是 Element 的集合（children）。
-
-> 虽然我们可以通过NodeType=1元素|2属性|3文本来辨别种类，但注释也会算进文本节点。
-
-## src和href的区别？
-* href：用于加上链接，点击就会跳转到这个链接，例如a标签。
-* src：用于用链接里的内容进行替换，例如img标签。
-> src和href都是用于外部资源的引入。
-
-## ArrayBuffer 和 Blob 对象的区别？
-
-ArrayBuffer 对象是 ES6 才纳入正式 ECMAScript 规范，是 JavaScript 操作二进制数据的一个接口。
-* ArrayBuffer 对象是以数组的语法处理二进制数据。代表储存二进制数据的一段内存，它不能直接读写。
-浏览器原生提供 ArrayBuffer() 构造函数，用来生成实例。
-* Blob 全称：Binary Large Object （二进制大型对象）。表示一个二进制文件的数据内容，通常用来读写文件。
-浏览器原生提供 Blob() 构造函数，用来生成实例。
-
-> 注意，Blob并不像ArrayBuffer是JS语⾔内置的，⽽是Web API，Node.js的API⾥就没有Blob。
-
-Buffer是nodejs独有的。Buffer 是 Node.JS 中用于操作 ArrayBuffer 的视图，是 TypedArray 的一种。
-
-TypedArray是一种特殊的数组，用于以特定的数值类型来读写ArrayBuffer的内容。
-
-DataView提供了一种用于读写ArrayBuffer内容的低级接口。与TypedArray不同，DataView允许你以任意顺序和字节序来读写ArrayBuffer的不同部分。
 
 ## 响应式布局，怎么做移动端适配
 首先，需要设置viewport的meta标签，将width设置为device-width：
@@ -107,9 +54,8 @@ DataView提供了一种用于读写ArrayBuffer内容的低级接口。与TypedAr
 然后可以使用：
 * 媒体查询方案
 * 动态 rem 方案
+
 # 低频
-## 在HTML5中DOCTYPE的作用是什么？
-DOCTYPE（文档类型声明）是HTML中的一种标记，用于告诉浏览器使用哪个HTML版本解析文档。确保浏览器正确地渲染和显示网页内容。
 
 ## meta标签的作用？
 `<meta>` 标签定义关于 HTML 文档的元数据。这些数据用于描述整个文档。
@@ -134,3 +80,57 @@ DOCTYPE（文档类型声明）是HTML中的一种标记，用于告诉浏览器
 * GPU进程
 * 网络进程
 * 第三方插件
+
+## 元素的innerText outerText innerHTML的区别？
+* innerText和outerText取值都是对象起始和结束标签内部的文本内容。但是在设置的时候，outerText会把该标签也替换掉。
+* innerHTML取值是对象起始和结束标签内部的html，不包括对象本身的起始标签和结束标签。设置时是填充该标签内部。
+* outerHTML取值是也是html，但是包括对象本身的起始标签和结束标签。设置时是连该标签也替换掉。
+* textContent 属性设置或者返回指定节点的文本内容。如果设置了textContent属性，任何子节点都会被移除，然后被指定的字符串的文本节点替换。
+* nodeValue 属性设置或返回指定节点的节点值。
+nodeValue 属性的替代选择是 textContent 属性。nodeValue只适用于文本节点和属性节点，对标签节点不适用，返回null；
+
+## alt与title的区别？
+alt 属性的实质是通过文字来代替图片的内容，而 title 属性的实质是对图片的描述或注释。
+* alt属性的特点:1.倘若图片加载不成功未能显示出来，就会在图片未显示的地方出现一段文字。
+2.搜索引擎可以通过这个属性的文字描述获取图片。
+* title 属性的特点:title 属性可以用在任何元素上，当用户把鼠标移动到元素上时，就会出现 title的内容，起到对图片说明的作用
+
+## src和href的区别？
+* href：用于加上链接，点击就会跳转到这个链接，例如a标签。
+* src：用于用链接里的内容进行替换，例如img标签。
+> src和href都是用于外部资源的引入。
+
+## script 标签中 defer 和 async 的区别？
+* `<script>` ：会阻碍 HTML 解析，只有下载好并执行完脚本才会继续解析 HTML。
+* `<script async>` ：解析 HTML 过程中进行脚本的异步下载，下载成功立马执行，有可能会阻断 HTML 的解析。
+* `<script defer>` ：完全不会阻碍 HTML 的解析，当页面已完成加载后，才会执行脚本。
+
+## HTML中childNodes和children有什么区别？
+* Node：在 DOM 树中，所有的节点都是 Node，也就是说 Node 包含了 HTML 元素标签、文本、以及注释等等内容，它是所有 DOM 的基类。
+* Element：Element 是所有 HTML 标签的基类，也就是说 Element 只包含 HTML 元素标签。
+
+Node 和 Element 两者是包含关系，Node 包含 Element。
+从而衍生出了两个集合：NodeList 和 HTMLCollection。
+* NodeList 是 Node 的集合（childNodes）。
+* HTMLCollection 是 Element 的集合（children）。
+
+> 虽然我们可以通过NodeType=1元素|2属性|3文本来辨别种类，但注释也会算进文本节点。
+
+## 如何获取标签上的自定义属性？
+使用`.getAttribute('xxx')`，如果是标签上的自有属性，则直接可以`ele.xxx`就行。
+
+## ArrayBuffer 和 Blob 对象的区别？
+
+ArrayBuffer 对象是 ES6 才纳入正式 ECMAScript 规范，是 JavaScript 操作二进制数据的一个接口。
+* ArrayBuffer 对象是以数组的语法处理二进制数据。代表储存二进制数据的一段内存，它不能直接读写。
+浏览器原生提供 ArrayBuffer() 构造函数，用来生成实例。
+* Blob 全称：Binary Large Object （二进制大型对象）。表示一个二进制文件的数据内容，通常用来读写文件。
+浏览器原生提供 Blob() 构造函数，用来生成实例。
+
+> 注意，Blob并不像ArrayBuffer是JS语⾔内置的，⽽是Web API，Node.js的API⾥就没有Blob。
+
+Buffer是nodejs独有的。Buffer 是 Node.JS 中用于操作 ArrayBuffer 的视图，是 TypedArray 的一种。
+
+TypedArray是一种特殊的数组，用于以特定的数值类型来读写ArrayBuffer的内容。
+
+DataView提供了一种用于读写ArrayBuffer内容的低级接口。与TypedArray不同，DataView允许你以任意顺序和字节序来读写ArrayBuffer的不同部分。
