@@ -40,21 +40,6 @@
 * DOM树和CSS树合并为渲染树，然后根据渲染树绘制节点
 > window.onload是在dom文档树加载完和所有文件加载完之后执行
 
-## 响应式布局，怎么做移动端适配
-首先，需要设置viewport的meta标签，将width设置为device-width：
-```js
-<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-```
-* width=device-width: 让当前 viewport 宽度等于设备的宽度
-* user-scalable=no: 禁止用户缩放
-* initial-scale=1.0: 设置页面的初始缩放值为不缩放
-* maximum-scale=1.0: 允许用户的最大缩放值为 1.0
-* minimum-scale=1.0: 允许用户的最小缩放值为 1.0
-
-然后可以使用：
-* 媒体查询方案
-* 动态 rem 方案
-
 # 低频
 
 ## meta标签的作用？

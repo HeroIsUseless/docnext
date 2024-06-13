@@ -1,22 +1,96 @@
-## 如何准确检测一个值是null类型而不是其他类型隐式转换而来？
+# 高频
+## 实现发布订阅机制？
 ```js
-const getType = (value: any) => {
-  const str: string = Object.prototype.toString.call(value)
-  const typeStrArray = str.substring(1, str.length - 1).split(' ')
-  return typeStrArray[1].toLowerCase()
+class EventEmitter {
+  constructor() {
+    this.events = {}
+  }
+
+  on(eventName, callback) {
+    if (!this.events[eventName]) {
+      this.events[eventName] = []
+    }
+    this.events[eventName].push(callback)
+  }
+
+  off(eventName, callback) {
+    if (!this.events[eventName]) {
+      return
+    }
+    const i = this.events[eventName].findIndex(cb => cb === callback)
+    if (i > -1) {
+      this.events[eventName].splice(i, 1)
+    }
+  }
+
+  once(eventName, callback) {
+    const onceFn = (...args) => {
+      callback(...args)
+      this.off(eventName, onceFn)
+    }
+    this.on(eventName, onceFn)
+  }
+
+  emit(eventName, ...args) {
+    if (this.events[eventName]) {
+      this.events[eventName].forEach(cb => cb(...args))
+    }
+  }
 }
 ```
+## 实现LRU缓存？
+```js
+// 用map是最棒的，Map对象可以记住键的原始插入顺序，但Object不能
+class LRUCache {
+  map = new Map();
+  constructor(length) {
+    this.length = length;
+  }
+
+  get(key) {
+    if (this.map.has(key)) {
+      const value = this.map.get(key);
+      this.map.delete(key);
+      this.map.set(key, value);
+      return value;
+    }
+    return undefined;
+  }
+
+  set(key, value) {
+    if (this.map.has(key)) {
+      this.map.delete(key);
+    } 
+    this.map.set(key, value);
+    if (this.map.size > this.length) {
+      // keys返回keys的顺序迭代器，next()返回第一个，value就是key
+      const delKey = data.keys().next().value
+      data.delete(delKey);
+    }
+  }
+}
+```
+```js
+// 使用对象加数组，数组需要findIndex然后splice
+// 不是一个好做法
+```
+```js
+// 双向链表，但是也需要遍历一下，这是正常的算法操作
+```
 ## 手写防抖节流？
-* 防抖（debounce）：每次触发定时器后，取消上一个定时器，然后重新触发定时器。防抖一般用于用户未知行为的优化，比如搜索框输入实时提示。
+* 防抖（debounce）：每次触发定时器后，取消上一个定时器，然后重新触发定时器。
+防抖一般用于用户未知行为的优化，比如搜索框输入实时提示。
   ```js
+  // this指针指向函数正在运行时的上下文
   function debounce(func, time) {
+    // 此处的this是指向windows的
     let timer;
-    return function() {
-      const [that, args] = [this, arguments]; // 因为有可能是方法在调用，所以保留指针
+    return function(...args) {
+      const that = this; // 此处的this是指向调用者的
       clearTimeout(timer)
-      // setTimeout内的函数中的this往往指向全局
-      // 因为setTimeout里调用这个回调只是普通调用，那么此时的环境是window
-      // 箭头函数会帮你把this绑定到声明时的上下文->debounce的上下文->onInputChange的上下文，就不是很有意义了
+      // setTimeout的回调函数的this指向全局
+      // 因为setTimeout的回调是全局调用的
+      // 箭头函数会把this绑定到声明时的上下文
       timer = setTimeout(() => {
         func.apply(that, args);
       }, time);
@@ -32,14 +106,85 @@ const getType = (value: any) => {
 ```js
 function throttle(func, time) {
   let previous = 0;
-  return function() {
-    const [that, args] = [this, arguments];
+  return function(...args) {
+    const that = this;
     const now = Date.now();
     if (now - previous > time) {
       previous = now;
       func.apply(that, args);
     }
   }
+}
+```
+
+## 一个准确的setTimeout/setInterval？*
+setTimeout是延迟delay毫秒后, 将回调函数加入事件队列, 事件什么时候执行到此处不一定, 所以会有延迟;如果delay为0, 就代表立刻插入到事件队列。
+
+setInterval是延迟delay毫秒后, 看看事件队列中是否存在还没有执行的回调函数, 如果还存在, 就不要再往事件队列中添加回调函数了。
+
+定时器指定的时间间隔，表示的是何时将定时器的代码添加到消息队列，而不是何时执行代码。所以真正何时执行代码的时间是不能保证的，取决于何时被主线程的事件循环取到，并执行。
+```js
+// 用requestAnimationFrame模拟
+// window.requestAnimationFrame() 告诉浏览器——你希望执行一个动画，
+// 并且要求浏览器在下次重绘之前调用指定的回调函数更新动画。
+// 看来每次只执行一次，就是下一帧一次，大概16.7 ms 间隔执行一次
+function setTimeout (cb, delay) { 
+    let startTime = Date.now() 
+
+    loop() 
+   
+    function loop () { 
+      const now = Date.now() 
+      if (now - startTime >= delay) { 
+        cb(); 
+      } else {
+        requestAnimationFrame(loop);
+      }
+    } 
+}
+```
+```js
+// setTimeout系统时间补偿实现setInterval
+const speed = 500 // setInterval第二个参数
+let counter = 0
+let start = Date.now(); 
+    
+function cb() { 
+    counter++; 
+    let ideal = counter * speed;
+    let real = Date.now() - start; 
+    const diff = (real - ideal); // 多花销的时间
+    // 通过系统时间修复下一次的计时 
+    setTimeout(cb, speed - diff); 
+}; 
+
+setTimeout(cb, speed); 
+```
+
+## 输出今天的日期，以 YYYY-MM-DD 的方式，比如今天是2014年9月26日，则输出 2014-09-26 
+```js
+var d = new Date();
+// 获取年，getFullYear()返回 4 位的数字
+var year = d.getFullYear();
+// 获取月，月份比较特殊，0 是 1 月，11 是 12 月
+var month = d.getMonth() + 1;
+// 变成两位
+month = month < 10 ? '0' + month : month;
+// 获取日
+var day = d.getDate();
+day = day < 10 ? '0' + day : day;
+alert(year + '-' + month + '-' + day);
+```
+## 请将一个 URL 的 search 部分参数与值转换成一个 json 对象？
+
+# 低频
+
+## 如何准确检测一个值是null类型而不是其他类型隐式转换而来？
+```js
+const getType = (value: any) => {
+  const str: string = Object.prototype.toString.call(value)
+  const typeStrArray = str.substring(1, str.length - 1).split(' ')
+  return typeStrArray[1].toLowerCase()
 }
 ```
 ## 手写一个Loader？
@@ -98,62 +243,14 @@ function getLocalTimeInTimeZone(timeZoneDiff) {
 var timeZoneDiff = 8; // 假设目标时区为东八区
 var localTimeInTimeZone = getLocalTimeInTimeZone(timeZoneDiff);
 ```
-## 用setTimeout实现setInterval？*
-```js
-var mySetInterval = function(func, duration){
-    function interval(){
-        setTimeout(interval, duration);
-        func()
-    }
-    setTimeout(interval, duration);
-}
-```
-## 一个准确的setTimeout/setInterval？*
-setTimeout是延迟delay毫秒后, 将回调函数加入事件队列, 事件什么时候执行到此处不一定, 所以会有延迟;如果delay为0, 就代表立刻插入到事件队列。
 
-setInterval是延迟delay毫秒后, 看看事件队列中是否存在还没有执行的回调函数, 如果还存在, 就不要再往事件队列中添加回调函数了。
-
-定时器指定的时间间隔，表示的是何时将定时器的代码添加到消息队列，而不是何时执行代码。所以真正何时执行代码的时间是不能保证的，取决于何时被主线程的事件循环取到，并执行。
-```js
-// 模拟代码 
-// window.requestAnimationFrame() 告诉浏览器——你希望执行一个动画，并且要求浏览器在下次重绘之前调用指定的回调函数更新动画。
-// 看来每次只执行一次，就是下一帧一次，大概16.7 ms 间隔执行一次
-function setTimeout2 (cb, delay) { 
-    let startTime = Date.now() 
-    loop() 
-   
-    function loop () { 
-      const now = Date.now() 
-      if (now - startTime >= delay) { 
-        cb(); 
-        return; 
-      } 
-      requestAnimationFrame(loop) 
-    } 
-}
-```
-```js
-// setTimeout系统时间补偿
-const speed = 500
-let counter = 1
-let start = new Date().getTime(); 
-    
-function instance() { 
-    let real = (counter * speed);
-    let ideal = (new Date().getTime() - start); 
-    counter++; 
-    const diff = (ideal - real); 
-    window.setTimeout(function() { instance(); }, (speed - diff)); // 通过系统时间进行修复 
-}; 
-setTimeout(function() { instance(); }, speed); 
-```
 ## 实现图片懒加载？
 ```js
 function isVisible(img) {
-  // 判断是否在可视区域，并返回true或false
-  const imgRect = img.getBoundingClientRect() // getBoundingClientRect 获取图片的动态信息
-  return imgRect.bottom > 0 && imgRect.top < window.innerHeight // 不然就在上面或下面
+  const imgRect = img.getBoundingClientRect()
+  return imgRect.top < window.innerHeight
 }
+
 const images = [...document.querySelectorAll('img')]
 // 利用循环判断每张图片是否属于可视区域
 function lazyLoad(){
@@ -163,6 +260,7 @@ function lazyLoad(){
       }
     }
 }
+
 lazyLoad()
 ```
 ```js
@@ -187,21 +285,3 @@ const callback = (imgArr) => {
   })
 }
 ```
-## 输出今天的日期，以 YYYY-MM-DD 的方式，比如今天是2014年9月26日，则输出 2014-09-26 
-```js
-var d = new Date();
-// 获取年，getFullYear()返回 4 位的数字
-var year = d.getFullYear();
-// 获取月，月份比较特殊，0 是 1 月，11 是 12 月
-var month = d.getMonth() + 1;
-// 变成两位
-month = month < 10 ? '0' + month : month;
-// 获取日
-var day = d.getDate();
-day = day < 10 ? '0' + day : day;
-alert(year + '-' + month + '-' + day);
-```
-## 请将一个 URL 的 search 部分参数与值转换成一个 json 对象？
-## 如何获取对象 a 拥有的所有属性（可枚举的、不可枚举的，不包括继承来的属性）？
-## 统计 1 到 400 亿之间的自然数中含有多少个 1？比如 1-21 中，有 1、10、11、
-21 这四个自然数有 5 个 1 *

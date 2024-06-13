@@ -1,48 +1,47 @@
-# 高频？
-分为调和阶段和提交阶段
-* 调和阶段是首先计算出状态变化后的虚拟DOM结构。然后计算出当前虚拟DOM结构修改为目标虚拟DOM结构的最优更新方案。
-* 提交阶段是将调和阶段记录的更新方案应用到DOM中，然后调用暴露给开发者的钩子方法。
+# 高频
 ## React如何提高渲染性能？
-* 避免不必要的渲染，使用PureComponent和React.memo，状态下放
-* 列表性能优化
-* 使用key属性
+* 避免不必要的渲染
+  * 状态下放
+  * 使用PureComponent和React.memo
+  * 使用useMemo和useCallback来避免不必要的函数重新计算，不要使用内联函数定义
+* 使用React Fragments避免额外标签
+* 列表性能优化，虚拟列表，item使用key属性
+* 使用webworker处理计算密集任务
+* 升级React，使用React16的fiber或者React18的CM模式
 * 异步渲染
-* 使用Memoization，使用useMemo和useCallback来避免不必要的函数重新计算，减少渲染开销。
+* 使用服务端渲染
 
-## useCallback解决了什么问题？解决事件问题了吗？
-即便不用useCallback，事件回调也不会有state过期啊，会有过期的，例如只在onMount阶段绑定，除非setTimeout会。
-js创建一个函数的成本是非常小的，这点计算对于计算机来说是小case，useCallback的作用其实是用来避免子组件不必要的reRender。
-防止React.memo破功。
-## React的「更新」和「重新渲染」有什么区别？
-React 的「更新」包含三个阶段：
-* 渲染（Render），使用 createElement 或 jsx-runtime 产生全新的 React Element 对象、组装出一颗 React 树（也可能是一部分）；
-* Reconcilation，React Reconciler 比较 新生成的 React 树 和 当前的 React 树，判断如何用最高效的方法实现「更新」；
-* Commit，操作 Host（如 DOM、Native 等），使新的 UI 呈现在用户面前。
+## 为什么父组件渲染，子组件都需要重新渲染？*
+* 因为jsx是React.createElement的语法糖，React.createElement这个函数就是要重新构建节点的。
+* React并没有收集依赖，不知道哪个子组件依赖了变化的状态，索性就全渲染一遍。
+* 如果说在创建时对props进行浅比较，那么这个时候也会有比较的性能损失，有时候是得不偿失的，所以React就没有做。
 
-「重新渲染」一律指代 React 组件在「更新」时的「渲染」阶段。没有diff差距调和和提交不一定有事情干。
-「更新」则指代（重新）渲染、Reconcilation 和 Commit 整个过程。
+## 为什么每次状态改变，都需要重新生成一个完整的虚拟dom？*
+* 不是生成一个完整虚拟dom，只是在调和阶段从根节点开始进行遍历而已。
+* 从根节点diff遍历，本身就是一种设计上的简化，不然就得确定到底是哪个节点受影响了，有几个节点受影响了，
+状态变化也会有useState/useContext多种种类，倒不如直接从根节点一遍过，虽然会牺牲一点点的遍历时性能，但无关紧要。
+* React会使用Bailout策略，如果React在某个节点的渲染过程中确定该节点没有发生变化（根据childLines对比），
+就会放弃（bailout）继续对该节点进行深度比较。从这个方面来说，并没有生成一个完整的虚拟dom，倒不如说是更新虚拟dom。
+* 在commit阶段，实际上是通过updateQueue进行更新的，可以理解为一个队列，里面存放着需要更新的节点。
+也就是说在提交阶段是从受影响的组件开始遍历，而不是从根节点进行遍历。
 
-有的时候，你很难判断一个组件是否是纯组件。事实上，React 组件更新的开销没有想象中的那么大。但是比对的开销可能比想象的大。
-如果一个组件接受很多复杂的 prop，有可能渲染这个组件并对比 Virtual DOM 的性能开销甚至小于等于浅比较所有 prop 的开销。
-让 React 在 Runtime 中判断子组件的全部依赖、
-以跳过子组件的不必要更新，是非常困难、非常不现实的。计算子组件依赖的最好时机是编译期间。
-做缓存本身也是需要成本的，如果这个成本大于它所带来的收益，但就是负收益了，就变成无用了。
+## React为什么从根节点开始diff？*
+* 简化算法实现，从根节点开始遍历树结构更符合树的遍历逻辑。如果从状态变化的组件开始，
+React就需要追踪依赖，确定到底是哪个节点受影响了，有几个节点受影响了， 状态变化也会有useState/useContext多种种类，
+倒不如直接从根节点一遍过，虽然会牺牲一点点的遍历时性能，但无关紧要。目前到v18为止，React不会追踪依赖。
+* React会使用Bailout策略，如果React在某个节点的渲染过程中确定该节点没有发生变化，
+就会放弃（bailout）继续对该节点进行深度比较。从这个方面来说，从根节点开始遍历也不会耗费太多性能。
+* React内部，还大量使用了以从根节点开始diff思想的逻辑，比如说优先级任务复用，会导致该任务上下文混乱，因此无法定向渲染。
+* 即便从状态改变组件开始diff，如果该组件需要构造一个新的fiberNode，那么它的父组件，兄弟组件的指针是不是要改一下？
+父组件可以通过return属性找到，但是上一个兄弟节点可就不好找了。
+如果该组件的fiberNode还是复用原来的，但是它的子节点肯定都是新的fiberNode了，
+那么至少useEffect以及各种钩子，在这里就需要差异化执行，相当于两种fiberTask。
+因此从状态改变组件开始diff也不是一个十全十美的好方法。
 
-另外就是，对于减少重复渲染的优化策略来说，React.memo 实际上是一种“懒人”方法，相当于在错误的方向上越走越远，
-因为有很多重复渲染问题是由于 state 的设计不合理导致的，比如本来是 local 的 state，
-非要当做 global 来处理（滥用状态管理），又或者是编程习惯不好导致的（比如 render 中包含 inline object），所以也要具体情况具体分析。
+## 为什么不能在if里使用hooks？*
+currentFiber 的 memoizedState 缓存 hooks 链表的信息，一旦在条件语句中声明 hooks，函数组件更新时，hooks 链表结构被破坏，
+和 workInProgress 不一致，如果涉及到读取 state 等操作，就会发生异常。因此不能在条件、循环语句中使用 hooks。
 
-React useMemo和memo会有性能问题，比如首次渲染、重新渲染、多次渲染场景下，memo有可能会有性能提升，也有可能会有性能损耗。
-
-比如说5000次首次渲染和5000次重新渲染。
-
-* 5000次重新渲染，不用memo比用memo慢10倍。
-* 5000次首次渲染，不用memo比用memo快50倍。这该怎么取舍。
-
-为什么“不要过早优化”？因为优化也有成本，可能带来新问题。甚至是性能问题。
-## 为什么不能在if里使用hooks？
-一旦在条件语句中声明 hooks,函数组件更新时,hooks 链表结构被破坏,currentFiber 树 的 memoizedState 
-缓存 hooks 链表 的信息,和 workInProgress 不一致,如果涉及到读取 state 等操作，就会发生异常。因此不能在条件、循环语句中使用 hooks。
 ## 什么是受控组件和非受控组件？
 * 受控组件：只能通过React修改数据或状态的组件，就是受控组件。
 * 非受控组件：控件自己就能控制数据和状态的变更，而且React是不知道这些变更的，如 input, textarea, select, checkbox 等组件。
@@ -51,9 +50,10 @@ React useMemo和memo会有性能问题，比如首次渲染、重新渲染、多
 ## setState 的传参方式，有什么区别？
 setState()的传参有两种方式：纯数据和回调函数。回调函数方式能在参数中获得最新state，多用于异步的情况。
 
-## 了解React的虚拟dom吗？
-虚拟DOM是以对象的方式来描述真实dom的。在做更新操作的时候，可以在内存中进行数据比对，
-减少对真实dom的操作，从而减少浏览器重排重绘的次数，从而能提高程序的性能。
+## React是如何模拟requestIdleCallback的？
+* 是使用requestAnimationFrame实现的
+* 另外可以使用setTimeout，但语意不符合
+* 另外可以用webworker，感觉绝配
 
 ## 什么是PureComponent？
 React.PureComponent 与 React.Component 几乎完全相同，但 React.PureComponent通过prop和state的浅对比来实现更新。
@@ -111,7 +111,6 @@ React合成事件是指将原生事件合成一个React事件。React有自己�
 ## key 的作用是什么？
 当出现大量相同的标签时，使用key可以帮助diff算法提升判断的速度，从而使页面渲染更快消耗更少。
 
-# 中级
 ## Redux 中异步的请求怎么处理
 用中间件，但是只不过就是从请求回调里调用dispatch变成dispatch的参数设置成请求函数，换个写法可能更易读，但代码量一点也没少
 ## React.forwardRef是什么？它有什么作用？
@@ -208,3 +207,7 @@ React.StrictMode 不能马上检测到副作用，但是它可以通过故意调
 React 假设你编写的所有组件都是纯函数。也就是说，对于相同的输入，你所编写的 React 组件必须总是返回相同的 JSX。
 * 不能读取和修改全局变量，可以传到props里
 * 输入可以理解为props，state，context，输出可以理解为render的返回jsx
+
+## useCallback解决了什么问题？解决事件问题了吗？
+* useCallback的作用其实是用来避免子组件不必要的reRender。防止React.memo破功。
+* js创建一个函数的成本是非常小的，这点计算对于计算机来说是小case。
