@@ -36,49 +36,37 @@ function MyPromise(func) {
 }
 ```
 ```js
-// 复杂一点的
-function MyPromise(func) {
-    this.status = 'pending';
-    this.res = '';
-    this.thenCbs = [];
-    this.catchCbs = [];
-    const resolve = (data) => {
-        this.status = 'fulfilled';
-        this.res = data;
-        this.thenCbs.forEach(cb => {
-            cb(this.res);
-        });
-    }
-    const reject = (data) => {
-        this.status = 'rejected';
-        this.res = data;
-        this.catchCbs.forEach(cb => {
-            cb(this.res);
-        });
-    }
-    this.then = function (cb) {
-        if (this.status == 'pending') {
-            this.thenCbs.push(cb);
-        }
-        if (this.status == 'fulfilled') {
-            var res = cb(this.res)
-        }
-        return this;
-    }
-    this.catch = function (cb) {
-        if (this.status == 'pending') {
-            this.catchCbs.push(cb)
-        }
-        if (this.status == 'rejected') {
-            var res = cb(this.res)
-        }
-        return this;
-    }
-    func(resolve, reject)
+// 复杂一点的（有链式调用）
+function Promise(fn) {
+  this.status = 'pending'
+  this.cbs = [];
+
+  fn(resolve);
+
+  function resolve(value) {
+    setTimeout(() => { // 用宏任务模拟微任务
+      this.data = value;
+      this.cbs.forEach((cb) => cb(value)); // cb是then的回调函数，执行这里后，链式调用的then的返回
+    });
+  }
 }
+
+Promise.prototype.then = function (onResolved) {
+  return new Promise((resolve) => {
+    if (this.status === 'resolved') {
+      const res = onResolved(this.data);
+      resolve(res);
+    } else if (this.status === 'pending') {
+      this.cbs.push(() => {
+        const res = onResolved(this.data);
+        resolve(res); // 需要等待then本体promise执行完毕
+      });
+    }
+  });
+};
 ```
 ## 如何实现Promise.all/race？
-```js
+```js\
 Promise.myAll = function (promises) {
   let arr = [], count = 0
   return new Promise((resolve, reject) => {
