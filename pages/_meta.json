@@ -1,10 +1,12 @@
 {
   "index": "简介",
-  "internetbase": "网络与浏览器",
-  "htmljscss": "HTML/JavaScript/CSS",
-  "frame":"框架",
-  "writeq":"笔试题",
-  "design":"设计模式",
+  "1_internet": "网络与浏览器",
+  "2_htmljscss": "HTML/JavaScript/CSS",
+  "3_frame":"框架",
+  "4_writeq":"笔试题",
+  "5_design":"设计模式",
+  "6_project":"工程化",
+  "question":"面试题",
   "another": "v0.0.1",
   "about": {
     "title": "About",
