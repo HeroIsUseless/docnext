@@ -1,4 +1,6 @@
 {
-    "what-is-cors": "什么是CORS？"
+    "what-is-cors": "什么是CORS？",
+    "what-is-xss": "什么是XSS？",
+    "what-is-csrf": "CSRF 攻击是什么？"
 }
   
