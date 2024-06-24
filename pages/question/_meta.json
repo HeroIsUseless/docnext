@@ -1,6 +1,24 @@
 {
     "what-is-cors": "什么是CORS？",
-    "what-is-xss": "什么是XSS？",
-    "what-is-csrf": "CSRF 攻击是什么？"
+    "what-is-xss": "XSS攻击是什么？",
+    "what-is-csrf": "CSRF 攻击是什么？",
+    "what-is-user-agent": "UserAgent是什么？",
+    "what-is-uri-encode": "什么是URL编码？",
+    "what-is-https": "讲一讲https以及证书（SSL）",
+    "what-is-http2": "什么是http2？http2比http1好在哪里？",
+    "what-is-quic": "QUIC协议是什么",
+    "what-is-strict-mode": "标准（严格模式）与兼容模式（混杂模式）各有什么区别？",
+    "what-is-inline-block": "哪些是行内（内联）元素，哪些是块级元素？",
+    "what-is-innertext": "元素的innerText outerText innerHTML的区别？",
+    "what-is-childnode": "HTML中childNodes和children有什么区别？",
+    "what-is-arraybuffer": "什么是 ArrayBuffer？ArrayBuffer 和 Blob 对象的区别？",
+    "what-is-var-let": "var，let，const，死区？",
+    "what-is-call-apply-bind": "call，apply，bind的区别？",
+    "what-is-promise": "什么是promise？",
+    "what-is-prototype": "什么是原型和原型链？",
+    "how-many-js-inherit": "JS有多少种继承方式？",
+    "what-is-js-pointer": "讲一讲js的this指针？",
+    "what-is-js-stack": "JS的执行栈/调用栈原理？",
+    "what-is-event-loop": "什么是事件循环机制？"
 }
   

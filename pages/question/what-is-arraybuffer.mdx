@@ -1,0 +1,15 @@
+# 什么是 ArrayBuffer？ArrayBuffer 和 Blob 对象的区别？
+
+ArrayBuffer 对象是 ES6 才纳入正式 ECMAScript 规范，是 JavaScript 操作二进制数据的一个接口。
+* ArrayBuffer 对象是以数组的语法处理二进制数据。代表储存二进制数据的一段内存，它不能直接读写。
+浏览器原生提供 ArrayBuffer() 构造函数，用来生成实例。
+* Blob 全称：Binary Large Object （二进制大型对象）。表示一个二进制文件的数据内容，通常用来读写文件。
+浏览器原生提供 Blob() 构造函数，用来生成实例。
+
+> 注意，Blob并不像ArrayBuffer是JS语⾔内置的，⽽是Web API，Node.js的API⾥就没有Blob。
+
+Buffer是nodejs独有的。Buffer 是 Node.JS 中用于操作 ArrayBuffer 的视图，是 TypedArray 的一种。
+
+TypedArray是一种特殊的数组，用于以特定的数值类型来读写ArrayBuffer的内容。
+
+DataView提供了一种用于读写ArrayBuffer内容的低级接口。与TypedArray不同，DataView允许你以任意顺序和字节序来读写ArrayBuffer的不同部分。

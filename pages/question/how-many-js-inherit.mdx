@@ -1,0 +1,68 @@
+# JS有多少种继承方式？
+
+* 原型链继承(最基本继承)，在构造函数外将子构造函数的原型属性prototype指向父类对象实例实现继承。
+算是最简单的继承方式。但所有子类对象共享一个父类对象，也会共享父类实例的属性，子类新实例无法向父类构造函数传参。
+```js
+function Child() {
+  this.name = 'Child';
+}
+Child.prototype = new Parent();
+Child.prototype.constructor = Child;
+```
+* 构造函数内继承(经典继承)，在子构造函数内调用父构造函数的call函数绑定子对象并初始化，解决了原型链继承共用父对象的问题。
+但是这样就完全没有用到原型，因此无法继承父类原型链上的属性。父类的方法也不会复用。
+```js
+function Child(name) {
+  Parent.call(this, name);
+}
+```
+* 组合继承（常用），组合原型链继承和构造函数内继承合在一起。
+父类的方法需要写到原型链上，然后子构造函数内调用父构造函数的call函数绑定子对象并初始化。
+然后将子类的原型指向父类原型。
+这样就能同时解决了原型链继承和构造函数继承的问题。
+但每次都会调用两遍父类构造函数，子类原型上也有一份多余的父类实例属性。
+
+```js
+function Child(name) {
+  Parent.call(this, name);
+}
+Child.prototype = new Parent();
+Child.prototype.constructor = Child;
+```
+* 原型式继承，每次构造时都拷贝一份原型对象，完全等价于Object.create，不知道为什么要分这么细。
+跟原型链继承几乎没什么差别，缺点也一样，除了每次定义一个子对象都要指定一个父对象。
+```js
+function newChild(parent) {
+    function Child() {...}
+    Child.prototype = parent
+    Child.prototype.constructor = Child
+    return new Child()
+}
+```
+* 寄生式继承，在原型式继承的基础上，在子对象上添加一些方法。
+缺点跟原型式继承一样。
+```js 
+function newChild(parent) {
+    function Child() {...}
+    Child.prototype = parent
+    let child = new Child()
+    child.say = function() {...}
+    return child
+}
+```
+* 寄生组合式继承，原型式->寄生式->寄生组合式是一个循序渐进的过程。
+通过借用构造函数来继承属性, 在原型上添加共用的方法, 通过寄生式实现继承.
+```js
+function Child(name){
+    Parent.call(this, name);
+}
+Child.prototype = Object.create(Parent.prototype); // 防止Child原型修改会影响到父原型
+// Object.create()会造成的一个问题：Bar.prototype.constructor会改变，为什么会改变？
+// 引用你不知道的JavaScript上中的一句话如果你创建了一个新对象并替换了函数默认的.prototype 对象引用，
+// 那么新对象并不会自动获.constructor 属性。
+Child.prototype.constructor = Child;
+// constructor其实没有什么用处，只是JavaScript语言设计的历史遗留物。
+// 由于constructor属性是可以变更的，所以未必真的指向对象的构造函数，只是一个提示。
+// The constructor property does not cause any particular effects in your program
+```
+> ES6里Class可以通过extends关键字实现继承，跟寄生组合继承的方式基本类似

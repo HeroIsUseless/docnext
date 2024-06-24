@@ -1,0 +1,11 @@
+# 什么是promise？
+Promise 是一种异步编程的解决方案，它是一个对象或构造函数，用于处理异步操作的结果。
+Promise 有三种状态：Pending（进行中）、Resolved（已解决，又称 Fulfilled）和 Rejected（已拒绝）。
+它通过 then 和 catch 方法来处理异步操作的结果，一旦状态改变，Promise 的状态就不会再变。
+与传统的回调函数相比，Promise 避免了回调地狱的问题。
+
+settimeout里resolve()？
+
+* promise的回调函数是同步的，then是异步的，then()方法会return一个新的promise，因此必须链式调用而不能并行调用。
+* 在新建promise对象的回调函数里再定义一个promise对象，内部的promise的resolve/then永远先执行。resolve() 必须等到其内部全部的异步 resolve() 执行完毕后才能够执行。
+* async语法糖，await上面是同步的，await下面可以看作被包裹在then中，有多少await包裹几次。async函数里面可以看作同步代码。
