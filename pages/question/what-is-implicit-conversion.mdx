@@ -1,0 +1,14 @@
+# 什么是JS的隐式转换？
+在使用不同类型的值进行操作时，JavaScript会自动进行类型转换，这称为隐式转换。
+* 我们在对各种非Number类型运用数学运算符(- * /)时，会先将非Number类型转换为Number类型。
+* 我们在对各种非Number类型运用数学运算符(+)时： （以下 3 点，优先级从高到低）
+  * 当一侧为String类型，会将另一侧转换为字符串类型并进行字符串拼接。
+  * 当一侧为Number类型，另一侧为非字符串的其他原始类型，则将原始类型转换为Number类型。
+  * 当一侧为Number类型，另一侧为引用类型，将引用类型和Number类型转换成字符串后拼接。
+* 当我们使用逻辑语句（例如if while for）时，条件值将转为Boolean值，只有 null undefined '' NaN 0 false 这几个是 false，其他的情况都是 true，比如 {} , []。。
+* 当我们使用`==`时： 
+  * NaN和其他任何类型比较永远返回false（包括和他自己）。
+  * Boolean 和其他任何类型比较，Boolean 首先被转换为 Number 类型。
+  * String和Number比较，先将String转换为Number类型。
+  * null == undefined比较结果是true，除此之外，null、undefined和其他任何结果的比较值都为false。
+  * 原始类型和引用类型做比较时，引用类型会依照ToPrimitive规则转换为原始类型。

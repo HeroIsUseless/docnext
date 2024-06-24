@@ -19,6 +19,9 @@
     "how-many-js-inherit": "JS有多少种继承方式？",
     "what-is-js-pointer": "讲一讲js的this指针？",
     "what-is-js-stack": "JS的执行栈/调用栈原理？",
-    "what-is-event-loop": "什么是事件循环机制？"
+    "what-is-event-loop": "什么是事件循环机制？",
+    "what-is-capture-bubble": "什么是捕获与冒泡？",
+    "what-is-implicit-conversion": "什么是JS的隐式转换？",
+    "what-is-web-worker": "web-worker是什么？"
 }
   
