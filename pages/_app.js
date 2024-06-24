@@ -1,11 +1,13 @@
 // pages/_app.js
-import { GoogleAnalytics } from "nextjs-google-analytics";
+import { Analytics } from "@vercel/analytics/react"
+// import { GoogleAnalytics } from "nextjs-google-analytics";
 
 const App = ({ Component, pageProps }) => {
   return (
     <>
-      <GoogleAnalytics trackPageViews />
+      {/* <GoogleAnalytics trackPageViews /> */}
       <Component {...pageProps} />
+      <Analytics />
     </>
   );
 };
