@@ -1,0 +1,14 @@
+# react useState/setState 的传参方式，有什么区别？
+setState()的传参有两种方式：纯数据和回调函数。回调函数方式能在参数中获得最新state，多用于异步的情况。
+
+## setState执行机制是什么？什么时候是同步的，什么时候是异步的？
+执行setState实际上是调用dispatchSetState，创建update并加入到hook更新队列updateQueue（这个东西其实是一个链表），update即是一个包括更新执行函数action和下一个update指针next的一个简单结构体，该链表被放到fiber节点的相应hook中，而hook本身也是一个链表，存放在fiber实例（能获取到的）的memoizedState上，每个节点都包含了两个重要的属性：memoizedState和next。最后走到scheduleUpdateOnFiber。
+
+在更新时，UseState其实调用的是dispatcher.useState(initialState)->HooksDispatcherOnUpdate->updateReducer 主要逻辑就是遍历该循环链表，并计算出最新值。最后与hook.memoizedState做比较，从而处理副作用。
+
+我们首先需要明确，从 API 层面上说，它就是普通的调用执行的函数，自然是同步的，因此，这里所说的同步和异步指的是 API 调用后更新 DOM 是同步还是异步的。
+* 如果 setState 在 React 能够控制的范围被调用，它就是异步的。 例如：合成事件处理函数, 生命周期函数, 此时会进行批量更新, 也就是将状态合并后再进行 DOM 更新。
+* 如果 setState 在原生 JavaScript 控制的范围被调用，它就是同步的。 例如：在promise的then()方法中、原生事件处理函数中, 定时器回调函数中, 此时 setState 被调用后会立即更新 DOM 。
+
+react会有一个上下文环境，在同步环境中，setState处于react的上下文中，react会监控动作合并，所以这个时候setState()是异步的。
+在 react 18 版本以后 setState（）不论在同步环境还是异步环境都是异步的。

@@ -1,0 +1,6 @@
+# webpack为什么比vite快？
+Webpack 是一个基于打包器的构建工具，同一个入口文件的代码会打包成一个 Bundle 文件。当文件发生变动时，整个 JavaScript Bundle 文件会被 Webpack 重新构建，这也是为什么使用 Webpack 的大规模应用在应用启动和热更新时速度很慢的原因。
+
+Vite 的核心理念很简单，就是借助浏览器原生 ES Modules 能力，浏览器的原生 ES Modules 能力允许在不将代码打包到一起的情况下运行 JavaScript 应用。当浏览器发出请求时，为浏览器按需提供 ES Module 文件，浏览器获取 ES Module 文件会直接执行。Vite 在浏览器请求时按需转换并以原生 ESM 方式提供源码，让浏览器接管了打包程序的部分工作。
+
+在生产环境使用 ESM 会存在大量额外网络请求问题，因此生产环境不太试用 ESM，最好的方式还是代码进行 tree-shaking、懒加载、和 chunk 分隔等。

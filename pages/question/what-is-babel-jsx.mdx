@@ -1,0 +1,6 @@
+# babel解析jsx过程，React.createElement是怎么来的？
+在React16版本及之前，应用程序通过 @babel/preset-react 将 jsx 语法转换为 React.createElement 的 js 代码，因此需要显式将 React 引入。
+
+React17版本之后，官方与 babel 进行了合作，直接通过将 react/jsx-runtime 对 jsx 语法进行了新的转换而不依赖 React.createElement，转换的结果便是可直接供 ReactDOM.render 使用的 ReactElement 对象。因此如果在React17版本后只是用 jsx 语法不使用其他的 react 提供的api，可以不引入 React，应用程序依然能够正常运行。React17的特性，不会再编译成，而是_jsx，因为自动注入react/jsx-runtime。
+
+React.createElement与_jsx的区别不大，最后都是调用了 ReactElement() 方法，创建 React 元素对象。

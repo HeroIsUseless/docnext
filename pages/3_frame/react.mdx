@@ -50,6 +50,18 @@ currentFiber 的 memoizedState 缓存 hooks 链表的信息，一旦在条件语
 ## setState 的传参方式，有什么区别？
 setState()的传参有两种方式：纯数据和回调函数。回调函数方式能在参数中获得最新state，多用于异步的情况。
 
+## setState执行机制是什么？什么时候是同步的，什么时候是异步的？
+执行setState实际上是调用dispatchSetState，创建update并加入到hook更新队列updateQueue（这个东西其实是一个链表），update即是一个包括更新执行函数action和下一个update指针next的一个简单结构体，该链表被放到fiber节点的相应hook中，而hook本身也是一个链表，存放在fiber实例（能获取到的）的memoizedState上，每个节点都包含了两个重要的属性：memoizedState和next。最后走到scheduleUpdateOnFiber。
+
+在更新时，UseState其实调用的是dispatcher.useState(initialState)->HooksDispatcherOnUpdate->updateReducer 主要逻辑就是遍历该循环链表，并计算出最新值。最后与hook.memoizedState做比较，从而处理副作用。
+
+我们首先需要明确，从 API 层面上说，它就是普通的调用执行的函数，自然是同步的，因此，这里所说的同步和异步指的是 API 调用后更新 DOM 是同步还是异步的。
+* 如果 setState 在 React 能够控制的范围被调用，它就是异步的。 例如：合成事件处理函数, 生命周期函数, 此时会进行批量更新, 也就是将状态合并后再进行 DOM 更新。
+* 如果 setState 在原生 JavaScript 控制的范围被调用，它就是同步的。 例如：在promise的then()方法中、原生事件处理函数中, 定时器回调函数中, 此时 setState 被调用后会立即更新 DOM 。
+
+react会有一个上下文环境，在同步环境中，setState处于react的上下文中，react会监控动作合并，所以这个时候setState()是异步的。
+在 react 18 版本以后 setState（）不论在同步环境还是异步环境都是异步的。
+
 ## React是如何模拟requestIdleCallback的？
 * 是使用requestAnimationFrame实现的
 * 另外可以使用setTimeout，但语意不符合
@@ -72,14 +84,10 @@ React.PureComponent 与 React.Component 几乎完全相同，但 React.PureCompo
 * componentWillUnmount() 组件将要卸载时调用，一些事件监听和定时器需要在此时清除。
 
 ## 什么是合成事件（事件代理），与原生事件有什么区别？
+React合成事件是指将原生事件合成一个React事件。React有自己一套独立的事件系统,就是合成事件。
 React中所有触发的事件，都在React实现的一个合成事件层。作用是
 * 规范化了这些接口在不同浏览器中的行为，抹平了不同浏览器事件对象之间的差异，解决了浏览器兼容的问题，方便事件统一管理；
 * 避免垃圾回收；react事件对象不会被释放掉，而是存放进一个数组中，避免频繁地去创建和销毁（垃圾回收）。
-
-在 React 初始化渲染的时候，ReactDOM.render 会调用函数 listenToAllSupportedEvents 来绑定事件。
-不支持冒泡事件的，React 会直接把事件绑定在具体的元素上。
-
-对合成事件阻止不会影响原生事件的执行。
 
 在React底层，主要对合成事件做了两件事：
 * 事件委派： React会把所有的事件绑定到结构的最外层（Virtual DOM根节点），使用统一的事件监听器，
@@ -94,20 +102,25 @@ React 首次渲染时，会在根节点上绑定所有原生事件。支持冒�
 事件触发前会从目标元素的 Fiber 节点向上收集同类型事件队列，构造合成对象，同类型的事件会复用同一个合成事件实例对象。
 根据监听的事件阶段，决定顺序还是倒序遍历执行事件处理函数（模拟事件的冒泡捕获机制）。
 
-事件注册：registerEvents；将80种事件类型添加到allNativeEvents的Set数据结构中。
-事件监听：listenToAllSupportedEvents；遍历上面事件注册添加到allNativeEvents的事件。
+* 事件注册：registerEvents；将80种事件类型添加到allNativeEvents的Set数据结构中。
+* 事件监听：listenToAllSupportedEvents；遍历上面事件注册添加到allNativeEvents的事件。
 监听的listener是一个事件派发器，并不是真实的浏览器事件或你写的事件回调函数。
-事件派发：dispatchEvent；事件一旦在id = root的 DOM 元素中委托，其实是一直在触发的，
+* 事件派发：dispatchEvent；事件一旦在id = root的 DOM 元素中委托，其实是一直在触发的，
 根据消息的数据找到真正触发事件的 DOM 元素，根据fiber节点的类型以及是否已渲染来决定是否要派发事件。
-事件合成：SyntheticBaseEvent；当我们点击页面的某个元素时，React会根据原生事件nativeEvent找到触发事件的 DOM 元素
+* 事件合成：SyntheticBaseEvent；当我们点击页面的某个元素时，React会根据原生事件nativeEvent找到触发事件的 DOM 元素
 和对应的fiber节点。并以该节点为孩子节点往上查找，找到包括该节点及以上所有的click回调函数创建dispatchListener，
 并添加到listeners数组中。同类型的事件会复用同一个合成事件实例对象。
 
-react 默认事件代理的方式，实际上没有任何冒泡的过程，是程序自己模拟冒泡的操作。
-
+> react 默认事件代理的方式，实际上没有任何冒泡的过程，是程序自己模拟冒泡的操作。
 当真实dom触发后冒泡到document后才会对react事件进行处理。
 
-React合成事件是指将原生事件合成一个React事件。React有自己一套独立的事件系统,就是合成事件。
+> 总结合成事件与原生事件执行顺序：
+> * 合成事件不管冒泡阶段还是捕获阶段，都要晚于原生事件冒泡阶段
+> * 不管合成事件还是原生事件，冒泡阶段都要晚于捕获阶段
+>
+> 因为事件监听绑定在dom上，并且在冒泡到dom才会执行，所以原生的阻止会阻断合成事件的执行，
+> 因为都到不了document。
+> 同理，合成事件的阻断不会影响原生事件，因为原生事件已经执行完毕了。
 
 ## key 的作用是什么？
 当出现大量相同的标签时，使用key可以帮助diff算法提升判断的速度，从而使页面渲染更快消耗更少。
@@ -185,10 +198,11 @@ react18以于2022年3月29日发布正式版本。
 这是 React18 才新增的特性。仅在开发模式("development")下，且使用了严格模式("Strict Mode")下会触发。
 React18 在开发环境中除了必要的挂载之外，还 "额外"模拟执行了一次组件的卸载和挂载。
 生产环境("production")模式下和原来一样，仅执行一次。
-当然，人家就是这么干了，作为 React 的普通使用者，能做的就是 适应它 ，并按照它的规范来做。
-正确的问题不是“怎么样让 Effect 执行一次”，而是“怎样修复我的 Effect，让它在(重复)挂载之后正常工作”
 
-React.StrictMode 是帮助应用适应异步渲染的组件。
+当然，人家就是这么干了，作为 React 的普通使用者，能做的就是 适应它 ，并按照它的规范来做。
+正确的问题不是“怎么样让 Effect 执行一次”，而是“怎样修复我的 Effect，让它在(重复)挂载之后正常工作”。
+
+> React.StrictMode 是帮助应用适应异步渲染的组件。
 React.StrictMode 是在 2018 年的 16.3.0 版本中引入的组件。
 一开始，它只用在类组件中，而在 16.8.0 中，它对 hook 同样适用。
 React.StrictMode 不能马上检测到副作用，但是它可以通过故意调用一些关键函数两次，来帮助我们发现副作用。
@@ -196,18 +210,9 @@ React.StrictMode 不能马上检测到副作用，但是它可以通过故意调
 类组件静态 getDerivedStateFromProps 方法。
 渲染两次指的是函数组件被调用两次。
 
-你可以通过将组件按纯函数严格编写，以避免一些随着代码库的增长而出现的、令人困扰的 bug 以及不可预测的行为。
-更新屏幕、启动动画、更改数据等，它们被称为 副作用。它们是 “额外” 发生的事情，与渲染过程无关。
-在 React 中，副作用通常属于 事件处理程序。事件处理程序是 React 在你执行某些操作（如单击按钮）时运行的函数。
-即使事件处理程序是在你的组件 内部 定义的，它们也不会在渲染期间运行！ 因此事件处理程序无需是纯函数。
-
-纯函数 通常具有如下特征：
-* 只负责自己的任务。它不会更改在该函数调用前就已存在的对象或变量。
-* 输入相同，则输出相同。给定相同的输入，纯函数应总是返回相同的结果。
-
-React 假设你编写的所有组件都是纯函数。也就是说，对于相同的输入，你所编写的 React 组件必须总是返回相同的 JSX。
-* 不能读取和修改全局变量，可以传到props里
-* 输入可以理解为props，state，context，输出可以理解为render的返回jsx
+> React 假设你编写的所有组件都是纯函数。也就是说，对于相同的输入，你所编写的 React 组件必须总是返回相同的 JSX。
+> * 不能读取和修改全局变量，可以传到props里
+> * 输入可以理解为props，state，context，输出可以理解为render的返回jsx
 
 ## useCallback解决了什么问题？解决事件问题了吗？
 * useCallback的作用其实是用来避免子组件不必要的reRender。防止React.memo破功。

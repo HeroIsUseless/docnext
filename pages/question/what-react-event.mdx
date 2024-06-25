@@ -21,17 +21,22 @@ React 首次渲染时，会在根节点上绑定所有原生事件。支持冒�
 事件触发前会从目标元素的 Fiber 节点向上收集同类型事件队列，构造合成对象，同类型的事件会复用同一个合成事件实例对象。
 根据监听的事件阶段，决定顺序还是倒序遍历执行事件处理函数（模拟事件的冒泡捕获机制）。
 
-事件注册：registerEvents；将80种事件类型添加到allNativeEvents的Set数据结构中。
-事件监听：listenToAllSupportedEvents；遍历上面事件注册添加到allNativeEvents的事件。
+* 事件注册：registerEvents；将80种事件类型添加到allNativeEvents的Set数据结构中。
+* 事件监听：listenToAllSupportedEvents；遍历上面事件注册添加到allNativeEvents的事件。
 监听的listener是一个事件派发器，并不是真实的浏览器事件或你写的事件回调函数。
-事件派发：dispatchEvent；事件一旦在id = root的 DOM 元素中委托，其实是一直在触发的，
+* 事件派发：dispatchEvent；事件一旦在id = root的 DOM 元素中委托，其实是一直在触发的，
 根据消息的数据找到真正触发事件的 DOM 元素，根据fiber节点的类型以及是否已渲染来决定是否要派发事件。
-事件合成：SyntheticBaseEvent；当我们点击页面的某个元素时，React会根据原生事件nativeEvent找到触发事件的 DOM 元素
+* 事件合成：SyntheticBaseEvent；当我们点击页面的某个元素时，React会根据原生事件nativeEvent找到触发事件的 DOM 元素
 和对应的fiber节点。并以该节点为孩子节点往上查找，找到包括该节点及以上所有的click回调函数创建dispatchListener，
 并添加到listeners数组中。同类型的事件会复用同一个合成事件实例对象。
 
-react 默认事件代理的方式，实际上没有任何冒泡的过程，是程序自己模拟冒泡的操作。
-
+> react 默认事件代理的方式，实际上没有任何冒泡的过程，是程序自己模拟冒泡的操作。
 当真实dom触发后冒泡到document后才会对react事件进行处理。
 
-React合成事件是指将原生事件合成一个React事件。React有自己一套独立的事件系统,就是合成事件。
+> 总结合成事件与原生事件执行顺序：
+> * 合成事件不管冒泡阶段还是捕获阶段，都要晚于原生事件冒泡阶段
+> * 不管合成事件还是原生事件，冒泡阶段都要晚于捕获阶段
+>
+> 因为事件监听绑定在dom上，并且在冒泡到dom才会执行，所以原生的阻止会阻断合成事件的执行，
+> 因为都到不了document。
+> 同理，合成事件的阻断不会影响原生事件，因为原生事件已经执行完毕了。

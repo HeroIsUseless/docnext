@@ -38,7 +38,15 @@
     "what-is-purecomponent": "什么是PureComponent？",
     "what-react-event": "什么是合成事件（事件代理），与原生事件有什么区别？",
     "what-is-react-18": "React18 有哪些新变化？",
-    "what-is-rn-bridge": "React Native 桥原理是什么？"
+    "what-is-rn-bridge": "React Native 桥原理是什么？",
+    "what-is-node-stream": "node的stream是什么？",
+    "what-is-jwt": "什么是Jwt鉴权机制？",
+    "what-is-react-useState": "react useState/setState 的传参方式，有什么区别？",
+    "why-vite-faster": "webpack为什么比vite快？",
+    "what-is-babel-jsx": "babel解析jsx过程，React.createElement是怎么来的？",
+    "webpack-optimize": "webpack，vite的优化手段？",
+    "what-is-js-wekmap": "WeakSet 和 WeakMap 是什么？",
+    "what-is-sso": "什么是单点登录，如何实现？"
 
 
 }

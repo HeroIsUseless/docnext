@@ -1,0 +1,11 @@
+# node的stream是什么？
+Node.js 中的流（Stream）是一种处理数据的方式，它允许你以流的方式处理数据，而不是一次性加载整个数据集。这种方式对于处理大量数据非常有用，因为它可以减少内存的使用并提高性能。
+使用 Node.js 流的一个例子：
+* 创建一个流对象（例如，使用 fs.createReadStream() 或 fs.createWriteStream()）。
+* 监听 ‘data’ 事件来接收从流中读取的数据。
+* 监听 ‘end’ 事件来知道何时数据已经读取完毕。
+* 监听 ‘error’ 事件来处理可能发生的错误。
+
+管道流（Pipeline Stream）是一种特殊的流操作，它通过将多个流连接在一起，实现数据的连续处理和传输。在 Node.js 中，可以通过将多个流连接在一起，形成一个管道流，以便将数据从一个流中传递到另一个流中。
+例如将可读流、转换流和可写流连接起来，形成一个管道流：
+readableStream.pipe(transformStream).pipe(writableStream);
