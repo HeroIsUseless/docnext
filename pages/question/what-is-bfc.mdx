@@ -1,0 +1,13 @@
+# BFC是什么？
+BFC即块级格式化上下文(Block Formatting Contexts)，具有 BFC 特性的元素可以看作是隔离了的独立容器，容器里面的元素不会在布局上影响到外面的元素，并且 BFC 具有普通容器所没有的一些特性。
+
+BFC 特性及应用
+* 避免外边距重叠，如果两个相邻元素在不同的BFC中，就能避免外边距折叠。但属于同一个BFC的两个相邻元素的外边距仍会发生重叠。
+* 可以包含浮动的元素，其高度能被其内部的浮动元素撑开，因此可以清除浮动。
+
+只要元素满足下面任一条件即可触发 BFC 特性：
+* html根标签
+* `float: left|right`
+* `overflow: hidden|auto|scroll`，就是不能为visible
+* `display: table-cell|table-caption|inline-block|inline-flex|flex`
+*  `position: absolute|fixed`
