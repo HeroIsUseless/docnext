@@ -5,24 +5,37 @@
 ## 新特性为什么这么快？
 # 低频
 ## 桥原理是什么？
-在 React Native 旧的架构下（相对基于 Fabric 的新架构而言），
-JS 和 Native 的通信都是通过 Bridge 进行的。Bridge 作为通信的桥梁，
-JS 端和 Native 端的信息都会先进行序列化后，传给 Bridge，再传给对方。
+JS → Native 的 Bridge 源码分析
 
-js代码调用nativeModule.js
-实际上被代理到了global.nativeModuleProxy
-而这里调用了getModule去获取模块信息, 最终获取到模块的信息，有模块名，模块id，常量，方法名
-实际上模块信息是从存储注册的信息中取到的
-这时候交给messageQueue去生成调用的方法
-生成调用的方法主要是通过队列存储的形式每隔5秒利用nativeFlushImmediate去调用c++层
-接着会调用callNativeModule
-从注册的模块信息中找到对应的invoke方法进行调用
+调用 Native 的 modules首先会执行 enqueueNativeCall 将需要执行的函数和参数序列化后存在 _queue 队列中。进入队列后，并不会立即被 Native 侧执行，而是等到一定的条件后，Native 侧进行一次 flushQueue 的操作(例如每隔5ms)，将这段时间内 _queue 一次性挨个执行。
 
-在reactContext中调用getJSMdule方法，传入编写好的类（要对应js模块的方法）
-利用proxy invoke出一个函数调用
-调用callFunction传参
-在c++层利用预先设置好的callFunctionReturnFlushedQueue去调用messgeQueue中的方法
-根据模块和函数id找到具体的函数并执行
+对于不带返回结果的消息，只要 Native 侧执行对应的函数后，就宣告结束了。但对于带返回结果的消息而言，Native 侧还需要一种方式能够将返回的结果通知给 JS 侧。Native 侧在执行完相应的函数后，需要再调用 JS 侧的 invokeCallbackAndReturnFlushedQueue 将函数返回的结果传给 JS 侧，这属于native->JS，这是同步的。与此同时，Native 侧会拿到最新的 _queue 的队列，进行执行。
+
+Native → JS 的过程就简单很多
+
+将native函数映射到JS侧，然后JS直接调用即可，默认不需要返回结果的。NativeToJsBridge的所有函数可以在任意线程被调用，且这些函数会被立即返回。
+
+其中的 JS 侧向 Native 侧发送消息采用 批量 的方式，这也是大家挑战旧架构带来性能问题的重要原因之一。这也给后续推出 Fabric 架构解决这个问题埋下了伏笔。
+
+为什么JS异步调用native方法而不是同步？
+
+JS代码是运行在JS线程，并且JS是单线程，如果同步调用native方法就会block住JS代码的运行，所以RN选择了JS和Native异步通信,但是native是多线程的，所以native调JS是同步的，但也可以在任意其他线程中调用。
+
+JS调native是将信息放到列表，当native调JS的时候顺带返回，然后native执行这个列表，为什么这么设计？
+
+因为一个应用，一般来说是基于事件的，当触发一个事件，比如说一个native view的click，native的事件消息传递到JS这边来，JS处理完逻辑后可能会调用native的相关能力，这时候将这些信息放到缓存队列，搭车native调用JS的返回，从而回到native调用，是一个很常见的情况。
+
+JS调native是在native调JS后顺便执行的（native清空消息队列），设计成这样如何保证native侧的方法可以得到及时的调用？
+
+其实JS还规定了一个时间阈值，这阈值是5ms，如果超过5ms后依旧没有native调用JS。那么JS就会主动触发队列的刷新，即立即让native侧执行队列中缓存的一系列的方法。
+
+为什么native调用JS是同步的，那线程是谁的呢？
+
+Native调用JS本质上就是Native指针指向JS函数，具体是native调用callFunctionReturnFlushedQueue-> __callFunction(moduleId, methodId)->具体的JS Function。因此是在JS线程里的，而且naitve所在线程也会同步等待，紧接着处理queue的消息，但该方法可以在任何native线程调用。
+
+新架构JSI变成同步的了，那么JS单线程问题怎么办？
+
+首先之前就算是同步的也都变成异步的了，一个主要原因就是 C++ 中的函数没办法完整映射到 JavaScript 中，所以现在把一些同步native函数处理映射到JS中，那么就可以调同步的了。JSI取代了bridge，JSI是用C++写的，JS同步调用JSI的C++函数，JSI再调用native的函数，这样之前通过 Bridge 的异步通信，就成功的转变成了通过 JSI 的同步调用。耗时大的自然仍需要异步调用，但是耗时小的现在也可以同步调用了。
 
 ## 什么是Metro？
 Metro 类似于webpack，是一个针对 React Native的JavaScript模块打包器，他接收一个entry file (入口文件) 和一些配置作为参数，
@@ -50,10 +63,6 @@ React Native 应用程序包含以下几个线程：
 
 这种情况经常发生在老的Navigator导航器的切换过程中：当你 push 一个新的路由时，JavaScript 需要绘制新场景所需的所有组件，以发送正确的命令给原生端去创建视图。由于切换是由 JavaScript 线程所控制，因此经常会占用若干帧的时间，引起一些卡顿。有的时候，组件会在componentDidMount函数中做一些额外的事情，这甚至可能会导致页面切换过程中多达一秒的卡顿。
 
-## 请简述React Native的新旧架构，以及新架构在哪方面进行了提升？
-React Native 最初的架构是基于 JavaScriptCore 的，它使用 JavaScript 运行时来执行 React 代码。然而，JavaScriptCore 在性能和内存使用方面存在一些问题。为了解决这些问题，React Native 在 2018 年推出了新的架构，该架构基于 Hermes 运行时。
-
-Hermes 运行时是专门为 React Native 设计的，它提供了更好的性能和内存使用。它还支持新的特性，如热重载和代码分割。
 ## RN新架构？
 * 新的原生模块体系 - Turbo Modules，一个支持与本地代码高效、灵活集成的框架。
 * Fabric 渲染器和组件，它提供了更好的功能、跨平台的一致性和渲染性能。
@@ -81,54 +90,11 @@ Hermes 运行时是专门为 React Native 设计的，它提供了更好的性�
 
 # 高级
 ## TurboModule和Fabric 组件？
-TurboModules 是创建利用某些平台特定 API 的库的首选方法。Fabric 组件是创建可重用 UI 组件的首选方法，为用户提供原生体验。
-
-如果您使用过 React Native，您可能了解过 Native Modules 这个概念。它可以通过 React Native 的「Bridge」帮助 JavaScript 和原生代码进行交互，并使用跨平台的数据格式 JSON 进行通讯。
-
-Turbo Native Modules 与 Native Modules 相比，存在以下优势：
-
-* 各个平台的强类型接口声明是一致的；
-* 您可以使用 C++ 编写模块或迁移其它平台的原生代码，以此避免在跨平台重复实现模块；
-* 模块支持懒加载，可以加快 App 启动速度；
-* 通过替换 Bridge 为 JSI（使用原生代码编写的 JavaScript 接口），提升 JavaScript 与原生代码的通讯效率。
-
-Fabric 组件是一种使用 Fabric 渲染器渲染并展示在屏幕上的 UI 组件。在新架构中，使用 Fabric 组件替代原生组件具有以下优势：
-
-* 各个平台的强类型接口声明是一致的；
-* 您可以使用 C++ 编写组件或迁移其它平台的原生代码，以此避免在跨平台重复实现组件；
-* 通过替换 Bridge 为 JSI（使用原生代码编写的 JavaScript 接口），提升 JavaScript 与原生代码的通讯效率。
-
-## JSI and JSC：
-好了，此功能更加耿直，JSI可以允许JavaScript直接和Native进行交互
-
-在一个原生移动中，JavaScript代码需要一个引擎去解释执行，ReactNative当前架构是使用的JavaScriptCore也是我们所说的JSC，符合苹果IOS开发指南规则
-
-理论上JSI和ReactNative没什么关系，理论上通用与任何JavaScript引擎功能，但是这次在RN的新架构使用后，带来了重要的改进。
-
-有了JSI之后，JSC可以很容易的替换其他的JavaScript引擎，比如谷歌的v8和微软的chakracore。或者进行引擎版本升级，列如0.59所做的。
-
-接下来的改进，几乎可以被称之为“新架构的基石”。有了JSI之后JavaScript可以持有C++对象实例的引用并调用它们的方法。这就意味着从此再也不用通过序列化的JSON消息来通信，容易造成拥堵的“桥”从此成为历史。
-
-一个令人非常激动人心的变化是，一直以来C++都是实现Android和ios共用代码且不用依赖JavaScript的技术方案之一。Android的底层代码使用的C和C++实现的，Java和Kotlin可以通过Java Native interface与C++通讯。ios则默认支持C++，实际上objective-C本身就是C的一个超集。
-
-JSI就是引擎方面而且也是新架构的基石，一切都是从这开始
-
-## Fabric and TurboModules：
-代替“桥”，依赖于JSI。
-
-Fabric的宗旨就是让ReactNative的渲染层更加先进。目前的实现是所有UI最终都是由一系列的跨线程实现，新的实现方式则允许UIManager在C++中直接创建Shadow Tree，也是得力于JSI中C++可以和JavaScript以及原生代码在同一线程直接交互的能力，避免了跨线程的操作。大大的提高了效率，极大的提高了UI的响应速度，列如列表的滚动，navigation或者手势等功能都会变得流畅。
-
-TurboModules是指开发者允许在JavaScript代码中使用某些模块才去加载，且能持有这个模块的引用，可以显著的提高APP应用的启动速度。旧版的是JavaScript端使用Native Modules需要在应用启动时全部完成初始化，即使是没有使用到的模块。
-
-使用到了TurboModules时JavaScript端和Native端的通信可以不需要再借助桥来传递JSON数据，而是可以直接相互调用方法。
-
-Fabric and TurboModules之所以能实现，是完全依赖于JSI
-
-* JSI（JavaScript interface）：这是本次架构重构的核心重点，也正是因为这层的调整，将原有重度依赖的 native bridge 架构解耦，实现了自由通讯。
-* Fabric：依赖 JSI 的设计，并将旧架构下的 shadow tree 层移到 C++ 层，这样可以透过 JSI，实现前端组件对 UI 组件的一对一控制，摆脱了旧架构下对于 UI 的异步、批量操作。
-* TuborModule：新的原生 API 架构，替换了原有的 Java module 架构，数据结构上除了支持基础类型外，开始支持 JSI 对象，让前端和客户端的 API 形成一对一的调用
+下面来解释一下新概念:
+* JSI 将会替换 Bridge， 是一个 JS 引擎接口, 它是 JavaScript Interface 的缩写, 一个用 C++ 写成的轻量级框架, 作用就是用过 JSI, JS 可以直接获取 C++ 对象引用, 然后调用对应方法, 为了让 JS 和 Native 相互感知, 不需要在通过 JSON 数据传输通信（bridge会序列化成JSON）, 将允许 Native 对象被导出成 JS 对象, 反过来也可以, 相互通信的方式也会变为同步, 架构的其他部分是基于这个的, JSI 的另一优势是磨平了 JS 引擎的差异, 使用 JSI 不需要关心 JavaScript Core 还是 Hermes, JSI 底层都消化了, 因此只要基于 JSI 的接口编写即可
+* Fabric 是 UI Manager 的新名称, 将负责 Native UI 渲染, 和当前 Bridge 不同的是, 可以通过 JSI 导出自己的 Native 函数, 在 JS 层可以直接使用这些函数引用, 反过来 Native 可以直接调用 JS 层, 从而实现同步调用, 这带来更好的数据传输和性能提升, 另外一个好处就是 Fabric 也支持渲染优先级, 比如 React 里的 Concurrent 和 Suspense 模式
 
 
+因为 Shadow Tree 要依赖 Yoga(C++ 库) 去计算 layout，因此 Shadow Tree 要维护在 C++ 侧或原生侧。Fabric 渲染器承担起了生成 Shadow Tree 和调用 Yoga 计算 layout 的主要工作。
 
-
-
+Turbo Modules。记得上面的Native组件吗？Text、Image、View，他们的新名字叫Turbo Modules。组件的作用是相同的，但是实现和行为会不同。第一，他们是懒加载的（只有当App需要的时候加载），而现在是在启动时全部加载。另外，他们也是通过JSI导出的，所以JS可以拿到这些组件的引用，并且在React Natvie JS里使用他们。尤其会在启动的时候带来更好的性能表现。

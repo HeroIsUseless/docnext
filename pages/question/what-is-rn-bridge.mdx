@@ -1,19 +1,32 @@
 # React Native 桥原理是什么？
-在 React Native 旧的架构下（相对基于 Fabric 的新架构而言），
-JS 和 Native 的通信都是通过 Bridge 进行的。Bridge 作为通信的桥梁，
-JS 端和 Native 端的信息都会先进行序列化后，传给 Bridge，再传给对方。
+JS → Native 的 Bridge 源码分析
 
-js代码调用nativeModule.js
-实际上被代理到了global.nativeModuleProxy
-而这里调用了getModule去获取模块信息, 最终获取到模块的信息，有模块名，模块id，常量，方法名
-实际上模块信息是从存储注册的信息中取到的
-这时候交给messageQueue去生成调用的方法
-生成调用的方法主要是通过队列存储的形式每隔5秒利用nativeFlushImmediate去调用c++层
-接着会调用callNativeModule
-从注册的模块信息中找到对应的invoke方法进行调用
+调用 Native 的 modules首先会执行 enqueueNativeCall 将需要执行的函数和参数序列化后存在 _queue 队列中。进入队列后，并不会立即被 Native 侧执行，而是等到一定的条件后，Native 侧进行一次 flushQueue 的操作(例如每隔5ms)，将这段时间内 _queue 一次性挨个执行。
 
-在reactContext中调用getJSMdule方法，传入编写好的类（要对应js模块的方法）
-利用proxy invoke出一个函数调用
-调用callFunction传参
-在c++层利用预先设置好的callFunctionReturnFlushedQueue去调用messgeQueue中的方法
-根据模块和函数id找到具体的函数并执行
+对于不带返回结果的消息，只要 Native 侧执行对应的函数后，就宣告结束了。但对于带返回结果的消息而言，Native 侧还需要一种方式能够将返回的结果通知给 JS 侧。Native 侧在执行完相应的函数后，需要再调用 JS 侧的 invokeCallbackAndReturnFlushedQueue 将函数返回的结果传给 JS 侧，这属于native->JS，这是同步的。与此同时，Native 侧会拿到最新的 _queue 的队列，进行执行。
+
+Native → JS 的过程就简单很多
+
+将native函数映射到JS侧，然后JS直接调用即可，默认不需要返回结果的。NativeToJsBridge的所有函数可以在任意线程被调用，且这些函数会被立即返回。
+
+其中的 JS 侧向 Native 侧发送消息采用 批量 的方式，这也是大家挑战旧架构带来性能问题的重要原因之一。这也给后续推出 Fabric 架构解决这个问题埋下了伏笔。
+
+为什么JS异步调用native方法而不是同步？
+
+JS代码是运行在JS线程，并且JS是单线程，如果同步调用native方法就会block住JS代码的运行，所以RN选择了JS和Native异步通信,但是native是多线程的，所以native调JS是同步的，但也可以在任意其他线程中调用。
+
+JS调native是将信息放到列表，当native调JS的时候顺带返回，然后native执行这个列表，为什么这么设计？
+
+因为一个应用，一般来说是基于事件的，当触发一个事件，比如说一个native view的click，native的事件消息传递到JS这边来，JS处理完逻辑后可能会调用native的相关能力，这时候将这些信息放到缓存队列，搭车native调用JS的返回，从而回到native调用，是一个很常见的情况。
+
+JS调native是在native调JS后顺便执行的（native清空消息队列），设计成这样如何保证native侧的方法可以得到及时的调用？
+
+其实JS还规定了一个时间阈值，这阈值是5ms，如果超过5ms后依旧没有native调用JS。那么JS就会主动触发队列的刷新，即立即让native侧执行队列中缓存的一系列的方法。
+
+为什么native调用JS是同步的，那线程是谁的呢？
+
+Native调用JS本质上就是Native指针指向JS函数，具体是native调用callFunctionReturnFlushedQueue-> __callFunction(moduleId, methodId)->具体的JS Function。因此是在JS线程里的，而且naitve所在线程也会同步等待，紧接着处理queue的消息，但该方法可以在任何native线程调用。
+
+新架构JSI变成同步的了，那么JS单线程问题怎么办？
+
+首先之前就算是同步的也都变成异步的了，一个主要原因就是 C++ 中的函数没办法完整映射到 JavaScript 中，所以现在把一些同步native函数处理映射到JS中，那么就可以调同步的了。JSI取代了bridge，JSI是用C++写的，JS同步调用JSI的C++函数，JSI再调用native的函数，这样之前通过 Bridge 的异步通信，就成功的转变成了通过 JSI 的同步调用。耗时大的自然仍需要异步调用，但是耗时小的现在也可以同步调用了。

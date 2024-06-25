@@ -217,3 +217,10 @@ React.StrictMode 不能马上检测到副作用，但是它可以通过故意调
 ## useCallback解决了什么问题？解决事件问题了吗？
 * useCallback的作用其实是用来避免子组件不必要的reRender。防止React.memo破功。
 * js创建一个函数的成本是非常小的，这点计算对于计算机来说是小case。
+
+
+## useLayoutEffect?
+其实并不是忽略了setCount(0) 的更新。正是通过setCount(0) 来触发组件的一次更新，当本次更新准备完成之前，同步执行 useLayoutEffect 的回调函数（它会阻塞页面渲染），而 useLayoutEffect 内部还有 setCount() 等触发组件更新的操作，会重新更新虚拟 DOM，完成之后才会更新至真实 DOM，因此表现出只更新一个 DOM 的效果，减少了真实 DOM 的回流或重绘的消耗（就比如 componentDidMount 里 setState 也看不到中间态）。
+
+commit阶段：异步调度useEffect或者同步处理useLayoutEffect的effect。
+useEffect和useLayoutEffect的执行时机不一样，前者被异步调度，当页面渲染完成后再去执行，不会阻塞页面渲染。 后者是在commit阶段新的DOM准备完成，但还未渲染到屏幕之前，同步执行。一般是遇到闪烁的问题时使用，因为是同步的所以有性能问题。

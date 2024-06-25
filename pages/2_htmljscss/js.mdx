@@ -499,3 +499,9 @@ BOM (Browser Object Model)，浏览器对象模型，提供了独立于内容�
 ## 如何解决js精度丢失的问题？
 * 使用整数计算
 * 使用专门的库
+
+## JS的Class的私有属性怎么做？
+* 用Proxy的get/set拦截
+* 使用Symbol作为属性名
+* 使用weakmap.set(this, key, value)
+* TS的private
