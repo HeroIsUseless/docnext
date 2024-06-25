@@ -29,7 +29,13 @@
     "what-is-bfc": "BFC是什么？",
     "what-is-margin-collapsing": "外边距合并是什么意思？",
     "what-is-viewport": "什么是视口（viewport）？",
-    "what-is-pixel": "什么是物理像素和CSS像素？"
+    "what-is-pixel": "什么是物理像素和CSS像素？",
+    "what-is-drawcall": "什么是drawcall？",
+    "why-react-rerender": "为什么父组件渲染，子组件都需要重新渲染？",
+    "why-react-vdom": "为什么每次状态改变，都需要重新生成一个完整的虚拟dom？",
+    "why-react-diff": "React为什么从根节点开始diff？",
+    "why-if-hooks": "为什么不能在if里使用hooks？",
+    "what-is-purecomponent": "什么是PureComponent？"
 
 }
   
