@@ -49,6 +49,7 @@ React Native 应用程序包含以下几个线程：
 如果 JavaScript 线程有一帧没有及时响应，就被认为发生了一次丢帧。 例如，你在一个复杂应用的根组件上调用了this.setState，从而导致一次开销很大的子组件树的重绘，可想而知，这可能会花费 200ms 也就是整整 12 帧的丢失。此时，任何由 JavaScript 控制的动画都会卡住。只要卡顿超过 100ms，用户就会明显的感觉到。
 
 这种情况经常发生在老的Navigator导航器的切换过程中：当你 push 一个新的路由时，JavaScript 需要绘制新场景所需的所有组件，以发送正确的命令给原生端去创建视图。由于切换是由 JavaScript 线程所控制，因此经常会占用若干帧的时间，引起一些卡顿。有的时候，组件会在componentDidMount函数中做一些额外的事情，这甚至可能会导致页面切换过程中多达一秒的卡顿。
+
 ## 请简述React Native的新旧架构，以及新架构在哪方面进行了提升？
 React Native 最初的架构是基于 JavaScriptCore 的，它使用 JavaScript 运行时来执行 React 代码。然而，JavaScriptCore 在性能和内存使用方面存在一些问题。为了解决这些问题，React Native 在 2018 年推出了新的架构，该架构基于 Hermes 运行时。
 

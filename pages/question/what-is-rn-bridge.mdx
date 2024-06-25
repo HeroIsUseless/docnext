@@ -1,0 +1,19 @@
+# React Native 桥原理是什么？
+在 React Native 旧的架构下（相对基于 Fabric 的新架构而言），
+JS 和 Native 的通信都是通过 Bridge 进行的。Bridge 作为通信的桥梁，
+JS 端和 Native 端的信息都会先进行序列化后，传给 Bridge，再传给对方。
+
+js代码调用nativeModule.js
+实际上被代理到了global.nativeModuleProxy
+而这里调用了getModule去获取模块信息, 最终获取到模块的信息，有模块名，模块id，常量，方法名
+实际上模块信息是从存储注册的信息中取到的
+这时候交给messageQueue去生成调用的方法
+生成调用的方法主要是通过队列存储的形式每隔5秒利用nativeFlushImmediate去调用c++层
+接着会调用callNativeModule
+从注册的模块信息中找到对应的invoke方法进行调用
+
+在reactContext中调用getJSMdule方法，传入编写好的类（要对应js模块的方法）
+利用proxy invoke出一个函数调用
+调用callFunction传参
+在c++层利用预先设置好的callFunctionReturnFlushedQueue去调用messgeQueue中的方法
+根据模块和函数id找到具体的函数并执行

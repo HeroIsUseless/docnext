@@ -35,7 +35,11 @@
     "why-react-vdom": "为什么每次状态改变，都需要重新生成一个完整的虚拟dom？",
     "why-react-diff": "React为什么从根节点开始diff？",
     "why-if-hooks": "为什么不能在if里使用hooks？",
-    "what-is-purecomponent": "什么是PureComponent？"
+    "what-is-purecomponent": "什么是PureComponent？",
+    "what-react-event": "什么是合成事件（事件代理），与原生事件有什么区别？",
+    "what-is-react-18": "React18 有哪些新变化？",
+    "what-is-rn-bridge": "React Native 桥原理是什么？"
+
 
 }
   
