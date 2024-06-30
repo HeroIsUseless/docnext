@@ -279,3 +279,7 @@ animation: animation-name animation-duration animation-timing-function animation
 * animation-iteration-count：设置动画被播放的次数，默认为 1； infinite表示无限
 * animation-direction：设置是否在下一周期逆向播放动画，默认为 normal； 那用处不多了
 * animation-play-state：设置动画是正在运行还是暂停，默认是 running；
+
+# 让Chrome支持小于12px 的文字方式有哪些？区别？
+Chrome 中文版浏览器会默认设定页面的最小字号是 12px，英文版没有限制，原由 Chrome 团队认为汉字小于 12px 就会增加识别难度。
+可以用transform:scale

@@ -10,3 +10,13 @@
 ## 页面白屏如何优化，如何加快启动时间？
 * 延迟加载，懒加载，图像懒加载（一般要用库，手写的话要清楚滚动细节）
 
+
+## reabse原理
+
+Reset就是简单的设置head，放弃的commit分为三种：
+* mixed，清除到add前
+* soft，清除到soft前
+* Hard，完全删除
+
+Rebase是未merge到master前，自己版本回退，平常就是这么用，但其实际意思是变基，但一般也用不到。
+revert是已merge到master，新提交的回退

@@ -505,3 +505,25 @@ BOM (Browser Object Model)，浏览器对象模型，提供了独立于内容�
 * 使用Symbol作为属性名
 * 使用weakmap.set(this, key, value)
 * TS的private
+
+generator有什么用？
+function* gen() {
+
+    yield 1
+    console.log('A')
+
+    yield 2
+    console.log('B')
+
+    yield 3
+    console.log('C')
+
+    return 4
+}
+
+// 定义迭代器对象
+const iterator = gen()
+iterator.next() // 执行 gen 函数，打印为空，遇到 yield 1 停止执行
+iterator.next() // 继续执行函数，打印 A，遇到 yield 2 停止执行
+iterator.next() // 继续执行函数，打印 B，遇到 yield 3 停止执行
+iterator.next() // 继续执行函数，打印 C
