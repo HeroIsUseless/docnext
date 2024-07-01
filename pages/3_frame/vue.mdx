@@ -215,3 +215,10 @@ Mixin类通常作为功能模块使用，在需要该功能时“混入”，有
 
 ## Mobx原理
 mobx 每次都是修改的同一个状态对象，基于响应式代理，也就是 Object.defineProperty 代理 get、set 的处理，get 时把依赖收集起来，set 修改时通知所有的依赖做更新。和 vue2 的响应式代理很类似。
+
+## nexttick是什么？怎么用？
+nextTick 方法是 Vue.js 实例的一个方法，它接收一个回调函数作为参数。当 DOM 更新完成之后，Vue.js 会调用这个回调函数。这个回调函数会在当前事件循环的末尾执行，这意味着在这个回调函数中获取到的 DOM 元素的属性一定是更新后的最新值。
+
+nextTick 函数维护了一个 callbacks 数组和一个 pending 变量。callbacks 数组用于存储需要在 DOM 更新之后执行的回调函数，pending 变量用于表示当前是否有回调函数在等待执行。
+
+nextTick 函数的核心是 timerFunc 函数，它根据当前环境的支持情况选择合适的定时器函数。在现代浏览器中，如果支持 Promise 对象，则使用 Promise 对象的 then 方法实现定时器函数，如果不支持 Promise 对象，则使用 MutationObserver 对象实现定时器函数，如果都不支持，则使用 setTimeout 函数实现定时器函数。

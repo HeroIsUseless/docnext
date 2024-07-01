@@ -42,32 +42,31 @@ class EventEmitter {
 ```js
 // 用map是最棒的，Map对象可以记住键的原始插入顺序，但Object不能
 class LRUCache {
-  map = new Map();
-  constructor(length) {
-    this.length = length;
-  }
-
-  get(key) {
-    if (this.map.has(key)) {
-      const value = this.map.get(key);
-      this.map.delete(key);
-      this.map.set(key, value);
-      return value;
-    }
-    return undefined;
-  }
-
-  set(key, value) {
-    if (this.map.has(key)) {
-      this.map.delete(key);
+    constuctor(max) {
+        this.map = new Map()
+        this.max = max 
     } 
-    this.map.set(key, value);
-    if (this.map.size > this.length) {
-      // keys返回keys的顺序迭代器，next()返回第一个，value就是key
-      const delKey = data.keys().next().value
-      data.delete(delKey);
+    get(key) {
+        let value = undefined
+        if (this.map.has(key)) {
+            value = this.map.get(key)
+            this.map.delete(key)
+            this.map.set(key, value)
+        }
+        return value
     }
-  }
+    set(key, value) {
+        if (this.map.has(key)) {
+            this.map.delete(key)
+        }
+        this.map.set(key, value)
+        if (this.map.size > this.max) {
+            // keys返回keys的顺序迭代器，next()返回第一个，value就是key
+            // 每次插入都是插在后面，
+            const delKey = this.map.keys().next().value 
+            this.map(delKey)
+        }
+    }
 }
 ```
 ```js

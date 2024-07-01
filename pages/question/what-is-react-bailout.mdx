@@ -1,0 +1,16 @@
+# react的bailout手段是什么？
+bailout函数逻辑：
+尽量复用fiber，不进行render。fiber复用，判断fiber的子树(childLanes)是否有work。
+* 有：返回child，继续遍历子树。
+* 无：返回null，跳过子树。
+
+Fiber执行bailout时机：
+在fiber遍历中，beginWork函数（beginWork的工作是传入当前Fiber节点，创建子Fiber节点）内判断oldProps === newProps，
+当props全等时，才能进入bailout逻辑。
+
+只要执行render，都会调用createElement重新生成JSX。
+因此每次JSX的props都是一个新对象。
+意味着，只要执行render，oldProps !== newProps必然为true，无法bailout。一般在
+父fiberNode进入beginWork后必须命中bailout策略去复用子fiberNode，这样在子fiberNode的beginWork中，
+oldProps全等于newProps 才会成立，子fiberNode才有可能命中bailout策略。换句话说，在 react 中渲染是具有传染性的，
+只要父节点没有命中策略，子节点就一定不会命中，孙节点也不会，如此往复。

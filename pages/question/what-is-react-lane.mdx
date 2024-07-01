@@ -1,0 +1,42 @@
+# react的lane是什么，有什么用？
+在目前的源码中，存在有三套优先级：
+* React Event的优先级；
+* Lane模型的优先级，主要应用于React内部；
+* scheduler包里面的优先级。
+
+React中使用二进制来表示优先级，这个二进制只有1位为1，其余全为0，这个1就表示优先级的所在，位越小（越靠右）表示优先级越高。
+优先级的运算（合并优先级、拆分优先级等）采用位运算的方式。多个Lane就组合成了Lanes，Lanes表示一批任务的优先级。
+
+同步更新的优先级，优先级最高，表示连续的优先级 比如滚动、拖拽，次高，默认优先级第三用户阻塞的优先级，就这样。
+
+React Event优先级和Lane模型优先级是两套优先级，但是用的是一套优先级值，这个值就是ReactFiberLane里面定义的Lane相关的值。
+React的事件优先级为什么不直接使用Lane呢？我觉得可能是为了不与Lane机制耦合，后面事件优先级有什么变动的话，可以直接修改而不会影响到Lane。
+```js
+// /** @noinline */ concurrent模式
+// 每帧都会执行一次
+function workLoopConcurrent() {
+  // 通过shouldYield() 方法来判断当前构建fiber 树的执行过程是否超时，为false说明超时了？
+  while (workInProgress !== null && !shouldYield()) {
+    performUnitOfWork(workInProgress);
+  }
+}
+
+// /** @noinline */ 同步模式
+function workLoopSync() {
+  // Already timed out, so perform work without checking if we need to yield.
+  while (workInProgress !== null) {
+    performUnitOfWork(workInProgress);
+  }
+}
+```
+workInProgressRootRenderLanes是在任务执行阶段赋予的需要更新的fiber节点上的lane的值，
+，当新的更新任务产生时，workInProgressRootRenderLanes不为空，则表示有任务正在执行 
+，那么则直接返回这个正在执行的任务的lane，那么当前新的任务则会和现有的任务进行一次批量更新
+，接着会调用scheduleUpdateOnFiber，做好调度任务前的准备，
+检查是否做了无限循环更新，比如：在render函数中调用了setState，如果是则会报错提示，
+
+* 收集需要更新的子节点的lane，存放在父fiber上的childLanes上 
+* 更新当前fiber节点的lannes,表示当前节点需要更新 
+* 从当前需要更新的fiber节点向上遍历，遍历到根节点（root fiber）并更新每个fiber节点上的childLanes属性 
+* childLanes有值表示当前节点下有子节点需要更新
+* 在之后会通过childLanes来判断当前fiber节点下是否有子节点需要更新

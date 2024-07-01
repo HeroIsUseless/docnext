@@ -42,6 +42,99 @@ React就需要追踪依赖，确定到底是哪个节点受影响了，有几个
 currentFiber 的 memoizedState 缓存 hooks 链表的信息，一旦在条件语句中声明 hooks，函数组件更新时，hooks 链表结构被破坏，
 和 workInProgress 不一致，如果涉及到读取 state 等操作，就会发生异常。因此不能在条件、循环语句中使用 hooks。
 
+## react的lane是什么，有什么用？
+在目前的源码中，存在有三套优先级：
+* React Event的优先级；
+* Lane模型的优先级，主要应用于React内部；
+* scheduler包里面的优先级。
+
+React中使用二进制来表示优先级，这个二进制只有1位为1，其余全为0，这个1就表示优先级的所在，位越小（越靠右）表示优先级越高。
+优先级的运算（合并优先级、拆分优先级等）采用位运算的方式。多个Lane就组合成了Lanes，Lanes表示一批任务的优先级。
+
+同步更新的优先级，优先级最高，表示连续的优先级 比如滚动、拖拽，次高，默认优先级第三用户阻塞的优先级，就这样。
+
+React Event优先级和Lane模型优先级是两套优先级，但是用的是一套优先级值，这个值就是ReactFiberLane里面定义的Lane相关的值。
+React的事件优先级为什么不直接使用Lane呢？我觉得可能是为了不与Lane机制耦合，后面事件优先级有什么变动的话，可以直接修改而不会影响到Lane。
+```js
+// /** @noinline */ concurrent模式
+// 每帧都会执行一次
+function workLoopConcurrent() {
+  // 通过shouldYield() 方法来判断当前构建fiber 树的执行过程是否超时，为false说明超时了？
+  while (workInProgress !== null && !shouldYield()) {
+    performUnitOfWork(workInProgress);
+  }
+}
+
+// /** @noinline */ 同步模式
+function workLoopSync() {
+  // Already timed out, so perform work without checking if we need to yield.
+  while (workInProgress !== null) {
+    performUnitOfWork(workInProgress);
+  }
+}
+```
+workInProgressRootRenderLanes是在任务执行阶段赋予的需要更新的fiber节点上的lane的值，
+，当新的更新任务产生时，workInProgressRootRenderLanes不为空，则表示有任务正在执行 
+，那么则直接返回这个正在执行的任务的lane，那么当前新的任务则会和现有的任务进行一次批量更新
+，接着会调用scheduleUpdateOnFiber，做好调度任务前的准备，
+检查是否做了无限循环更新，比如：在render函数中调用了setState，如果是则会报错提示，
+
+* 收集需要更新的子节点的lane，存放在父fiber上的childLanes上 
+* 更新当前fiber节点的lannes,表示当前节点需要更新 
+* 从当前需要更新的fiber节点向上遍历，遍历到根节点（root fiber）并更新每个fiber节点上的childLanes属性 
+* childLanes有值表示当前节点下有子节点需要更新
+* 在之后会通过childLanes来判断当前fiber节点下是否有子节点需要更新
+
+饥饿问题是通过lane的过期时间确定的，过期任务的情况进行优先处理，以同步模式进行
+
+为什么不相等就需要插队？因为当前更新产生的Lanes中是保存的是原来正在运行的和未运行的任务，包含了正在运行的任务的优先级，
+而正在运行的肯定是原来最高的优先级，所以这个Lanes的最优先级永远大于等于正在运行的任务的优先级。
+等于的情况则表示当前运行的任务的优先级就是最高的了，大于的情况则表示有更高优先级的任务需要处理。
+
+## react的bailout手段是什么？
+bailout函数逻辑：
+尽量复用fiber，不进行render。fiber复用，判断fiber的子树(childLanes)是否有work。
+* 有：返回child，继续遍历子树。
+* 无：返回null，跳过子树。
+
+Fiber执行bailout时机：
+在fiber遍历中，beginWork函数（beginWork的工作是传入当前Fiber节点，创建子Fiber节点）内判断oldProps === newProps，
+当props全等时，才能进入bailout逻辑。
+
+只要执行render，都会调用createElement重新生成JSX。
+因此每次JSX的props都是一个新对象。
+意味着，只要执行render，oldProps !== newProps必然为true，无法bailout。一般在
+父fiberNode进入beginWork后必须命中bailout策略去复用子fiberNode，这样在子fiberNode的beginWork中，
+oldProps全等于newProps 才会成立，子fiberNode才有可能命中bailout策略。换句话说，在 react 中渲染是具有传染性的，
+只要父节点没有命中策略，子节点就一定不会命中，孙节点也不会，如此往复。
+
+有三个复用：复用函数，复用fiber，复用dom
+
+React 性能一大关键在于，减少不必要的 render。
+
+在 bailout 中，会检查该 Fiber 的所有子孙 Fiber 是否存在 lane 更新。
+若所有子孙 Fiber 本次都没有更新需要执行，则 bailout 会直接返回 null，整棵子树都被跳过更新。
+
+bailout是怎么判断的？
+render：调用render函数（组件），返回JSX，与old fiber进行diff后创建fiber。
+* ClassComponent执行render方法。Function Component执行自己。
+bailout：不执行render，复用old fiber。
+redenr 后 bailout：render后发现无需更新，然后执行bailout的情况。例如shouComponentUpdate。
+
+## useContext原理是什么？
+
+useContext的原理类似于观察者模式。Provider是被观察者， Consumer或useContext是观察者。
+当Provider上的值发生变化， 观察者是可以观察到的，从而同步信息给到组件。
+
+* 如何读取context里的数据？数据初始值保存在context._currentValue
+(同时保存到context._currentValue2，保存 2 个 value 是为了支持多个渲染器并发渲染)
+useContext 接收 context 对象作为参数，从 context._currentValue 中读取 value 值。
+* 如何修改数据？在provider这里更新 context._currentValue，比较新老 value 是否发生变化。
+* 如何响应数据？useContext除了读取 value 值外，还会将 context 信息保存在当前组件 Fiber.dependencies 上。
+目的是为了在 Provider value 发生更新时，可以查找到消费组件并标记上更新，执行组件的重渲染逻辑。
+调用 propagateContextChange 对 Fiber 子树向下深度优先遍历，
+目的是为了查找 Context 消费组件，并为其标记 lane 更新，
+
 ## 什么是受控组件和非受控组件？
 * 受控组件：只能通过React修改数据或状态的组件，就是受控组件。
 * 非受控组件：控件自己就能控制数据和状态的变更，而且React是不知道这些变更的，如 input, textarea, select, checkbox 等组件。
