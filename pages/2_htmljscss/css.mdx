@@ -232,6 +232,7 @@ CSS3 Gradient 分为 linear-gradient（线性渐变）和 radial-gradient（径�
 
 ## css animation怎么用？
 @keyframes 规则用来定义动画各个阶段的属性值，类似于 flash 动画中的关键帧，语法格式如下：
+```
 @keyframes animationName {
     from {
         properties: value;
@@ -255,12 +256,13 @@ CSS3 Gradient 分为 linear-gradient（线性渐变）和 radial-gradient（径�
         properties: value;
     }
 }
+```
 * animationName：表示动画的名称；
 * from：定义动画的开头，相当于 0%；
 * percentage：定义动画的各个阶段，为百分比值，可以添加多个；
 * to：定义动画的结尾，相当于 100%；
 * properties：不同的样式属性名称，例如 color、left、width 等等。
-
+```
 @keyframes ball {
     0% { top: 0px; left: 0px;}
     25% { top: 0px; left: 350px;}
@@ -268,7 +270,7 @@ CSS3 Gradient 分为 linear-gradient（线性渐变）和 radial-gradient（径�
     75% { top: 200px; left: 0px;}
     100% { top: 0px; left: 0px;} 
 }
-
+```
 动画创建好后，还需要将动画应用到指定的 HTML 元素。要将动画应用到指定的 HTML 元素需要借助 CSS 属性：
 animation: animation-name animation-duration animation-timing-function animation-delay animation-iteration-count animation-direction animation-fill-mode animation-play-state;
 * animation-name：设置需要绑定到元素的动画名称；

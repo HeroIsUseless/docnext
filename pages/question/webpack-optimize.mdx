@@ -1,6 +1,7 @@
 # webpack，vite的优化手段？
 * 线程加载器，多线程可以提高程序的效率，我们也可以在 Webpack 中使用。而thread-loader是一个可以在Webpack中启用多线程的加载器。
 * 缓存加载器，在我们的项目开发过程中，Webpack 需要多次构建项目。为了加快后续构建，我们可以使用缓存，与缓存相关的加载器是缓存加载器。
+```
 {
         test: /\.js$/,
         use: [
@@ -9,6 +10,7 @@
           'babel-loader'
         ],
 }
+```
 * Hot update 当我们在项目中修改一个文件时，Webpack 默认会重新构建整个项目，但这并不是必须的。我们只需要重新编译这个文件，效率更高，这种策略称为Hot update。Webpack 内置了Hot update插件，我们只需要在配置中开启Hot update即可。
 * exclude & include 在我们的项目中，一些文件和文件夹永远不需要参与构建。所以我们可以在配置文件中指定这些文件，防止Webpack取回它们，从而提高编译效率。
 * 缩小 JS/CSS 代码

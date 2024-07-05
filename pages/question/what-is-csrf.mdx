@@ -18,7 +18,7 @@ domain/path：指定cookie使用时，可以被携带到哪些域名或合法域
 expire/max-age: 指定cookie的有效期，其中expire是一个绝对时间，max-age是相对时间
 secure：只能在HTTPS环境中被下发以及携带
 http-only：禁止客户端脚本通过 document.cookie 获取 cookie，避免 XSS 攻击
-SameSite Lax 仅在顶部窗口导航（例如<a>标签、window.open()）中的GET请求中发送 cookie 。 可以这么理解，浏览器将same-site的默认值从none调整到了lax（safari直接为strict）， 其实这个参数主要用于cookie的默认限制， 这样，假如后端忘记（或者错误）配置跨域参数，导致服务器暴露在csrf攻击下，但是由于浏览器改了cookie的默认same-site, cookie默认不上传，这样就极大增加了安全性，毕竟服务器配置跨域错误不算少数。
+SameSite Lax 仅在顶部窗口导航（例如`<a>`标签、window.open()）中的GET请求中发送 cookie 。 可以这么理解，浏览器将same-site的默认值从none调整到了lax（safari直接为strict）， 其实这个参数主要用于cookie的默认限制， 这样，假如后端忘记（或者错误）配置跨域参数，导致服务器暴露在csrf攻击下，但是由于浏览器改了cookie的默认same-site, cookie默认不上传，这样就极大增加了安全性，毕竟服务器配置跨域错误不算少数。
 
 但Cookie 机制并未遵循严格的同源策略，允许一个子域可以设置或获取其父域的 Cookie。 只要协议相同，并且有效顶级域名+二级域名相同即可，不用考虑端口号（可以理解为跨站，跨站一定跨域，跨域不一定跨站）。
 
