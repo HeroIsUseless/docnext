@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://front-interview.com
+
+# Sitemaps
+Sitemap: https://front-interview.com/sitemap.xml
