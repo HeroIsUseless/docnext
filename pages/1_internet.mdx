@@ -1,19 +1,81 @@
 # 高频
 ## 什么是同源策略以及跨源资源共享（CORS）？
 同源策略，是浏览器的一种安全机制，通过限制文档和脚本与来自另一个源的资源的交互。
-从而隔离潜在的有害文档，保护用户的安全和隐私。
+从而隔离潜在的有害文档，保护用户的安全和隐私。同源指的是同协议/主机/端口相同。路径不同也可以算同源的。
+
+> localhost与127.0.0.1不属于同源，因为域名不同
 
 跨源资源共享是用于在不同的源中获取资源的一种机制。解决跨域问题的方案：
 * jsonp（json+padding，填充式的json）：Js跨域请求ajax数据是不可以的，但是js跨域请求js脚本是可以的。
-`<src><link><img>`自带跨域属性，
-JSONP原理就是动态插入带有跨域url的script标签，执行完script后，会调用callback函数，
-参数就是获取到的数据（而Ajax是页面无刷新请求数据操作）。
-缺点是只能进行get请求，容易被劫持（类似csrf），优点是兼容性好。
+`<src>、<link>、<img>`自带跨域属性，
+JSONP原理就是动态插入带有跨域url（url参数有一个callback）的script标签，请求完script后，
+script内的内容会调用callback函数，服务器的数据就在这callback的入参内。
+缺点是只能进行get请求，容易被csrf（任何网页都能构造该jsonp，防御方法跟csrf相同），优点是兼容性好（CDN就是这么用的）。
 * nginx反向代理：利用nginx把跨域反向代理为不跨域，将`server.server_name`设置为前端网址，
 在`server.location`里设置`proxy_pass 后端网址`，这样就不存在跨域了。
 * cors：通过设置响应头信息，允许跨域请求。但会产生额外的请求(预检)，
 浏览器一旦发现AJAX请求跨源，就会自动添加一些附加的头信息，有时还会多出一次附加的请求（预检），
 服务端返回头信息中需要返回`Access-Control-*`相关字段，这是需要后端配置的。
+
+## 如何实现安全的CORS，避免CSRF攻击呢？
+对于跨域的简单请求（例如JSONP）来说，是必然有CSRF风险的，因为简单请求只传输一次，这时候会带上cookie发送给后端，
+如果后端没有安全处理的话，就容易出问题，后端这时候可以根据请求头的referer参数拦截。
+在浏览器中，JS一般会被禁止修改referer参数，因此该参数可以被认为是安全的（Forbidden Header）。
+
+如果跨域请求为非简单请求，则浏览器会先发送OPTIONS预检请求，后端服务器在接收到OPTIONS请求后，
+会返回针对实际请求的要求，如果符合要求（例如该网址在白名单）的话，则可以继续发送实际请求，如果不符合的话就不会发送实际请求了。
+因此针对CORS跨域请求，一般需要在服务器上配置跨域白名单（后端会根据请求头信息的Referer参数）防止恶意请求。
+
+在允许访问的情况下，这个时候后端服务器会有`Access-Control-Allow-Credentials`参数确定这个请求是否要携带cookies。
+只有当允许携带的时候，并且前端发送设置`withCredentials`参数为true的时候，就有可能携带cookie了。
+但这时不同的浏览器还是不一定会携带cookie，例如此时FireFox会携带，但Chrome不会。
+
+cookie的「不认来源，只看目的」规矩在2020年开始被打破，因为80版本chrome对三方cookie的限制加强了，
+还要去设置Cookie的SameSite属性，cookie的取用规则是去看请求的来源地和目的地，同源的就叫第一方cookie，例如用于用户登录的身份凭证；跨域的就叫第三方cookie。
+例如广告跟踪cookie，跨网站追踪用户记录。
+
+这种变化体现在浏览器将same-site:lax设置为默认属性。
+也就是说现在cookie的取用是「既看来源，又看目的」了，之前是只要满足CORS规则，必上传cookie，现在就不一样了。
+又加了一个规则，same-site是cookie的一个属性，它制约第三方cookie的携带，其值有三个none、strict、lax。
+
+* strict代表完全禁止三方cookie，但同属一个主体运营的网站不得不重复登录。
+* Lax则是折中，在某些情况下会限制三方cookie的携带，某些情况又放行，这也是浏览器的默认值（包括safari）。
+* none代表完全不做限制，即之前「不认来源，只看目的」的cookie取用原则。
+
+cookie有以下几个属性：
+* domain/path：指定cookie使用时，可以被携带到哪些域名或合法域名的哪些URI。
+* expire/max-age: 指定cookie的有效期，其中expire是一个绝对时间，max-age是相对时间
+* secure：只能在HTTPS环境中被下发以及携带
+* http-only：禁止客户端脚本通过 document.cookie 获取 cookie，避免 XSS 攻击
+
+SameSite Lax 仅在顶部窗口导航（例如`<a>`标签、window.open()）中的GET请求中发送 cookie 。
+可以这么理解，浏览器将same-site的默认值从none调整到了lax（safari直接为strict），
+其实这个参数主要用于cookie的默认限制，
+这样，假如后端忘记（或者错误）配置跨域参数，导致服务器暴露在csrf攻击下，但是由于浏览器改了cookie的默认same-site,
+cookie默认不上传，这样就极大增加了安全性，毕竟服务器配置跨域错误不算少数。
+
+但Cookie 机制并未遵循严格的同源策略，允许一个子域可以设置或获取其父域的 Cookie。
+只要协议相同，并且有效顶级域名+二级域名相同即可，不用考虑端口号（可以理解为跨站，跨站一定跨域，跨域不一定跨站）。
+
+如果连域名都不同该怎么办呢？cookie还有一个属性same-party可以把例如.taobao.com、.tmall.com和.alimama.com三个站合起来，
+当作一个站，它们设置的cookie在这个集合内部不会被当作第三方cookie对待。
+需要注意的是，使用same-party属性时，必须要同时使用https(secure属性)，并且same-site不能是strict。
+
+总结：一般而言，普通的业务需求，如果没有跨域需求，或者跨域的话不用cookie，
+就直接全部禁止跨域或者跨域禁止携带cookie就行了，例如设置Cookie Samesite属性为Strict。
+
+如果真的需要跨域且需要携带cookie，那么首先，不用简单请求，
+然后，设定好服务器的白名单，确定跨域的域名有几个，其他的禁止，就可以了。
+白名单可以是服务器的referer白名单配置，或者cookie的same-party属性配置。
+
+如果服务器不太好配置跨域白名单（例如前端可能由其他人提供），而且需要cookie能力，可以有以下方法
+（大致就是关键信息不能存在cookie）：
+
+* 可以在服务器生成一个token，存在服务器session里，下发在前端的dom中。
+请求的时候携带在请求参数里，这样第三方恶意网站就获取不到这个token了。
+
+* 或者使用双重Cookie，再加一个‘scrfcookie’，发送时，传到参数上，
+由于第三方恶意网站是获取不到cookie的内容的，因此可以防CSRF攻击。
 
 ## XSS 攻击是什么？
 * Cross Site Script，跨站脚本攻击。是指攻击者在网站上注入恶意script代码，
@@ -66,61 +128,6 @@ Cookie的作用域仅仅由domain和path决定，与协议和端口无关。
 CSRF的另一个应用是实现广告跟踪，例如a.com里一个iframe引用了google.com的广告，
 那么google.com就会在google.com域名下设置广告跟踪cookie，当打开a.com时，google.com的广告就会自动加载，
 从而将该广告跟踪cookie上报到google.com，从而实现广告跟踪。
-
-## 那么如何实现安全的CORS，避免CSRF攻击呢？
-
-如果跨域请求为非简单请求，则浏览器会先发送OPTIONS预检请求，后端服务器在接收到OPTIONS请求后，
-会返回针对实际请求的要求，如果符合要求的话，则会继续发送实际请求，如果不符合的话就不会发送实际请求了。
-这个时候后端服务器会有`Access-Control-Allow-Credentials`参数确定这个请求是否要携带cookies。
-只有当允许携带的时候，并且前端发送设置`withCredentials`参数为true的时候，就有可能携带cookie了。
-但这时不同的浏览器不一定会携带cookie，例如此时FireFox会携带，但Chrome不会。
-因为80版本chrome对三方cookie的限制加强了，还要去设置Cookie的SameSite属性，这又引出一个三方cookie的概念：
-cookie的取用规则是去看请求的目的地，同源的就叫第一方cookie，例如用于用户登录的身份凭证，跨域的就叫第三方cookie。
-例如上面讲到的广告跟踪cookie，跨网站追踪用户记录。
-
-cookie有以下几个属性：
-* domain 指定cookie未来使用时，可以被携带到哪些域名。
-* path：指定cookie未来使用时，可以被携带到合法域名的哪些URI。
-* expire/max-age: 指定cookie的有效期，其中expire是一个绝对时间，max-age是相对时间
-* secure：只能在HTTPS环境中被下发以及携带
-* http-only：禁止客户端脚本通过 document.cookie 获取 cookie，避免 XSS 攻击。
-
-cookie的「不认来源，只看目的」规矩在2020年开始被打破，这种变化体现在浏览器将same-site:lax设置为默认属性。
-也就是说现在cookie的取用是「既看来源，又看目的」了，之前是只要满足CORS规则，必上传，现在就不一样了。
-又加了一个规则，same-site是cookie的一个属性，它制约第三方cookie的携带，其值有三个none、strict、lax。
-* strict代表完全禁止三方cookie，但同属一个主体运营的网站不得不重复登录。
-* Lax则是折中，在某些情况下会限制三方cookie的携带，某些情况又放行，这也是浏览器的默认值（包括safari）。
-* none代表完全不做限制，即之前「不认来源，只看目的」的cookie取用原则。
-
-可以这么理解，浏览器将same-site的默认值从none调整到了lax（safari直接为strict），
-其实这个参数主要用于cookie的默认限制，由于是浏览器自动设置，就不用设置服务器了，防呆，大大加大了安全性。
-SameSite Lax 仅在顶部窗口导航（例如`<a>`标签、window.open()）中的GET请求中发送 cookie 。
-
-但Cookie 机制并未遵循严格的同源策略，允许一个子域可以设置或获取其父域的 Cookie。
-只要协议相同，并且有效顶级域名+二级域名相同即可，不用考虑端口号（可以理解为跨站，跨站一定跨域，跨域不一定跨站）。
-
-cookie还有一个属性same-party可以把例如.taobao.com、.tmall.com和.alimama.com三个站合起来，
-当作一个站，它们设置的cookie在这个集合内部不会被当作第三方cookie对待。
-需要注意的是，使用same-party属性时，必须要同时使用https(secure属性)，并且same-site不能是strict。
-
-一般而言，普通的业务需求，如果没有跨域需求，跨域的话不用cookie，就直接全部禁止跨域携带cookie就行了。
-
-* 可以在服务器生成一个token，存在服务器session里，下发在第一方的dom中。
-请求的时候携带在请求参数里，本质也是来判断这是不是第一方网站。
-
-* 或者使用双重Cookie，在加一个scrfcookie，发送时，传到参数上，因为任何跨域都会导致前端无
-法获取Cookie中的字段（包括子域名之间）。
-因此这个cookie只能种在总域名上，但其中一个子域名有xss漏洞，那么就会被攻击了。
-
-* 或者使用Samesite Cookie属性：为Set-Cookie响应头新增Samesite属性，它用来标明这个 Cookie是个“同站 Cookie”。
-如果SamesiteCookie被设置为Strict，浏览器在任何跨域请求中都不会该携带Cookie，所以说CSRF攻击基本没有机会。
-
-如果真的需要跨域携带cookie，而且防止csrf攻击，
-首先，用post，不用简单请求，然后，设定好cors的规则，确定跨域的域名有几个，其他的禁止，就可以了。
-
-如果不用cors能力，怎么办？
-可以用same-party属性专门用来处理。
-
 
 ## 如何减少预检请求？
 * 预检缓存。
@@ -208,6 +215,10 @@ encodeURI用于将字符串作为 URI 进行编码。其目的是对目标URI进
 encodeURIComponent用于将字符串作为URI参数进行编码。因此encodeURIComponent还必须转义用于分隔URI各个部分的标点符号，以防止歧义。
 
 >Url编码默认使用的字符集是US-ASCII[ˈæski]。对于Unicode字符，则使用%百分号加上该字节的utf-8字节组成编码。
+
+标准的Base64并不适合直接放在URL里传输，因为URL编码器会把标准Base64中的“/”和“+”字符变为形如“%XX”的形式，而这些“%”号在存入数据库时还需要再进行转换，因为ANSI SQL中已将“%”号用作通配符。
+
+为解决此问题，可采用一种用于URL的改进Base64编码，它在末尾填充'='号，并将标准Base64中的“+”和“/”分别改成了“-”和“_”，这样就免去了在URL编解码和数据库存储时所要作的转换，避免了编码信息长度在此过程中的增加，并统一了数据库、表单等处对象标识符的格式。
 
 ## 讲一讲https以及证书（SSL）
 * https是密文传输，通过非对称密钥，数字证书等方式完成数据加密传输。解决了http明文传输易受到中间人攻击的问题。
