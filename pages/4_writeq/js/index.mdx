@@ -6,35 +6,28 @@ class EventEmitter {
     this.events = {}
   }
 
-  on(eventName, callback) {
-    if (!this.events[eventName]) {
-      this.events[eventName] = []
-    }
-    this.events[eventName].push(callback)
+  on(eventName, cb) {
+    !this.events[eventName] && this.events[eventName] = []
+    this.events[eventName].push(cb)
   }
 
-  off(eventName, callback) {
-    if (!this.events[eventName]) {
-      return
-    }
-    const i = this.events[eventName].findIndex(cb => cb === callback)
-    if (i > -1) {
-      this.events[eventName].splice(i, 1)
-    }
+  off(eventName, cb) {
+    !this.events[eventName] && this.events[eventName] = []
+    const i = this.events[eventName].findIndex(cb => cb === cb)
+    i > -1 && this.events[eventName].splice(i, 1)
   }
 
-  once(eventName, callback) {
-    const onceFn = (...args) => {
-      callback(...args)
-      this.off(eventName, onceFn)
+  once(eventName, cb) {
+    function onceCb(args) {
+      cb(args)
+      this.off(eventName, onceCb)
     }
-    this.on(eventName, onceFn)
+    this.on(eventName, onceCb)
   }
 
-  emit(eventName, ...args) {
-    if (this.events[eventName]) {
-      this.events[eventName].forEach(cb => cb(...args))
-    }
+  emit(eventName, args) {
+    !this.events[eventName] && this.events[eventName] = []
+    this.events[eventName].forEach(cb => cb(args))
   }
 }
 ```
@@ -265,14 +258,14 @@ lazyLoad()
 ```js
 // 利用Intersection Observer实现
 window.addEventListener('scroll', lazyLoad)
-const observer = new IntersectionObserver(callback)
+const observer = new IntersectionObserver(cb)
 // 给每一个图片绑定观察方法
 imagess.forEach(img => {
   // 图片进入视野+离开视野时会触发callback回调函数
   observer.observe(img)
 })
-// callback 接收的参数为带有监听所有图片交叉属性的集合
-const callback = (imgArr) => {
+// cb 接收的参数为带有监听所有图片交叉属性的集合
+const cb = (imgArr) => {
   console.log('视图交叉时触发，离开交叉时也触发', imgArr) 
   imgArr.forEach(e => {
     // 判断是否在视野区域
