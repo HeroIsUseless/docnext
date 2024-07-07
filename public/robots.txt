@@ -1,6 +1,12 @@
 # *
 User-agent: *
 Allow: /
+Disallow: /1_internet
+Disallow: /2_htmljscss/
+Disallow: /3_frame/
+Disallow: /4_writeq/
+Disallow: /5_design
+Disallow: /6_project
 
 # Host
 Host: https://front-interview.com
