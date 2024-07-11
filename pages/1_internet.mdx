@@ -9,11 +9,11 @@
 > 他们的关系是通过操作系统中的hosts文件，将localhost解析为127.0.0.1，但它们算跨域。
 
 跨源资源共享是用于在不同的源中获取资源的一种机制。解决跨域问题的方案：
-* jsonp（json+padding，填充式的json）：Js跨域请求ajax数据是不可以的，但是js跨域请求js脚本是可以的。
+* jsonp（json+padding，填充式的json）：Js跨域请求ajax数据是不可以的，但是js跨域请求js脚本是可以的（不然CDN之类的就没法用了）。
 `<src>、<link>、<img>`自带跨域属性，
 JSONP原理就是动态插入带有跨域url（url参数有一个callback）的script标签，请求完script后，
 script内的内容会调用callback函数，服务器的数据就在这callback的入参内。
-缺点是只能进行get请求，容易被csrf攻击（任何网页都能构造该jsonp，防御方法跟csrf相同），优点是兼容性好（CDN就是这么用的）。
+缺点是只能进行get请求，容易被csrf攻击（任何网页都能构造该jsonp，防御方法跟csrf相同），优点是兼容性好（就连IE也完美支持）。
 ```html
 <script>
 function callback(data) {...}
@@ -22,13 +22,17 @@ function callback(data) {...}
 <!-- 上面👆标签解析后会变成如下👇，其中data是后端传过来的数据 -->
 <script>callback(data)</script>
 ```
-* nginx反向代理：利用nginx把跨域反向代理为不跨域，将`server.server_name`设置为前端网址，
-在`server.location`里设置`proxy_pass 后端网址`，这样就不存在跨域了。
+* nginx反向代理：nginx服务器的域名设置成为前端域名，nginx代理请求真正后端就不存在跨域问题了。
 ```nginx 
 # nginx.config
-
+server {
+    server_name  前端域名
+    location / {
+        proxy_pass 后端域名
+    }
+}
 ```
-* cors：通过设置响应头信息，允许跨域请求。但会产生额外的请求(预检)，
+* cors：通过设置响应头信息，允许跨域请求。
 浏览器一旦发现AJAX请求跨源，就会自动添加一些附加的头信息，有时还会多出一次附加的请求（预检），
 服务端返回头信息中需要返回`Access-Control-*`相关字段，这是需要后端配置的。
 
