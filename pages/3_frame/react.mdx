@@ -1,15 +1,15 @@
 # 高频
-## React如何提高渲染性能？
+## React如何提高渲染（运行时）性能？
 * 避免不必要的渲染
   * 状态下放
   * 使用PureComponent和React.memo
   * 使用useMemo和useCallback来避免不必要的函数重新计算，不要使用内联函数定义
-* 使用React Fragments避免额外标签
-* 列表性能优化，虚拟列表，item使用key属性
-* 使用webworker处理计算密集任务
-* 升级React，使用React16的fiber或者React18的CM模式
-* 异步渲染
-* 使用服务端渲染
+* 避免不必要的标签：使用React Fragments避免额外标签
+* 避免不必要的计算
+    * 升级React，使用React16的fiber或者React18的CM模式
+    * 使用服务端渲染
+    * 使用webworker处理计算密集任务
+    * 列表性能优化，虚拟列表，代理监听
 
 ## 为什么父组件渲染，子组件都需要重新渲染？*
 * 因为jsx是React.createElement的语法糖，React.createElement这个函数就是要重新构建节点的。
