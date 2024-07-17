@@ -13,30 +13,17 @@
 
 ## 为什么父组件渲染，子组件都需要重新渲染？*
 * 因为jsx是React.createElement的语法糖，React.createElement这个函数就是要重新构建节点的。
-* React并没有收集依赖，不知道哪个子组件依赖了变化的状态，索性就全渲染一遍。
-* 如果说在创建时对props进行浅比较，那么这个时候也会有比较的性能损失，有时候是得不偿失的，所以React就没有做。
+* 本质上是React并没有收集依赖，不知道哪个子组件依赖了变化的状态，索性就全渲染一遍。
+如果说在创建时对props进行浅比较，那么这个时候也会有比较的性能损失，有时候是得不偿失的，所以React就没有做。
 
 ## 为什么每次状态改变，都需要重新生成一个完整的虚拟dom？*
 * 不是生成一个完整虚拟dom，只是在调和阶段从根节点开始进行遍历而已。
 * 从根节点diff遍历，本身就是一种设计上的简化，不然就得确定到底是哪个节点受影响了，有几个节点受影响了，
 状态变化也会有useState/useContext多种种类，倒不如直接从根节点一遍过，虽然会牺牲一点点的遍历时性能，但无关紧要。
-* React会使用Bailout策略，如果React在某个节点的渲染过程中确定该节点没有发生变化（根据childLines对比），
+* React也会使用Bailout策略，如果React在某个节点的渲染过程中确定该节点没有发生变化（根据childLines对比），
 就会放弃（bailout）继续对该节点进行深度比较。从这个方面来说，并没有生成一个完整的虚拟dom，倒不如说是更新虚拟dom。
 * 在commit阶段，实际上是通过updateQueue进行更新的，可以理解为一个队列，里面存放着需要更新的节点。
 也就是说在提交阶段是从受影响的组件开始遍历，而不是从根节点进行遍历。
-
-## React为什么从根节点开始diff？*
-* 简化算法实现，从根节点开始遍历树结构更符合树的遍历逻辑。如果从状态变化的组件开始，
-React就需要追踪依赖，确定到底是哪个节点受影响了，有几个节点受影响了， 状态变化也会有useState/useContext多种种类，
-倒不如直接从根节点一遍过，虽然会牺牲一点点的遍历时性能，但无关紧要。目前到v18为止，React不会追踪依赖。
-* React会使用Bailout策略，如果React在某个节点的渲染过程中确定该节点没有发生变化，
-就会放弃（bailout）继续对该节点进行深度比较。从这个方面来说，从根节点开始遍历也不会耗费太多性能。
-* React内部，还大量使用了以从根节点开始diff思想的逻辑，比如说优先级任务复用，会导致该任务上下文混乱，因此无法定向渲染。
-* 即便从状态改变组件开始diff，如果该组件需要构造一个新的fiberNode，那么它的父组件，兄弟组件的指针是不是要改一下？
-父组件可以通过return属性找到，但是上一个兄弟节点可就不好找了。
-如果该组件的fiberNode还是复用原来的，但是它的子节点肯定都是新的fiberNode了，
-那么至少useEffect以及各种钩子，在这里就需要差异化执行，相当于两种fiberTask。
-因此从状态改变组件开始diff也不是一个十全十美的好方法。
 
 ## 为什么不能在if里使用hooks？*
 currentFiber 的 memoizedState 缓存 hooks 链表的信息，一旦在条件语句中声明 hooks，函数组件更新时，hooks 链表结构被破坏，
@@ -94,8 +81,10 @@ workInProgressRootRenderLanes是在任务执行阶段赋予的需要更新的fib
 ## react的bailout手段是什么？
 bailout函数逻辑：
 尽量复用fiber，不进行render。fiber复用，判断fiber的子树(childLanes)是否有work。
-* 有：返回child，继续遍历子树。
-* 无：返回null，跳过子树。
+有三个复用：复用函数，复用fiber，复用dom
+* redenr 后 bailout：render后发现无需更新，然后执行bailout的情况。例如shouComponentUpdate。
+* bailout：不执行render，复用old fiber。
+* render：调用render函数（组件），返回JSX，与old fiber进行diff后创建fiber。
 
 Fiber执行bailout时机：
 在fiber遍历中，beginWork函数（beginWork的工作是传入当前Fiber节点，创建子Fiber节点）内判断oldProps === newProps，
@@ -108,32 +97,23 @@ Fiber执行bailout时机：
 oldProps全等于newProps 才会成立，子fiberNode才有可能命中bailout策略。换句话说，在 react 中渲染是具有传染性的，
 只要父节点没有命中策略，子节点就一定不会命中，孙节点也不会，如此往复。
 
-有三个复用：复用函数，复用fiber，复用dom
-
 React 性能一大关键在于，减少不必要的 render。
 
 在 bailout 中，会检查该 Fiber 的所有子孙 Fiber 是否存在 lane 更新。
 若所有子孙 Fiber 本次都没有更新需要执行，则 bailout 会直接返回 null，整棵子树都被跳过更新。
-
-bailout是怎么判断的？
-render：调用render函数（组件），返回JSX，与old fiber进行diff后创建fiber。
-* ClassComponent执行render方法。Function Component执行自己。
-bailout：不执行render，复用old fiber。
-redenr 后 bailout：render后发现无需更新，然后执行bailout的情况。例如shouComponentUpdate。
 
 ## useContext原理是什么？
 
 useContext的原理类似于观察者模式。Provider是被观察者， Consumer或useContext是观察者。
 当Provider上的值发生变化， 观察者是可以观察到的，从而同步信息给到组件。
 
-* 如何读取context里的数据？数据初始值保存在context._currentValue
-(同时保存到context._currentValue2，保存 2 个 value 是为了支持多个渲染器并发渲染)
+* 如何读取context里的数据？数据初始值保存在context._currentValue，
 useContext 接收 context 对象作为参数，从 context._currentValue 中读取 value 值。
-* 如何修改数据？在provider这里更新 context._currentValue，比较新老 value 是否发生变化。
 * 如何响应数据？useContext除了读取 value 值外，还会将 context 信息保存在当前组件 Fiber.dependencies 上。
 目的是为了在 Provider value 发生更新时，可以查找到消费组件并标记上更新，执行组件的重渲染逻辑。
 调用 propagateContextChange 对 Fiber 子树向下深度优先遍历，
-目的是为了查找 Context 消费组件，并为其标记 lane 更新，
+目的是为了查找 Context 消费组件，并为其标记 lane 更新。
+* 如何修改数据？在provider这里更新 context._currentValue，比较新老 value 是否发生变化。
 
 ## 什么是受控组件和非受控组件？
 * 受控组件：只能通过React修改数据或状态的组件，就是受控组件。
@@ -144,16 +124,21 @@ useContext 接收 context 对象作为参数，从 context._currentValue �
 setState()的传参有两种方式：纯数据和回调函数。回调函数方式能在参数中获得最新state，多用于异步的情况。
 
 ## setState执行机制是什么？什么时候是同步的，什么时候是异步的？
-执行setState实际上是调用dispatchSetState，创建update并加入到hook更新队列updateQueue（这个东西其实是一个链表），update即是一个包括更新执行函数action和下一个update指针next的一个简单结构体，该链表被放到fiber节点的相应hook中，而hook本身也是一个链表，存放在fiber实例（能获取到的）的memoizedState上，每个节点都包含了两个重要的属性：memoizedState和next。最后走到scheduleUpdateOnFiber。
-
-在更新时，UseState其实调用的是dispatcher.useState(initialState)->HooksDispatcherOnUpdate->updateReducer 主要逻辑就是遍历该循环链表，并计算出最新值。最后与hook.memoizedState做比较，从而处理副作用。
-
 我们首先需要明确，从 API 层面上说，它就是普通的调用执行的函数，自然是同步的，因此，这里所说的同步和异步指的是 API 调用后更新 DOM 是同步还是异步的。
 * 如果 setState 在 React 能够控制的范围被调用，它就是异步的。 例如：合成事件处理函数, 生命周期函数, 此时会进行批量更新, 也就是将状态合并后再进行 DOM 更新。
 * 如果 setState 在原生 JavaScript 控制的范围被调用，它就是同步的。 例如：在promise的then()方法中、原生事件处理函数中, 定时器回调函数中, 此时 setState 被调用后会立即更新 DOM 。
 
 react会有一个上下文环境，在同步环境中，setState处于react的上下文中，react会监控动作合并，所以这个时候setState()是异步的。
 在 react 18 版本以后 setState（）不论在同步环境还是异步环境都是异步的。
+
+执行setState实际上是调用dispatchSetState，
+创建update并加入到hook更新队列updateQueue（这个东西其实是一个链表），
+update即是一个包括更新执行函数action和下一个update指针next的一个简单结构体，该链表被放到fiber节点的相应hook中，
+而hook本身也是一个链表，存放在fiber实例（能获取到的）的memoizedState上，
+每个节点都包含了两个重要的属性：memoizedState和next。最后走到scheduleUpdateOnFiber。
+
+在更新时，UseState其实调用的是dispatcher.useState(initialState)->HooksDispatcherOnUpdate->updateReducer 
+主要逻辑就是遍历该循环链表，并计算出最新值。最后与hook.memoizedState做比较，从而处理副作用。
 
 ## React是如何模拟requestIdleCallback的？
 * 是使用requestAnimationFrame实现的
@@ -177,18 +162,12 @@ React.PureComponent 与 React.Component 几乎完全相同，但 React.PureCompo
 * componentWillUnmount() 组件将要卸载时调用，一些事件监听和定时器需要在此时清除。
 
 ## 什么是合成事件（事件代理），与原生事件有什么区别？
-React合成事件是指将原生事件合成一个React事件。React有自己一套独立的事件系统,就是合成事件。
+React有自己一套独立的事件系统，就是合成事件。React合成事件是指将原生事件合成一个React事件。
 React中所有触发的事件，都在React实现的一个合成事件层。作用是
 * 规范化了这些接口在不同浏览器中的行为，抹平了不同浏览器事件对象之间的差异，解决了浏览器兼容的问题，方便事件统一管理；
 * 避免垃圾回收；react事件对象不会被释放掉，而是存放进一个数组中，避免频繁地去创建和销毁（垃圾回收）。
 
-在React底层，主要对合成事件做了两件事：
-* 事件委派： React会把所有的事件绑定到结构的最外层（Virtual DOM根节点），使用统一的事件监听器，
-这个事件监听器上维持了一个映射来保存所有组件内部事件监听和处理函数。
-react 事件不能采用 return false 的方式来阻止浏览器的默认行为，而必须要地明确地调用preventDefault()来阻止默认行为。
-* 自动绑定： React组件中，每个方法的上下文都会指向该组件的实例，即自动绑定this为当前组件。
-
-从v17.0.0开始, React 不会再将事件处理添加到 document 上, 而是将事件处理添加到渲染 React 树的根 DOM 容器中。
+> 从v17.0.0开始, React 不会再将事件处理添加到 document 上，而是将事件处理添加到渲染 React 树的根 DOM 容器中。
 
 React 代码执行时，顶层会自动执行事件的注册，初始化事件插件。
 React 首次渲染时，会在根节点上绑定所有原生事件。支持冒泡的事件，React 会同时绑定捕获阶段和冒泡阶段的事件；不支持冒泡的事件，会将事件绑定在具体 DOM 元素上。

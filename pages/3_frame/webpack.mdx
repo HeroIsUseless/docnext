@@ -1,3 +1,58 @@
+## 手写webpack
+```
+npm init -y
+npm install webpack webpack-cli --save-dev
+
+  webpack-demo
+  |- package.json
+  |- package-lock.json
+ |- index.html
+ |- /src
+   |- index.js
+// src/index.js
+function component() {
+    const element = document.createElement('div');
+  
+    // 执行这一行需要引入 lodash（目前通过 script 脚本引入）
+    element.innerHTML = _.join(['Hello', 'webpack'], ' ');
+  
+    return element;
+  }
+  
+  document.body.appendChild(component());
+// index.html
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>起步</title>
+    <script src="https://unpkg.com/lodash@4.17.20"></script>
+  </head>
+  <body>
+    <script src="./src/index.js"></script>
+  </body>
+</html>
+在此示例中，<script> 标签之间存在隐式依赖关系。如果依赖不存在，或者引入顺序错误，应用程序将无法正常运行。
+// 安装一个将被打包到生产环境 bundle 的包时，应该使用 npm install --save；
+// 而安装一个用于开发环境的包时（例如代码检查工具、测试库等），应该使用 npm install --save-dev。
+// 执行 npx webpack 会将脚本 src/index.js 作为 入口起点，也会生成 dist/main.js 作为 输出。
+// webpack 不会更改代码中除 import 和 export 语句以外的部分。如果正在使用其它 ES2015 特性，请确保 webpack 的 loader 系统 中使用了像 Babel 一样的 转译器。
+// webpack.config.js 
+const path = require('path');
+
+module.exports = {
+  entry: './src/index.js',
+  output: {
+    filename: 'main.js',
+    path: path.resolve(__dirname, 'dist'),
+  },
+};
+// npx webpack --config webpack.config.js
+  "scripts": {
+    "build": "webpack"
+  }
+```
+
 ## Webpack构建流程简单说一下？
 webpack获取到配置后，根据配置中的 entry 找到入口文件，从入口文件出发，调用配置的 Loader 对模块进行转译，
 再找出该模块依赖的模块，递归得到整个依赖树。
