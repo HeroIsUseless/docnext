@@ -57,7 +57,7 @@ class LRUCache {
             // keys返回keys的顺序迭代器，next()返回第一个，value就是key
             // 每次插入都是插在后面，
             const delKey = this.map.keys().next().value 
-            this.map(delKey)
+            this.map.delete(delKey)
         }
     }
 }

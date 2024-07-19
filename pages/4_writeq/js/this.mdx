@@ -2,11 +2,12 @@
 ```js
 Function.prototype.myCall = function (context, ...args) {
     const s = Symbol()
-    context[s] = this // 该this指向的是调用的函数`func.myCall(...)`
+    context[s] = this // 该this指向的是调用的函数`func.myCall(...)`，此时func会当作对象来用
     const res = context[s](...args) // 此时该函数内的this指向的就是context了
     delete context[s]
     return res
 }
+add.call(obj, 1,2)
 ```
 ## 如何修改一个闭包里的数据？
 Object上有一个valueOf属性，该属性为一个函数，执行可以返回对象自身，但是会有this指向问题，因此不行。

@@ -1,3 +1,17 @@
+## webpack编译的原理？
+首先，在不拆包的情况下，所有的代码都在一个js文件里。
+
+* 打包后的整体就是一个立即执行函数，函数参数就是modules，即引入的模块，最后执行一个__webpack_require__('index.js')
+* moduleId一般就是文件名，就直接执行这个模块里的代码然后缓存，最后文件变成对象return module.exports
+* 返回的对象跟CommonJS的返回差不多，export { a } 将会转化为 module.exports.a，Webpack 其实是通过 jsonp 的方式来实现模块的动态加载的。
+通过 script 引入的模块代码最终会挂载 window.webpackJsonp 上，这是一个对象数组。
+
+异步加载的话，最终转化成类似“
+```
+__webpack_require__.e('utils')
+  .then(__webpack_require__.bind(null, './src/templates/basic/utils.js'));
+```
+
 ## 手写webpack
 ```
 npm init -y
@@ -197,3 +211,41 @@ Webpack 中，Tree-shaking 的实现一是先标记出模块导出值中哪些�
 更深层次的原因则是 JavaScript 的赋值语句并不纯，视具体场景有可能产生意料之外的副作用。
 
 但 Babel 提供的部分功能特性会致使 Tree Shaking 功能失效，例如 Babel 可以将 import/export 风格的 ESM 语句等价转译为 CommonJS 风格的模块化语句，但该功能却导致 Webpack 无法对转译后的模块导入导出内容做静态分析
+
+## 如何上传到npm
+* 在本地创建一个新文件夹，最好和你的包同名
+* npm login
+* npm init 注意main
+* npm publish
+* 包名重复会导致失败,上传前要确定包名不重复
+* 每次更新记得改版本号
+
+## webpack拆包原理？
+分为import()拆分和entry拆分
+* import()不是import，前者是webpack的能力，后者是es6的能力，import()结果是结果是一个 Promise，引进来的数据都在里面。
+其底层逻辑是jsonp。使用 import()，webapck 不需要任何额外的配置就可以单独打包的。
+* entry拆分可以将node_nodule包拆出去(vendor.js)，加上optimization.splitChunks.chunks = 'all'
+
+Bundle splitting 背后的想法非常简单。 如果你有一个巨大的文件，当你更改了一行代码，用户必须再次下载整个文件。 
+但是，如果我们将其拆分为两个文件，则用户只需下载已更改的文件，浏览器会从缓存中读取另一个文件。
+值得注意的是，由于 Bundle splitting 是完全针对缓存的，所以对于首次访问的用户而言（拆与不拆）没什么区别。
+
+webpack拆包的命名可以在webpack.config.output.filename中设定，一般可以是一个name加一个哈希值最后加js后缀。
+这意味着当程序中代码更改时会产生不同的文件名 ，从而迫使浏览器下载新文件。
+
+对于业务逻辑代码的拆分，可以在webpack.config.entry这里添加入口点，Webpack 会为其中的每项创建一个文件。
+Webpack还会为为共享的内容创建文件，使得我们不会得到重复的代码。
+在 webpack 中，总共提供了三种方式来实现代码拆分（Code Splitting）：
+
+entry 配置：通过多个 entry 文件来实现；
+动态加载（按需加载） ：通过写代码时主动使用import()来动态加载；
+抽取公共代码：使用splitChunks配置来抽取公共代码。
+
+再来复习下 webpack 中三个重要的概念：module、chunks、bundle。
+
+* module：就是 JavaScript 的模块，简单来说就是你通过 import、require 语句引入的代码，也包括 css、图片等资源；
+* chunk：chunk 是 webpack 根据功能拆分出来的，chunk 包含着 module，可能是一对多也可能是一对一，chunk 包含三种情况，就是上面介绍的三种实现代码拆分的情况。
+* bundle：bundle 是 webpack 打包之后的各个文件，一般就是和 chunk 是一对一的关系，bundle 就是对 chunk 进行编译压缩打包等处理之后的产出。
+
+react的lazy-Suspense OtherComponent 组件文件被拆分打包为一个新的包（bundle）文件，并且只会在 OtherComponent 组件渲染时，才会被下载到本地。
+当 Webpack 解析到该import()语法时，会自动进行代码分割，要注意的是import() 函数不同于import命令。路由动态加载用到了微前端。
