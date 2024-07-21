@@ -1,72 +1,108 @@
 ## 如何实现promise？
 ```js
-// 简单的
-function MyPromise(func) {
+// 简单的，then/catch只有一个回调函数，没有链式调用
+// 大致执行流程是func->then->resolve，但有时then在resolve之后
+function MyPromise(fn) {
     this.status = 'pending';
-    this.res = '';
+    this.res = undefined;
     this.thenCb;
     this.catchCb;
-    const resolve = (data) => {
-        this.status = 'fulfilled';
-        this.res = data;
-        this.thenCb?(data);
+    this.then = (cb) => {
+        this.thenCb = cb;
+        this.status == 'resolved' && this.thenCb(this.res);
     }
-    const reject = (data) => {
+    this.catch = (cb) => {
+        this.catchCb = cb;
+        this.status == 'rejected' && this.catchCb(this.res);
+    }
+    const resolve = (res) => {
+        this.status = 'resolved';
+        this.res = res;
+        this.thenCb && this.thenCb(this.res);
+    }
+    const reject = (res) => {
         this.status = 'rejected';
-        this.res = data;
-        this.catchCb?(data);
+        this.res = res;
+        this.catchCb && this.catchCb(this.res);
     }
-    this.then = function (cb) {
-        if (this.status == 'pending') {
-            this.thenCb = cb;
-        }
-        if (this.status == 'fulfilled') {
-            cb(this.res)
-        }
-    }
-    this.catch = function (cb) {
-        if (this.status == 'pending') {
-            this.catchCb = cb;
-        }
-        if (this.status == 'rejected') {
-            cb(this.res)
-        }
-    }
-    func(resolve, reject)
+    fn(resolve, reject)
 }
+const promise = new MyPromise((resolve, reject) => resolve(1))
+promise.then(res => console.log(res))
 ```
 ```js
-// 复杂一点的（有链式调用）
-function Promise(fn) {
+// 复杂一点的（有链式调用）（但仅有then）
+// 简单的，promise已经resolved，这时候一个链式then
+// 此then的cb调用在new promise的同步函数里，并且执行new resolve 
+// 复杂的，promise还在pending，这时候一个链式then
+// 此时push到回调队列中，同样需要执行new resolve，触发下一个promise
+// then一个链式调用（串行），一个并行调用（回调数组）
+function MyPromise(fn) {
   this.status = 'pending'
+  this.res = undefined;
   this.cbs = [];
-
-  fn(resolve);
-
-  function resolve(value) {
-    setTimeout(() => { // 用宏任务模拟微任务
-      this.data = value;
-      this.cbs.forEach((cb) => cb(value)); // cb是then的回调函数，执行这里后，链式调用的then的返回
+  this.then = (cb) => {
+    return new MyPromise((resolve) => {
+      const thenCb = () => {
+          const res = cb(this.res);
+          resolve(res); 
+      };
+      this.cbs.push(thenCb);
+      if (this.status === 'resolved') {
+        thenCb();
+      }
     });
   }
+  const resolve = (res) => {
+    this.res = res;
+    this.cbs.forEach((cb) => cb(this.res));
+  }
+  fn(resolve);
 }
-
-Promise.prototype.then = function (onResolved) {
-  return new Promise((resolve) => {
-    if (this.status === 'resolved') {
-      const res = onResolved(this.data);
-      resolve(res);
-    } else if (this.status === 'pending') {
-      this.cbs.push(() => {
-        const res = onResolved(this.data);
-        resolve(res); // 需要等待then本体promise执行完毕
-      });
+const promise = new MyPromise((resolve, reject) => resolve(1))
+promise.then(res => console.log(res)).then(res => console.log(res))
+```
+```
+// 一个全的
+const myPromise = new MyPromise((resolve, reject) => resolve(1));
+myPromise.then(res => console.log(res)).then(res => console.log(res))
+function MyPromise() {
+  this.status = 'pending';
+  this.res = undefined;
+  this.thenCbs = [];
+  this.catchCbs = [];
+  this.then = (cb) => {
+    return new MyPromise(resolve => {
+      const thenCb = () => {
+        const res = cb(this.res);
+        resolve(res);
+      };
+      this.thenCbs.push(cb);
+      if (this.status === 'resolved') {
+        cb(this.res);
+      }
+    });
+  }
+  this.catch = (cb) => {
+    this.catchCbs.push(cb);
+    if (this.status === 'rejected') {
+      cb(this.res);
     }
-  });
-};
+  }
+  const resolve = (res) => {
+    this.status = 'resolved';
+    this.res = res;
+    this.thenCbs(cb => cb(this.res))
+  }
+  const reject = (res) => {
+    this.status = 'rejected'
+    this.res = res;
+    this.catchCbs(cb => cb(this.res))
+  }
+}
 ```
 ## 如何实现Promise.all/race？
-```js\
+```js
 Promise.myAll = function (promises) {
   let arr = [], count = 0
   return new Promise((resolve, reject) => {

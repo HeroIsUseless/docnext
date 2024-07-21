@@ -20,3 +20,14 @@ Reset就是简单的设置head，放弃的commit分为三种：
 
 Rebase是未merge到master前，自己版本回退，平常就是这么用，但其实际意思是变基，但一般也用不到。
 revert是已merge到master，新提交的回退
+
+## 前端页面如何预加载
+* 提前加载后续需要的内容 (preload and prefetch)
+* 提前解析域名（DNS Pretech & Preconnect）
+* 预先渲染要加载的页面(prerender)
+
+```
+<link rel='preload' href='font.woff2' as='font' type='font/woff2' crossorigin>
+<link rel="dns-prefetch" href="https://fonts.googleapis.com/"> 
+```
+例如用link加载一个字体

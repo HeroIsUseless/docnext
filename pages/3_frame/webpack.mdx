@@ -65,6 +65,45 @@ module.exports = {
   "scripts": {
     "build": "webpack"
   }
+// npm install -D babel-loader @babel/core @babel/preset-env
+module: {
+  rules: [
+    {
+      test: /\.m?js$/,
+      exclude: /(node_modules|bower_components)/,
+      use: {
+        loader: 'babel-loader',
+        options: {
+          presets: ['@babel/preset-env'],
+        },
+      },
+    },
+  ];
+}
+npm install webpack-dev-server --save-dev
+
+"dev": "webpack-dev-server"
+
+module.exports = {
+  entry: './src/index.js', // 资源入口
+  output: {
+    filename: 'bundle.js' // 打包文件
+  },
+  mode: 'development'
+}
+    devServer: {
+        host: "localhost", // 启动服务器域名
+        port: "3000", // 启动服务器端口号
+        open: true, // 是否自动打开浏览器
+    }
+完毕
+
+webpack-dev-server 的原理是通过在内存中创建虚拟文件系统来提供开发服务器功能。
+它监听文件变化并通过 WebSocket 与浏览器通信，以实现实时重载和热模块替换。
+
+webpack-dev-server 会使用当前的路径作为请求的资源路径 ,就是我们运行webpack-dev-server命令的路径。
+可以通过指定 content-base 来修改这个默认行为，这个路径标识的是静态资源的路径。
+
 ```
 
 ## Webpack构建流程简单说一下？
