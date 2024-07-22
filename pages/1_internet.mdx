@@ -3,14 +3,14 @@
 同源策略，是浏览器的一种安全机制，通过限制文档和脚本与来自另一个源的资源的交互。
 从而隔离潜在的有害文档，保护用户的安全和隐私。同源指的是同协议/主机/端口相同。
 > 例如A.com的前端页面只能访问A.com的后端服务器，
-若B.com的前端页面访问A.com的后端服务器，那么就有可能被拦截。
+若B.com的前端页面访问A.com的后端服务器，那么就有可能因为这个同源策略被拦截。
 
 > localhost与127.0.0.1不属于同源，因为域名不同，算跨域。
 > 他们的关系是通过操作系统中的hosts文件，将localhost解析为127.0.0.1，但它们算跨域。
 
 跨源资源共享是用于在不同的源中获取资源的一种机制。解决跨域问题的方案：
 * jsonp（json+padding，填充式的json）：Js跨域请求ajax数据是不可以的，但是js跨域请求js脚本是可以的（不然CDN之类的就没法用了）。
-`<src>、<link>、<img>`自带跨域属性，
+`<src>、<link>、<img>`还有表单自带跨域属性（AJAX 的跨域设计就是，只要表单可以发，AJAX 就可以直接发），
 JSONP原理就是动态插入带有跨域url（url参数有一个callback）的script标签，请求完script后，
 script内的内容会调用callback函数，服务器的数据就在这callback的入参内。
 缺点是只能进行get请求，容易被csrf攻击（任何网页都能构造该jsonp，防御方法跟csrf相同），优点是兼容性好（就连IE也完美支持）。
@@ -22,39 +22,58 @@ function callback(data) {...}
 <!-- 上面👆标签解析后会变成如下👇，其中data是后端传过来的数据 -->
 <script>callback(data)</script>
 ```
-* nginx反向代理：nginx服务器的域名设置成为前端域名，nginx代理请求真正后端就不存在跨域问题了。
+* 反向代理：nginx服务器的域名设置成为前端域名，nginx代理请求真正后端就不存在跨域问题了。
 ```nginx 
 # nginx.config
 server {
-    server_name  前端域名
+    server_name  前端域名 # 该代理服务器在前端域名服务器下
     location / {
-        proxy_pass 后端域名
+        proxy_pass 后端域名 # 后端服务器可以在任意域名服务器下
     }
 }
 ```
-* cors：通过设置响应头信息，允许跨域请求。
-浏览器一旦发现AJAX请求跨源，就会自动添加一些附加的头信息，有时还会多出一次附加的请求（预检），
+> 前端开发服务器也可以如此设置以避免跨域问题。
+* cors：通过设置响应头信息，允许跨域请求。CORS与JSONP的使用目的相同，但是比JSONP更强大。
+支持所有类型的HTTP请求，而JSONP只支持GET请求。
+浏览器一旦发现AJAX请求跨源，就会自动添加一些附加的头信息（Origin字段），有时还会多出一次附加的请求（预检），
 服务端返回头信息中需要返回`Access-Control-*`相关字段，这是需要后端配置的。
-
+```
+<!-- 跨域请求头中，会多出下面字段（例如A前端请求B服务器）： -->
+Origin: http://api.B.com
+<!-- 跨域响应头中，会多出下面字段： -->
+Access-Control-Allow-Origin: http://api.B.com # 该字段是必须的。它的值要么是请求时Origin字段的值，要么是一个*，表示接受任意域名的请求。
+Access-Control-Allow-Credentials: true # 该字段可选。它的值是一个布尔值，表示是否允许发送Cookie。默认情况下，Cookie不包括在CORS请求之中。
+# 另一方面，开发者必须在AJAX请求中打开withCredentials属性。xhr.withCredentials = true;
+# 需要注意的是，如果要发送Cookie，Access-Control-Allow-Origin就不能设为星号，必须指定明确的、与请求网页一致的域名。
+# 同时，Cookie依然遵循同源政策，只有用服务器域名设置的Cookie才会上传，其他域名的Cookie并不会上传。
+Access-Control-Expose-Headers: FooBar # 如果想拿到其他字段，就必须在Access-Control-Expose-Headers里面指定。
+# 上面的例子指定，getResponseHeader('FooBar')可以返回FooBar字段的值。
+Content-Type: text/html; charset=utf-8
+```
+> * Origin 由三部分组成：`scheme://host:port`，这些内容会从请求 url 中提取，其他的部分会被丢弃掉。此外，Origin 的值也可能为 null。
+会在跨域请求时带上，服务端据此判断是否允许跨域，是 CORS 机制的重要一环。
+> * Referer是页面url路径，例如A页面跳到B页面会带上这个，用于确认请求的来源页面。例如防盗链。
+> * Host 由两部分组成：host:port，Host 可以用于代理，当多个域名指向同一个 IP 时，Web Server 可以通过 Host 来识别并提供不同的服务。
+例如会被nginx的server.server_name处理。
 ## CSRF 攻击是什么？
 CSRF（Cross-site request forgery），跨站请求伪造，利用用户的登录态发起恶意请求，攻击原理：
 * 用户登录受信任网站A，并在浏览器本地的A域名下生成Cookie。
 * 在不登出A的情况下，访问危险网站B。
 * 危险网站B向网站A发送请求，利用A的Cookie实现冒充用户对网站A进行操作。
 
-CSRF的两个特点是通常发生在第三方域名，以及攻击者不能获取到Cookie等信息，只是使用。
+为什么会有CSRF攻击呢？原因就在于，浏览器会依据加载的域名附带上对应域名cookie。
+例如A网站有一个重要操作，接口是`A.com/someapi`，恶意网站B的页面也请求A网站的这个重要接口，
+该请求会被浏览器自动带上A.com域名下的cookie，从而完成CSRF攻击。
 
-原因就在于，浏览器会依据加载的域名附带上对应域名cookie。
-例如A网站有一个重要操作，接口是`A.com/someapi`，恶意网站B也请求A网站的这个重要接口，
-这时候浏览器就会自动带上A.com域名下的cookie，从而完成CSRF攻击。
-
-CSRF的另一个应用是实现广告跟踪，例如a.com里一个iframe引用了google.com的广告，
+跨域cookie是有作用的，一个应用是实现广告跟踪，例如a.com里一个iframe引用了google.com的广告，
 那么google.com就会在google.com域名下设置广告跟踪cookie，当打开a.com时，google.com的广告就会自动加载，
 从而将该广告跟踪cookie上报到google.com，从而实现广告跟踪。
 
+CSRF的两个特点是通常发生在第三方域名，以及攻击者不能获取到Cookie等信息，只是使用。
+
 ## 如何实现安全的CORS，避免CSRF攻击呢？
 对于跨域的简单请求（例如JSONP）来说，是必然有CSRF风险的，因为简单请求只传输一次，这时候会带上cookie发送给后端，
-如果后端没有安全处理的话，就容易出问题，后端这时候可以根据请求头的referer参数拦截。
+如果后端没有安全处理的话，就容易出问题，后端这时候可以根据请求头的origin或者referer参数拦截。
 在浏览器中，JS一般会被禁止修改referer参数，因此该参数可以被认为是安全的（Forbidden Header）。
 
 > script标签为什么能跨域？简单来说，算是一种妥协，在web早期大量使用该方式实现跨域，包括CDN，
@@ -62,7 +81,34 @@ CSRF的另一个应用是实现广告跟踪，例如a.com里一个iframe引用�
 
 如果跨域请求为非简单请求，则浏览器会先发送OPTIONS预检请求，后端服务器在接收到OPTIONS请求后，
 会返回针对实际请求的要求，如果符合要求（例如该网址在白名单）的话，则可以继续发送实际请求，如果不符合的话就不会发送实际请求了。
-因此针对CORS跨域请求，一般需要在服务器上配置跨域白名单（后端会根据请求头信息的Referer参数）防止恶意请求。
+因此针对CORS跨域请求，一般需要在服务器上配置跨域白名单（后端会根据请求头信息的Orign参数）防止恶意请求。
+> 后端服务器的默认配置，例如nginx的默认配置，服务器默认是不被允许跨域的。所以跨域请求一般会被浏览器拦截，但并不意味着服务器不处理。
+需要在Nginx的配置文件中配置以下参数才能成功跨域：
+```
+location / {  
+    add_header Access-Control-Allow-Origin *;
+    add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS';
+    add_header Access-Control-Allow-Headers 'DNT,X-Mx-ReqToken,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization';
+
+    if ($request_method = 'OPTIONS') {
+        return 204;
+    }
+} 
+```
+> 跨域有两个步骤，valid_referers允许的域名
+> * 第一个步骤是请求部分，浏览器向服务器发送请求信息，这时候服务器一般情况下会处理该请求，一般用来防止CSRF，
+这个时候的方法要么只支持同源，要么通过valid_referers实现控制：
+```
+# nginx设置
+valid_referers none blocked server_names 127.0.0.1 192.168.64.149 *.A.com;
+if ($invalid_referer) {
+    return 403;
+}
+```
+因此防CSRF一般用referer，跨域一般用orign。
+> * 第二个步骤是响应部分，服务器向浏览器发送响应信息，这时候如果服务器不在响应头添加头信息，浏览器一般会拦截该跨域请求，一般用来解决跨域。
+
+因此，禁止跨域不一定能防止CSRF攻击，
 
 在允许访问的情况下，这个时候后端服务器会有`Access-Control-Allow-Credentials`参数确定这个请求是否要携带cookies。
 只有当允许携带的时候，并且前端发送设置`withCredentials`参数为true的时候，就有可能携带cookie了。
