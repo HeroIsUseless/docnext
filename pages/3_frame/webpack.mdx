@@ -1,10 +1,10 @@
 ## webpack编译的原理？
 首先，在不拆包的情况下，所有的代码都在一个js文件里。
 
-* 打包后的整体就是一个立即执行函数，函数参数就是modules，即引入的模块，最后执行一个__webpack_require__('index.js')
-* moduleId一般就是文件名，就直接执行这个模块里的代码然后缓存，最后文件变成对象return module.exports
-* 返回的对象跟CommonJS的返回差不多，export { a } 将会转化为 module.exports.a，Webpack 其实是通过 jsonp 的方式来实现模块的动态加载的。
-通过 script 引入的模块代码最终会挂载 window.webpackJsonp 上，这是一个对象数组。
+* 打包后的整体就是一个立即执行函数，函数参数就是modules，即引入的模块，最后执行一个`__webpack_require__('index.js')`
+* moduleId一般就是文件名，就直接执行这个模块里的代码然后缓存，最后文件变成对象`return module.exports`
+* 返回的对象跟CommonJS的返回差不多，`export { a }` 将会转化为 `module.exports.a`，Webpack 其实是通过 jsonp 的方式来实现模块的动态加载的。
+通过 script 引入的模块代码最终会挂载 `window.webpackJsonp` 上，这是一个对象数组。
 
 异步加载的话，最终转化成类似“
 ```
