@@ -64,42 +64,51 @@ promise.then(res => console.log(res)).then(res => console.log(res))
 ```
 ```
 // 一个全的
-const myPromise = new MyPromise((resolve, reject) => resolve(1));
-myPromise.then(res => console.log(res)).then(res => console.log(res))
-function MyPromise() {
-  this.status = 'pending';
-  this.res = undefined;
-  this.thenCbs = [];
-  this.catchCbs = [];
-  this.then = (cb) => {
-    return new MyPromise(resolve => {
-      const thenCb = () => {
-        const res = cb(this.res);
-        resolve(res);
-      };
-      this.thenCbs.push(cb);
-      if (this.status === 'resolved') {
-        cb(this.res);
-      }
-    });
-  }
-  this.catch = (cb) => {
-    this.catchCbs.push(cb);
-    if (this.status === 'rejected') {
-      cb(this.res);
+function MyPromise(fn) {
+    this.status = 'pending'
+    this.res = undefined
+    this.thenCbs = []
+    this.catchCbs = []
+    this.then = (cb) => {
+        return new MyPromise((resolve, reject) => {
+            const thenCb = () => {
+                const res = cb(this.res)
+                resolve(res)
+            }
+            this.thenCbs.push(thenCb)
+            if (this.status === 'resolved') {
+                thenCb()
+            }
+        })
     }
-  }
-  const resolve = (res) => {
-    this.status = 'resolved';
-    this.res = res;
-    this.thenCbs(cb => cb(this.res))
-  }
-  const reject = (res) => {
-    this.status = 'rejected'
-    this.res = res;
-    this.catchCbs(cb => cb(this.res))
-  }
+    this.catch = (cb) => {
+        return new MyPromise((resolve, reject) => {
+            const catchCb = () => {
+                const res = cb(this.res)
+                reject(res)
+            }
+            this.catchCbs.push(catchCb)
+            if (this.status === 'rejected') {
+                catchCb()
+            }
+        })
+    }
+    const resolve = (res) => {
+        this.status = 'resolved'
+        this.res = res
+        this.thenCbs.forEach(cb => cb(this.res))
+    }
+    const reject = (res) => {
+        this.status = 'rejected'
+        this.res = res
+        this.catchCbs.forEach(cb => cb(this.res))
+    }
+    fn(resolve, reject)
 }
+
+const myPromise = new MyPromise((resolve, reject) => resolve(1));
+myPromise.then(res => 2).then(res => console.log(res))
+
 ```
 ## 如何实现Promise.all/race？
 ```js
@@ -166,21 +175,25 @@ function defer() {
 因此需要通过调用函数来创建 Promise，这样就能延迟创建 Promise 了。
 ```js
 // 超简单版
-let promiseFuncs = []
-
-let count = 0
-function run () {
-  if (count < 3 && list.length) {
-    count+=1
-    get(list.shift()).then(() => {
-      count-=1 
-      run()
+function limitPromises(promiseFuncs, max) {
+    return new Promise((resolve, reject) => {
+        let finishCount = 0
+        const res = []
+        const run = () => {
+            const i = finishCount
+            promises[i]().then(res => {
+                res[i] = res
+                finishCount += 1;
+                if (finishCount >= promises) {
+                    resolve(res)
+                } else {
+                    run()
+                }
+            })
+        }
+        for (let i=0; i<max; i++) {
+            run()
+        }
     })
-  }
 }
-
-// 限定三个并发数量
-run()
-run()
-run()
 ```
