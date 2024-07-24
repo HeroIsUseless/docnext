@@ -1,18 +1,36 @@
 ## 如何实现new？
 ```js
-function myNew(Fun, ...args) {
-    let obj = {};
-    obj.__proto__ = Fun.prototype;
-    let res = Fun.apply(obj, args); // 最关键的一步
-    return (res instanceof Object ? res : obj);
+function myNew(fn, args) {
+    const obj = {}
+    obj.__proto__ = fn.prototype
+    const res = fn.apply(obj, args)
+    return res instanceof Object ? res : obj
 }
-let obj = myNew(One, "XiaoMing", "18");
-console.log("newObj:", obj);
+
+function Obj() {
+    this.a = 1
+}
+
+const o = myNew(Obj)
+console.log(o)
 ```
 ## 写一个模拟class继承的构造函数？
 ```js
-child.__proto__ === Child.prototype === Parent.prototype
-child.constructor === Child
+function Father() {
+    this.name = 'father'
+}
+Father.prototype.getName = function() {
+    console.log(this.name)
+}
+
+function Child() {
+    Father.call(this)
+    this.name = 'child'
+}
+Child.prototype = Father.prototype
+
+const child = new Child()
+console.log(child.getName())
 ```
 ## 如何实现多继承？
 ```js
