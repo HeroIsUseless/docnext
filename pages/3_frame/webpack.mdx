@@ -11,29 +11,31 @@
 __webpack_require__.e('utils')
   .then(__webpack_require__.bind(null, './src/templates/basic/utils.js'));
 ```
+> import()是JS的TS39提案，提出的一种动态加载模块的规范实现，其返回是一个 promise。当 Webpack 解析到该 import() 语法时，会自动进行代码分割。
 
-## 手写webpack
+> React.lazy()仅仅返回了一个 LazyComponent 对象，需要等待该对象resolved，在Suspense这里去展示不同信息。
+## 构建webpack项目
 ```
 npm init -y
 npm install webpack webpack-cli --save-dev
 
-  webpack-demo
-  |- package.json
-  |- package-lock.json
- |- index.html
- |- /src
-   |- index.js
+webpack-demo
+|- package.json
+|- package-lock.json
+|- index.html
+|- /src
+  |- index.js
+
 // src/index.js
 function component() {
-    const element = document.createElement('div');
-  
-    // 执行这一行需要引入 lodash（目前通过 script 脚本引入）
-    element.innerHTML = _.join(['Hello', 'webpack'], ' ');
-  
-    return element;
-  }
-  
-  document.body.appendChild(component());
+  const element = document.createElement('div');
+
+  // 执行这一行需要引入 lodash（目前通过 script 脚本引入）
+  element.innerHTML = _.join(['Hello', 'webpack'], ' ');
+
+  return element;
+}
+document.body.appendChild(component());
 // index.html
 <!DOCTYPE html>
 <html>
@@ -46,13 +48,12 @@ function component() {
     <script src="./src/index.js"></script>
   </body>
 </html>
-在此示例中，<script> 标签之间存在隐式依赖关系。如果依赖不存在，或者引入顺序错误，应用程序将无法正常运行。
-// 安装一个将被打包到生产环境 bundle 的包时，应该使用 npm install --save；
-// 而安装一个用于开发环境的包时（例如代码检查工具、测试库等），应该使用 npm install --save-dev。
-// 执行 npx webpack 会将脚本 src/index.js 作为 入口起点，也会生成 dist/main.js 作为 输出。
+在此示例中，<script> 标签之间存在隐式依赖关系（业务逻辑以来lodash）。如果依赖不存在，或者引入顺序错误，应用程序将无法正常运行。
+// 因此需要npm包，应该使用 npm install --save；而安装一个用于开发环境的包时（例如代码检查工具、测试库等），应该使用 npm install --save-dev。
+// 执行 npx webpack 会默认将脚本 src/index.js 作为入口起点，也会生成 dist/main.js 作为输出（都是可以设置的）。
 // webpack 不会更改代码中除 import 和 export 语句以外的部分。如果正在使用其它 ES2015 特性，请确保 webpack 的 loader 系统 中使用了像 Babel 一样的 转译器。
 // webpack.config.js 
-const path = require('path');
+const path = require('path'); // webpack运行在node上，path是内置的
 
 module.exports = {
   entry: './src/index.js',
@@ -80,6 +81,7 @@ module: {
     },
   ];
 }
+
 npm install webpack-dev-server --save-dev
 
 "dev": "webpack-dev-server"
@@ -107,10 +109,36 @@ webpack-dev-server 会使用当前的路径作为请求的资源路径 ,就是�
 ```
 
 ## Webpack构建流程简单说一下？
-webpack获取到配置后，根据配置中的 entry 找到入口文件，从入口文件出发，调用配置的 Loader 对模块进行转译，
+webpack获取到配置后，根据配置中的 entry 找到入口文件（每个入口点对应一个输出文件，每个键名将作为输出文件的名字前缀），
+生成多个文件的话，有什么作用呢，还需要HtmlWebpackPlugin
+```
+// entry/output同级
+plugins: [
+    new HtmlWebpackPlugin({
+        chunks: ['main'], // 可以通过chunks属性，来分别告诉实例对象
+        // 你只负责添加这个js文件就好，注意chunks是个数组。
+        filename:'index.html',
+        hash: true,
+        title: '你好，世界',
+        template: './src/index.html'
+    }),
+
+    new HtmlWebpackPlugin({
+        chunks:['main2'], // 这个名字，就是入口定义的名字
+        filename:'index2.html',
+        hash: true,
+        title: 'hello world',
+        template: './src/index2.html'
+    })
+]
+```
+从入口文件出发，调用配置的 Loader 对模块进行转译，
 再找出该模块依赖的模块，递归得到整个依赖树。
 最后对编译后的模块组合成 Chunk，把 Chunk 转换成文件，输出到文件系统。
+出口配置决定了Webpack打包后的文件输出位置以及文件命名规则，不是数组，一个对象就够了例如`filename:‘[name].bundle.js`这样写。
 
+> 意味着如果做多页面应用，用上面的方式搞，单页面的拆包，用import的方式搞。如果说我想给react项目拆组件，例如第二个tab的内容点击时
+> 才加载，用lazy/suspense即可。
 ## webpack到config文件主要包括什么参数？
 * mode，模式（例如development/production）
 * entry，入口（字符串或者字符串数组，表示多个入口）
