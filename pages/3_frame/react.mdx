@@ -303,3 +303,52 @@ React.StrictMode 不能马上检测到副作用，但是它可以通过故意调
 
 commit阶段：异步调度useEffect或者同步处理useLayoutEffect的effect。
 useEffect和useLayoutEffect的执行时机不一样，前者被异步调度，当页面渲染完成后再去执行，不会阻塞页面渲染。 后者是在commit阶段新的DOM准备完成，但还未渲染到屏幕之前，同步执行。一般是遇到闪烁的问题时使用，因为是同步的所以有性能问题。
+
+## zustand的原理是什么？能否写个伪代码？
+```
+const createStore = (createState) => {
+    let state;
+    const listeners = new Set();
+
+    const setState = (nextState) => {
+        state = nextState;
+        listeners.forEach((listener) => listener(state));
+    }
+
+    const getState = () => state;
+
+    const subscribe = (listener) => {
+        listeners.add(listener)
+        return () => listeners.delete(listener)
+    }
+    // createState是一个回调函数，返回默认值
+    state = createState(setState, getState)
+    return { setState, getState, subscribe }
+}
+
+function useStore(api, selector) {
+    const [, forceRender] = useState(0);
+    useEffect(() => {
+        api.subscribe((state, prevState) => {
+            const newObj = selector(state);
+            const oldobj = selector(prevState);
+
+            if (newObj !== oldobj) {
+                forceRender(Math.random());
+            }
+        })
+    }, []);
+    return selector(api.getState());
+}
+
+export const create = (createState) => {
+    // 确实返回了所有的api
+    const api = createStore(createState)
+    // bound相当于wrap，返回了监听，用的时候就会监听，每用一次，每次按selector返回，精妙
+    const useBoundStore = (selector) => useStore(api, selector)
+    // 能在非react环境下调用就要看这里了
+    Object.assign(useBoundStore, api);
+    // 那看来没啥问题
+    return useBoundStore
+}
+```
