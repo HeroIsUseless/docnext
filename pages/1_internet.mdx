@@ -16,11 +16,11 @@ script内的内容会调用callback函数，服务器的数据就在这callback�
 缺点是只能进行get请求，容易被csrf攻击（任何网页都能构造该jsonp，防御方法跟csrf相同），优点是兼容性好（就连IE也完美支持）。
 ```html
 <script>
-function callback(data) {...}
+function mycallback(data) {...}
 </script>
-<script src='https://xxx.com/getInfo?callback=callback'></script>
+<script src='https://xxx.com/getInfo?callback=mycallback'></script>
 <!-- 上面👆标签解析后会变成如下👇，其中data是后端传过来的数据 -->
-<script>callback(data)</script>
+<script>mycallback(data)</script>
 ```
 * 反向代理：nginx服务器的域名设置成为前端域名，nginx代理请求真正后端就不存在跨域问题了。
 ```nginx 
