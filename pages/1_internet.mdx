@@ -46,26 +46,27 @@ Access-Control-Allow-Credentials: true # 该字段可选。它的值是一个布
 Access-Control-Expose-Headers: FooBar # 如果想拿到相应头headers里的字段，就必须在Access-Control-Expose-Headers里面指定。这个例子指定，getResponseHeader('FooBar')可以返回FooBar字段的值。
 ...
 ```
-> * Origin 由三部分组成：`scheme://host:port`，这些内容会从请求 url 中提取，其他的部分会被丢弃掉。此外，Origin 的值也可能为 null。
+> * Origin 由三部分组成：`scheme://host:port`，这些内容会从请求 url 中提取，其他的部分会被丢弃掉。
 会在跨域请求时带上，服务端据此判断是否允许跨域，是 CORS 机制的重要一环。
-> * Referer是页面url路径，例如A页面跳到B页面会带上这个，用于确认请求的来源页面。例如防盗链。
+> * Referer是页面url路径，在A页面跳到B页面会带上这个，用于确认请求的来源页面。例如防盗链。
 > * Host 由两部分组成：host:port，Host 可以用于代理，当多个域名指向同一个 IP 时，Web Server 可以通过 Host 来识别并提供不同的服务。
 例如会被nginx的server.server_name处理。
 ## CSRF 攻击是什么？
 CSRF（Cross-site request forgery），跨站请求伪造，利用用户的登录态发起恶意请求，攻击原理：
 * 用户登录受信任网站A，并在浏览器本地的A域名下生成Cookie。
 * 在不登出A的情况下，访问危险网站B。
-* 危险网站B向网站A发送请求，利用A的Cookie实现冒充用户对网站A进行操作。
+* 危险网站B向网站A的服务器发送请求，利用A的Cookie实现冒充用户对网站A进行操作。
 
-为什么会有CSRF攻击呢？原因就在于，浏览器会依据加载的域名附带上对应域名cookie。
-例如A网站有一个重要操作，接口是`A.com/someapi`，恶意网站B的页面也请求A网站的这个重要接口，
+为什么会有CSRF攻击呢？原因就在于，浏览器会依据请求的域名附带上对应域名cookie。
+例如A网站有一个重要操作，接口是`A.com/some-api`，恶意网站B的页面也请求A网站的这个重要接口，
 该请求会被浏览器自动带上A.com域名下的cookie，从而完成CSRF攻击。
+CSRF的两个特点是通常发生在第三方域名，以及攻击者不能获取到Cookie等信息，只是使用，将cookie发送到目标网站。
 
-跨域cookie是有作用的，一个应用是实现广告跟踪，例如a.com里一个iframe引用了google.com的广告，
+解决办法就是CORS。
+
+> 另外，跨域cookie是有作用的，一个应用是实现广告跟踪，例如a.com里一个iframe引用了google.com的广告，
 那么google.com就会在google.com域名下设置广告跟踪cookie，当打开a.com时，google.com的广告就会自动加载，
 从而将该广告跟踪cookie上报到google.com，从而实现广告跟踪。
-
-CSRF的两个特点是通常发生在第三方域名，以及攻击者不能获取到Cookie等信息，只是使用。
 
 ## 如何实现安全的CORS，避免CSRF攻击呢？
 对于跨域的简单请求（例如JSONP）（AJAX 的跨域设计就是，只要表单可以发，AJAX 就可以直接发）来说，
