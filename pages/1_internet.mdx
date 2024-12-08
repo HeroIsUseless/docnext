@@ -26,7 +26,7 @@ function mycallback(data) {...}
 ```nginx 
 # nginx.config
 server {
-    server_name  前端域名 # 该代理服务器在前端域名服务器下
+    server_name  前端域名 # 该代理nginx需要在前端域名服务器下
     location / {
         proxy_pass 后端域名 # 后端服务器可以在任意域名服务器下
     }
@@ -38,17 +38,13 @@ server {
 浏览器一旦发现AJAX请求跨源，就会自动添加一些附加的头信息（Origin字段），有时还会多出一次附加的请求（预检），
 服务端返回头信息中需要返回`Access-Control-*`相关字段，这是需要后端配置的。
 ```
-<!-- 跨域请求头中，会多出下面字段（例如A前端请求B服务器）： -->
+<!-- 一个跨域请求例子，例如A前端请求B服务器： -->
 Origin: http://api.B.com
 <!-- 跨域响应头中，会多出下面字段： -->
 Access-Control-Allow-Origin: http://api.B.com # 该字段是必须的。它的值要么是请求时Origin字段的值，要么是一个*，表示接受任意域名的请求。
-Access-Control-Allow-Credentials: true # 该字段可选。它的值是一个布尔值，表示是否允许发送Cookie。默认情况下，Cookie不包括在CORS请求之中。
-# 另一方面，开发者必须在AJAX请求中打开withCredentials属性。xhr.withCredentials = true;
-# 需要注意的是，如果要发送Cookie，Access-Control-Allow-Origin就不能设为星号，必须指定明确的、与请求网页一致的域名。
-# 同时，Cookie依然遵循同源政策，只有用服务器域名设置的Cookie才会上传，其他域名的Cookie并不会上传。
-Access-Control-Expose-Headers: FooBar # 如果想拿到其他字段，就必须在Access-Control-Expose-Headers里面指定。
-# 上面的例子指定，getResponseHeader('FooBar')可以返回FooBar字段的值。
-Content-Type: text/html; charset=utf-8
+Access-Control-Allow-Credentials: true # 该字段可选。它的值是一个布尔值，表示是否允许发送Cookie。默认情况下，Cookie不包括在CORS请求之中。另一方面，开发者必须在AJAX请求中打开withCredentials属性。`xhr.withCredentials = true;`
+Access-Control-Expose-Headers: FooBar # 如果想拿到相应头headers里的字段，就必须在Access-Control-Expose-Headers里面指定。这个例子指定，getResponseHeader('FooBar')可以返回FooBar字段的值。
+...
 ```
 > * Origin 由三部分组成：`scheme://host:port`，这些内容会从请求 url 中提取，其他的部分会被丢弃掉。此外，Origin 的值也可能为 null。
 会在跨域请求时带上，服务端据此判断是否允许跨域，是 CORS 机制的重要一环。
