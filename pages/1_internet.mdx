@@ -12,7 +12,7 @@
 > 他们的关系是通过操作系统中的hosts文件，将localhost解析为127.0.0.1，但它们算跨域。
 
 跨源资源共享是用于在不同的源中获取资源的一种机制。解决跨域问题的方案：
-* jsonp（json padding，填充式的json）：Js跨域请求ajax数据是不可以的，但是js跨域请求js脚本是可以的（不然CDN之类的就没法用了）。
+* jsonp（json padding，填充式的json）：js跨域请求ajax数据是不可以的，但是js跨域请求js脚本是可以的（不然CDN之类的就没法用了）。
 `<src>、<link>、<img>`还有表单自带跨域属性，
 JSONP原理就是动态插入带有跨域url（url参数有一个callback）的script标签，请求完script后，
 script内的内容会调用callback函数，服务器的数据就在这callback的入参内。
@@ -22,8 +22,8 @@ script内的内容会调用callback函数，服务器的数据就在这callback�
 function mycallback(data) {...前端的业务逻辑...}
 </script>
 <script src='https://xxx.com/getInfo?callback=mycallback'></script>
-<!-- 上面👆标签解析后会变成如下👇，其中data是后端传过来的数据 -->
-<script>mycallback(data)</script>
+<!-- 上面👆标签解析后会变成如下👇，其中入参是后端传过来的数据 -->
+<script>mycallback({ name: 'xxx', id: 'yyy' })</script>
 ```
 * 反向代理：nginx服务器的域名设置成为前端域名，nginx代理请求真正后端就不存在跨域问题了。
 ```nginx 
