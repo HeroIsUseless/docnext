@@ -79,34 +79,24 @@ CSRF的两个特点是通常发生在第三方域名，以及攻击者不能获�
 
 解决办法就是CORS。
 
-> 另外，跨域cookie是有作用的，一个应用是实现广告跟踪，例如a.com里一个iframe引用了google.com的广告，
+> 另外提一嘴，跨域cookie是有作用的，一个应用是实现广告跟踪，例如a.com里一个iframe引用了google.com的广告，
 那么google.com就会在google.com域名下设置广告跟踪cookie，当打开a.com时，google.com的广告就会自动加载，
 从而将该广告跟踪cookie上报到google.com，从而实现广告跟踪。
 
 ## 如何实现安全的CORS，避免CSRF攻击呢？
-对于跨域的简单请求（例如JSONP）（AJAX 的跨域设计就是，只要表单可以发，AJAX 就可以直接发）来说，
+对于跨域的简单请求（例如JSONP）来说，
 是必然有CSRF风险的，因为简单请求只传输一次，这时候会带上cookie发送给后端，
-如果后端没有安全处理的话，就容易出问题，后端这时候可以根据请求头的origin或者referer参数拦截。
-在浏览器中，JS一般会被禁止修改referer参数，因此该参数可以被认为是安全的（Forbidden Header）。
+如果后端没有安全防护处理的话，就容易出问题，后端这时候可以根据请求头的origin/referer参数拦截。
+在浏览器中，JS一般会被禁止修改origin/referer参数，因此该参数可以被认为是安全的（Forbidden Header）。
 
 > script标签为什么能跨域？简单来说，算是一种妥协，在web早期大量使用该方式实现跨域，包括CDN，
 后面有了CORS后，安全性就高多了，就一般不再用script标签实现跨域了。
 
-如果跨域请求为非简单请求，则浏览器会先发送OPTIONS预检请求，后端服务器在接收到OPTIONS请求后，
-会返回针对实际请求的要求，如果符合要求（例如该网址在白名单）的话，则可以继续发送实际请求，如果不符合的话就不会发送实际请求了。
-因此针对CORS跨域请求，一般需要在服务器上配置跨域白名单（后端会根据请求头信息的Orign参数）防止恶意请求。
-> 后端服务器的默认配置，例如nginx的默认配置，服务器默认是不被允许跨域的。所以跨域请求一般会被浏览器拦截，但并不意味着服务器不处理。
-需要在Nginx的配置文件中配置以下参数才能成功跨域：
-```
-location / {  
-    add_header Access-Control-Allow-Origin *;
-    add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS';
-    add_header Access-Control-Allow-Headers 'DNT,X-Mx-ReqToken,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization';
-
-    if ($request_method = 'OPTIONS') {
-        return 204;
-    }
-} 
+如果跨域请求为非简单请求，则浏览器会先发送OPTIONS预检请求（此时不用带cookie），后端服务器在接收到OPTIONS请求后，
+会返回一些安全性验证数据，如果符合要求（例如该网址在白名单）的话，则可以继续发送实际请求，如果不符合的话就不会发送实际请求了。
+因此针对CORS跨域请求，一般需要在服务器上配置跨域白名单防止恶意请求。
+> 后端服务器的默认配置，例如nginx的默认配置，服务器一般默认是不被允许跨域的。
+所以跨域请求的响应信息一般会被浏览器拦截，但并不意味着服务器不处理请求信息（没有做安全防护的情况下）。
 ```
 > 跨域有两个步骤，valid_referers允许的域名
 > * 第一个步骤是请求部分，浏览器向服务器发送请求信息，这时候服务器一般情况下会处理该请求，一般用来防止CSRF，
