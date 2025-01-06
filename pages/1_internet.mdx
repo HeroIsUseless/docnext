@@ -119,19 +119,30 @@ if ($invalid_referer) {
 * 这个时候需要后端服务器设置`Access-Control-Allow-Credentials`参数为true确定这个请求是否要携带cookies。
 * 并且前端请求头设置`withCredentials`参数为true的时候，就有可能携带cookie发送到后端服务器了。
 
-但这时不同的浏览器还是不一定会携带cookie，例如此时FireFox会携带，但Chrome不会。
+但这时不同的浏览器还是不一定会携带cookie，例如此时FireFox会携带，但Chrome不会。因为cookie有第一方/第三方cookie之分，
+第一方cookie指的是同源（请求头的origin参数与cookie所在域相同），第三方cookie指的是跨域（请求头的origin参数与cookie所在域不同）。
+之前是只要满足CORS规则，必上传cookie，现在就不一样了。这种变化体现在浏览器将cookie的same-site:lax设置为默认属性。
 
-cookie的「不认来源，只看目的」规矩在2020年开始被打破，因为80版本chrome对三方cookie的限制加强了，
-还要去设置Cookie的SameSite属性，cookie的取用规则是去看请求的来源地和目的地，同源的就叫第一方cookie，例如用于用户登录的身份凭证；跨域的就叫第三方cookie。
-例如广告跟踪cookie，跨网站追踪用户记录。
-
-这种变化体现在浏览器将same-site:lax设置为默认属性。
-也就是说现在cookie的取用是「既看来源，又看目的」了，之前是只要满足CORS规则，必上传cookie，现在就不一样了。
-又加了一个规则，same-site是cookie的一个属性，它制约第三方cookie的携带，其值有三个none、strict、lax。
-
+same-site是cookie的一个属性，它制约第三方cookie的携带，其值有三个none、strict、lax。
+* none代表完全不做限制，即之前「不认来源，只看目的」的cookie取用原则。
 * strict代表完全禁止三方cookie，但同属一个主体运营的网站不得不重复登录。
 * Lax则是折中，在某些情况下会限制三方cookie的携带，某些情况又放行，这也是浏览器的默认值（包括safari）。
-* none代表完全不做限制，即之前「不认来源，只看目的」的cookie取用原则。
+
+SameSite Lax 仅在顶部窗口导航（例如`<a>`标签、window.open()）中的GET请求中发送 cookie 。
+可以这么理解，浏览器将same-site的默认值从none调整到了lax（safari直接为strict），其实这个参数主要用于cookie的默认限制。
+这样，假如后端忘记（或者错误）配置跨域参数，导致服务器暴露在csrf攻击下，但是由于浏览器改了cookie的默认same-site,
+cookie默认不上传，这样就极大增加了安全性，毕竟服务器配置跨域错误不算少数。
+
+为什么cookies也不受同源策略限制？主要也是历史原因，因为 cookies 在同源策略之前的广泛使用了，直接限制会有兼容性问题，
+所以后来有了更灵活的 Content-Security-Policy，网站可以自己定制需要的策略。
+正常情况下，同一个一级域名下的两个二级域名也不能交互使用Cookie，因为二者的域名并不严格相同。
+Cookie的作用域仅仅由domain和path决定，与协议和端口无关。
+但Cookie 机制并未遵循严格的同源策略，允许一个子域可以设置或获取其父域的 Cookie。
+只要协议相同，并且有效顶级域名+二级域名相同即可，不用考虑端口号（可以理解为跨站，跨站一定跨域，跨域不一定跨站）。
+
+如果连域名都不同该怎么办呢？cookie还有一个属性same-party可以把例如.taobao.com、.tmall.com和.alimama.com三个站合起来，
+当作一个站，它们设置的cookie在这个集合内部不会被当作第三方cookie对待。
+需要注意的是，使用same-party属性时，必须要同时使用https(secure属性)，并且same-site不能是strict。
 
 cookie有以下几个属性：
 * domain/path：指定cookie使用时，可以被携带到哪些域名或合法域名的哪些URI。
@@ -139,39 +150,15 @@ cookie有以下几个属性：
 * secure：只能在HTTPS环境中被下发以及携带
 * http-only：禁止客户端脚本通过 document.cookie 获取 cookie，避免 XSS 攻击
 
-SameSite Lax 仅在顶部窗口导航（例如`<a>`标签、window.open()）中的GET请求中发送 cookie 。
-可以这么理解，浏览器将same-site的默认值从none调整到了lax（safari直接为strict），
-其实这个参数主要用于cookie的默认限制，
-这样，假如后端忘记（或者错误）配置跨域参数，导致服务器暴露在csrf攻击下，但是由于浏览器改了cookie的默认same-site,
-cookie默认不上传，这样就极大增加了安全性，毕竟服务器配置跨域错误不算少数。
-
-但Cookie 机制并未遵循严格的同源策略，允许一个子域可以设置或获取其父域的 Cookie。
-只要协议相同，并且有效顶级域名+二级域名相同即可，不用考虑端口号（可以理解为跨站，跨站一定跨域，跨域不一定跨站）。
-
-> 为什么cookies也不受同源策略限制？主要也是历史原因，因为 cookies 在同源策略之前的广泛使用了，直接限制会有兼容性问题，
-所以后来有了更灵活的 Content-Security-Policy，网站可以自己定制需要的策略。
-正常情况下，同一个一级域名下的两个二级域名也不能交互使用Cookie，因为二者的域名并不严格相同。
-Cookie的作用域仅仅由domain和path决定，与协议和端口无关。
-
-如果连域名都不同该怎么办呢？cookie还有一个属性same-party可以把例如.taobao.com、.tmall.com和.alimama.com三个站合起来，
-当作一个站，它们设置的cookie在这个集合内部不会被当作第三方cookie对待。
-需要注意的是，使用same-party属性时，必须要同时使用https(secure属性)，并且same-site不能是strict。
-
-总结：一般而言，普通的业务需求，如果没有跨域需求，或者跨域的话不用cookie，
-就直接全部禁止跨域或者跨域禁止携带cookie就行了，例如设置Cookie Samesite属性为Strict。
-
-如果真的需要跨域且需要携带cookie，那么首先，不用简单请求，
-然后，设定好服务器的白名单，确定跨域的域名有几个，其他的禁止，就可以了。
-白名单可以是服务器的referer白名单配置，或者cookie的same-party属性配置。
-
-如果服务器不太好配置跨域白名单（例如前端可能由其他人提供），而且需要cookie能力，可以有以下方法
-（大致就是关键信息不能存在cookie）：
-
+总结：如何防止scrf攻击？
+* 一般而言，普通的业务需求，如果没有跨域需求，就直接全部禁止跨域就行了。
+* 设定好服务器的白名单，确定跨域的域名有几个，其他的禁止，就可以了。
+白名单可以是服务器的referer白名单配置，对于cookie来说可由same-party属性配置。
 * 可以在服务器生成一个token，存在服务器session里，下发在前端的dom中。
-请求的时候携带在请求参数里，这样第三方恶意网站就获取不到这个token了。
-
-* 或者使用双重Cookie，再加一个‘scrfcookie’，发送时，传到参数上，
-由于第三方恶意网站是获取不到cookie的内容的，因此可以防CSRF攻击。
+请求的时候携带在请求参数里，这样第三方恶意网站就获取不到这个token了。这样做的好处是不用设置服务器的白名单。
+因为该服务器有可能对任意源暴露api接口，比如说云函数之类的。
+* 或者使用双重Cookie，再加一个‘scrfcookie’，发送时，传到url的参数上，
+由于第三方恶意网站是获取不到cookie的内容的，因此无法设置url参数的具体值，所以能防CSRF攻击。
 
 ## XSS 攻击是什么？
 * Cross Site Script，跨站脚本攻击。是指攻击者在网站上注入恶意script代码，
