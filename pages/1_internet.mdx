@@ -19,11 +19,23 @@ script内的内容会调用callback函数，服务器的数据就在这callback�
 缺点是只能进行get请求，容易被csrf攻击（任何网页都能构造该jsonp，防御方法跟csrf相同），优点是兼容性好（就连IE也完美支持）。
 ```html
 <script>
-function mycallback(data) {...前端的业务逻辑...}
-</script>
-<script src='https://xxx.com/getInfo?callback=mycallback'></script>
-<!-- 上面👆标签解析后会变成如下👇，其中入参是后端传过来的数据 -->
-<script>mycallback({ name: 'xxx', id: 'yyy' })</script>
+// 定义回调函数
+function handleResponse(data) {
+    console.log('Received data:', data);
+}
+
+// 动态创建<script>标签
+function fetchData(url, callbackName) {
+    const script = document.createElement('script');
+    script.src = `${url}?callback=${callbackName}`;
+    document.body.appendChild(script);
+}
+
+// 发送请求
+fetchData('https://example.com/data', 'handleResponse');
+
+// 在document append这个script标签后，浏览器会立即解析这个script标签并执行，
+// 最后会返回类似于 handleResponse({name: 'xxx', id: 'yyy'}); 并立即执行
 ```
 * 反向代理：nginx服务器的域名设置成为前端域名，nginx代理请求真正后端就不存在跨域问题了。
 ```nginx 
