@@ -37,7 +37,8 @@ fetchData('https://example.com/data', 'handleResponse');
 // 在document append这个script标签后，浏览器会立即解析这个script标签并执行，
 // 最后会返回类似于 handleResponse({name: 'xxx', id: 'yyy'}); 并立即执行
 ```
-* 反向代理：nginx服务器的域名设置成为前端域名，nginx代理请求真正后端就不存在跨域问题了。
+* 反向代理：当前域的前端页面请求当前域的服务器，然后由当前域的服务器请求其他域的服务器，服务器与服务器之间的请求不存在跨域。
+例如nginx可以设置proxy_pass来进行反向代理。
 ```nginx 
 # nginx.config
 server {
