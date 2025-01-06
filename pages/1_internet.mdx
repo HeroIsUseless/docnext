@@ -61,10 +61,10 @@ Access-Control-Allow-Credentials: true # 该字段可选。它的值是一个布
 Access-Control-Expose-Headers: FooBar # 如果想拿到响应头headers里的字段，就必须在Access-Control-Expose-Headers里面指定。这个例子指定可以返回FooBar字段的值。
 ...
 ```
-> * Origin 由三部分组成：`scheme://host:port`，这些内容会从请求 url 中提取，其他的部分会被丢弃掉。
-会在跨域请求时带上，服务端据此判断是否允许跨域，是 CORS 机制的重要一环。
-> * Referer是页面url路径，在A页面跳到B页面会带上这个，用于确认请求的来源页面。例如防盗链。
-> * Host 由两部分组成：host:port，Host 可以用于代理，当多个域名指向同一个 IP 时，Web Server 可以通过 Host 来识别并提供不同的服务。
+> * Origin 由三部分组成：`scheme://host:port`，这些内容是浏览器从当前前端页面的 url 中提取，其他的部分会被丢弃掉，开发者无法更改Origin字段。
+Origin会在跨域请求时带上，服务端据此判断是否允许该前端页面跨域请求本服务器，是 CORS 机制的重要一环。
+> * Referer是页面url路径，在A页面跳到B页面时浏览器会自动添加该请求头参数，用于确认请求的来源页面。例如来源页面统计，防盗链等。
+> * Host 由两部分组成：host:port，Host 可以用于代理，当多个域名指向同一个 IP 时，后端服务器可以通过 Host 来识别并提供不同的服务。
 例如会被nginx的server.server_name处理。
 ## CSRF 攻击是什么？
 CSRF（Cross-site request forgery），跨站请求伪造，利用用户的登录态发起恶意请求，攻击原理：
