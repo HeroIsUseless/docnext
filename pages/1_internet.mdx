@@ -18,7 +18,6 @@ JSONP原理就是动态插入带有跨域url（url参数有一个callback）的s
 script内的内容会调用callback函数，服务器的数据就在这callback的入参内。
 缺点是只能进行get请求，容易被csrf攻击（任何网页都能构造该jsonp，防御方法跟csrf相同），优点是兼容性好（就连IE也完美支持）。
 ```html
-<script>
 // 定义回调函数
 function handleResponse(data) {
     console.log('Received data:', data);
@@ -49,17 +48,17 @@ server {
 }
 ```
 > 前端开发服务器也可以如此设置以避免跨域问题。
-* cors：通过设置响应头信息，允许跨域请求。CORS与JSONP的使用目的相同，但是比JSONP更强大。
+* cors：一种现代的跨域方法，通过设置响应头信息，允许跨域请求。CORS与JSONP的使用目的相同，但是比JSONP更强大。
 支持所有类型的HTTP请求，而JSONP只支持GET请求。
 浏览器一旦发现AJAX请求跨源，就会自动添加一些附加的头信息（例如Origin字段），有时还会多出一次附加的请求（预检，比如说post请求会有一个预检请求）。
 对于服务器来说，服务端返回响应头信息中需要返回`Access-Control-*`相关字段，这是需要后端配置的，如果响应头中没有这些信息，浏览器会拒收。
 ```
-<!-- 一个跨域请求例子，例如A前端请求B服务器： -->
+<!-- 一个跨域请求头，会有Origin字段，例如A前端请求B服务器： -->
 Origin: http://api.B.com
 <!-- 跨域响应头中，会多出下面字段： -->
-Access-Control-Allow-Origin: http://api.B.com # 该字段是必须的。它的值要么是请求时Origin字段的值，要么是一个*，表示接受任意域名的请求。
-Access-Control-Allow-Credentials: true # 该字段可选。它的值是一个布尔值，表示是否允许发送Cookie。默认情况下，Cookie不包括在CORS请求之中。另一方面，开发者必须在AJAX请求中打开withCredentials属性。`xhr.withCredentials = true;`
-Access-Control-Expose-Headers: FooBar # 如果想拿到相应头headers里的字段，就必须在Access-Control-Expose-Headers里面指定。这个例子指定，getResponseHeader('FooBar')可以返回FooBar字段的值。
+Access-Control-Allow-Origin: http://api.B.com # 该字段是必须的。它的值是请求时Origin字段的值，或者是一个*，表示接受任意域名的请求。
+Access-Control-Allow-Credentials: true # 该字段可选。它的值是一个布尔值，表示是否允许发送Cookie。默认情况下，Cookie不包括在CORS请求之中。
+Access-Control-Expose-Headers: FooBar # 如果想拿到响应头headers里的字段，就必须在Access-Control-Expose-Headers里面指定。这个例子指定可以返回FooBar字段的值。
 ...
 ```
 > * Origin 由三部分组成：`scheme://host:port`，这些内容会从请求 url 中提取，其他的部分会被丢弃掉。
