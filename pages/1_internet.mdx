@@ -115,8 +115,10 @@ if ($invalid_referer) {
 
 因此，跨域不成功不一定代表CSRF攻击不成功。
 
-在允许访问的情况下，这个时候后端服务器会有`Access-Control-Allow-Credentials`参数确定这个请求是否要携带cookies。
-只有当允许携带的时候，并且前端请求头设置`withCredentials`参数为true的时候，就有可能携带cookie了。
+在允许访问的情况下，
+* 这个时候需要后端服务器设置`Access-Control-Allow-Credentials`参数为true确定这个请求是否要携带cookies。
+* 并且前端请求头设置`withCredentials`参数为true的时候，就有可能携带cookie发送到后端服务器了。
+
 但这时不同的浏览器还是不一定会携带cookie，例如此时FireFox会携带，但Chrome不会。
 
 cookie的「不认来源，只看目的」规矩在2020年开始被打破，因为80版本chrome对三方cookie的限制加强了，
