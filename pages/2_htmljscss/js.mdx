@@ -26,17 +26,19 @@
 算是最简单的继承方式。但问题在于 1： 所有子类对象共享一个父类对象；2： 子类新实例无法向父类构造函数传参。
 ```js
 function Child() {
-  this.name = 'Child';
+  this.name = 'Mike';
 }
 Child.prototype = new Parent();
 Child.prototype.constructor = Child;
+const child = new Child();
 ```
 * 构造函数内继承(经典继承)，在子构造函数内调用父构造函数的call函数绑定子对象并初始化，解决了原型链继承共用父对象的问题。
-但是这样就完全没有用到原型，因此无法继承父类原型链上的属性。父类的方法也不会复用。
+但问题在于完全没有用到原型，父类的方法不会复用不过这是小问题。
 ```js
 function Child(name) {
   Parent.call(this, name);
 }
+const child = new Child('Mike');
 ```
 * 组合继承（常用），组合原型链继承和构造函数内继承合在一起。
 父类的方法需要写到原型链上，然后子构造函数内调用父构造函数的call函数绑定子对象并初始化。
