@@ -151,10 +151,10 @@ Promise 有三种状态：Pending（进行中）、Resolved（已解决，又称
 它通过 then 和 catch 方法来处理异步操作的结果，一旦状态改变，Promise 的状态就不会再变。
 与传统的回调函数相比，Promise 避免了回调地狱的问题。
 * promise的回调函数是同步的，then是异步的，then()方法会return一个新的promise。
-* 在新建promise对象的回调函数里再定义一个promise对象，内部的promise的resolve/then永远先执行。resolve() 必须等到其内部全部的异步 resolve() 执行完毕后才能够执行。
-* async函数行为很简单，就是看函数的返回值是否为Promise，如果不是Promise，则用resolve转成Promise（并且是resolved状态）。
-* 但是一旦有await的话，就会变成pending状态，已经试验过了，也就是说下面仍然是promise，但是是pending状态。
-* async语法糖，await上面是同步的，await下面可以看作被包裹在then中，有多少await包裹几次。await等待的这个函数也是同步的，例如await promise(cb)，这个cb是同步的。
+* promise在resolve后，resolve后的代码也会执行，并且先于then函数执行，因为这算同步代码。
+* 在新建promise对象的回调函数里再定义一个promise对象，内部的promise的resolve/then永远先执行。resolve() 必须等到其内部全部的.then()执行完毕后才能够执行。
+* async函数行为很简单，就是看函数的返回值是否为Promise，如果不是Promise，则用resolve转成Promise（并且是resolved状态）。但是一旦有await的话，就会变成pending状态。
+* async语法糖，await上面可以看作是同步的，await下面可以看作被包裹在func().then中，有多少await包裹几次。
 * 如果await的promise没有resolve，那么将卡住，不再向下执行。
 
 ## 什么是事件循环机制？
