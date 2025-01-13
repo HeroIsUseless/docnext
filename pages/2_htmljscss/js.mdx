@@ -44,13 +44,14 @@ const child = new Child('Mike');
 父类的方法需要写到原型链上，然后子构造函数内调用父构造函数的call函数绑定子对象并初始化。
 然后将子类的原型指向父类原型。
 这样就能同时解决了原型链继承和构造函数继承的问题。
-但每次都会调用两遍父类构造函数，子类原型上也有一份多余的父类实例属性。
+但子类原型上会有一份多余的父类实例属性。
 ```js
 function Child(name) {
   Parent.call(this, name);
 }
 Child.prototype = new Parent();
 Child.prototype.constructor = Child;
+const child = new Child();
 ```
 * 原型式继承，每次构造时都拷贝一份原型对象，完全等价于Object.create，不知道为什么要分这么细。
 跟原型链继承几乎没什么差别，缺点也一样，除了每次定义一个子对象都要指定一个父对象。
@@ -74,7 +75,9 @@ function newChild(parent) {
 }
 ```
 * 寄生组合式继承，原型式->寄生式->寄生组合式是一个循序渐进的过程。
-通过借用构造函数来继承属性, 在原型上添加共用的方法, 通过寄生式实现继承.
+通过借用构造函数来继承属性, 在原型上添加共用的方法, 
+也就是说方法放到原型上，属性不放到原型上，最完美的继承方式。
+ES6里Class通过extends关键字实现继承，跟本方式基本类似。
 ```js
 function Child(name){
     Parent.call(this, name);
@@ -88,7 +91,6 @@ Child.prototype.constructor = Child;
 // 由于constructor属性是可以变更的，所以未必真的指向对象的构造函数，只是一个提示。
 // The constructor property does not cause any particular effects in your program
 ```
-> ES6里Class可以通过extends关键字实现继承，跟寄生组合继承的方式基本类似
 
 ## 讲一讲js的this指针？
 this表示当前上下文，this是在运行时确定的，而不是在定义时确定的
