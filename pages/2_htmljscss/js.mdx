@@ -53,7 +53,7 @@ Child.prototype = new Parent();
 Child.prototype.constructor = Child;
 const child = new Child();
 ```
-* 原型式继承，每次构造时都拷贝一份原型对象，完全等价于Object.create，不知道为什么要分这么细。
+* 拷贝式继承，每次构造时都拷贝一份原型对象，完全等价于Object.create。
 跟原型链继承几乎没什么差别，缺点也一样，除了每次定义一个子对象都要指定一个父对象。
 ```js
 function newChild(parent) {
@@ -63,18 +63,7 @@ function newChild(parent) {
     return new Child()
 }
 ```
-* 寄生式继承，在原型式继承的基础上，在子对象上添加一些方法。
-缺点跟原型式继承一样。
-```js 
-function newChild(parent) {
-    function Child() {...}
-    Child.prototype = parent
-    let child = new Child()
-    child.say = function() {...}
-    return child
-}
-```
-* 寄生组合式继承，原型式->寄生式->寄生组合式是一个循序渐进的过程。
+* 拷贝组合式继承，组合式+拷贝式->拷贝组合式是一个循序渐进的过程。
 通过借用构造函数来继承属性, 在原型上添加共用的方法, 
 也就是说方法放到原型上，属性不放到原型上，最完美的继承方式。
 ES6里Class通过extends关键字实现继承，跟本方式基本类似。
