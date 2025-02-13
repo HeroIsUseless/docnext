@@ -11,7 +11,7 @@
 * bind相对call而言，仅绑定新对象并返回该函数，而不立即执行。
 
 ## 说一下原型和原型链？
-原型是JavaScript对象的继承机制。JS所有对象都有一个私有属性proto指向另一个名为原型的对象，
+原型是JS对象的继承机制。JS所有对象都有一个属性proto指向一个名为原型的对象，
 这个对象就是创建该实例的构造函数内的原型属性prototype。
 
 原型对象也有一个自己的原型，这样就构成了原型链，层层向上直到一个对象的原型为 null。
@@ -22,13 +22,13 @@
 
 ## JS有多少种继承方式？
 
-* 原型链继承(最基本继承)，在构造函数外将子构造函数的原型属性prototype指向父类对象实例实现继承。
-算是最简单的继承方式。但问题在于 1： 所有子类对象共享一个父类对象；2： 子类新实例无法向父类构造函数传参。
+* 原型链继承(最基本继承)，在构造函数外将子构造函数的原型属性prototype指向父类对象实例或者父类构造函数的prototype实现继承。
+算是最简单的继承方式。但最大的问题在于子类新实例无法向父类构造函数传参，其次所有子类对象共享一个父类对象实例或者父类的prototype。
 ```js
 function Child() {
   this.name = 'Mike';
 }
-Child.prototype = new Parent();
+Child.prototype = new Parent(); // 或者Parent.prototype，当然，父类构造函数内构造的属性就没有了。
 Child.prototype.constructor = Child;
 const child = new Child();
 ```
@@ -41,44 +41,18 @@ function Child(name) {
 const child = new Child('Mike');
 ```
 * 组合继承（常用），组合原型链继承和构造函数内继承合在一起。
-父类的方法需要写到原型链上，然后子构造函数内调用父构造函数的call函数绑定子对象并初始化。
-然后将子类的原型指向父类原型。
-这样就能同时解决了原型链继承和构造函数继承的问题。
-但子类原型上会有一份多余的父类实例属性。
-```js
-function Child(name) {
-  Parent.call(this, name);
-}
-Child.prototype = new Parent();
-Child.prototype.constructor = Child;
-const child = new Child();
-```
-* 拷贝式继承，每次构造时都拷贝一份原型对象，完全等价于Object.create。
-跟原型链继承几乎没什么差别，缺点也一样，除了每次定义一个子对象都要指定一个父对象。
-```js
-function newChild(parent) {
-    function Child() {...}
-    Child.prototype = parent
-    Child.prototype.constructor = Child
-    return new Child()
-}
-```
-* 拷贝组合式继承，组合式+拷贝式->拷贝组合式是一个循序渐进的过程。
-通过借用构造函数来继承属性, 在原型上添加共用的方法, 
-也就是说方法放到原型上，属性不放到原型上，最完美的继承方式。
+父类的方法需要写到原型链上，然后将子类的原型指向父类原型的一个拷贝（这样子类向prototype上添加方法时不会影响到父类）。
+然后子构造函数内调用父构造函数的call函数绑定子对象并初始化。
+这样就能同时解决了原型链继承和构造函数继承的问题。最完美的继承方式。
 ES6里Class通过extends关键字实现继承，跟本方式基本类似。
 ```js
 function Child(name){
     Parent.call(this, name);
 }
-Child.prototype = Object.create(Parent.prototype); // 防止Child原型修改会影响到父原型
-// Object.create()会造成的一个问题：Bar.prototype.constructor会改变，为什么会改变？
-// 引用你不知道的JavaScript上中的一句话如果你创建了一个新对象并替换了函数默认的.prototype 对象引用，
-// 那么新对象并不会自动获.constructor 属性。
-Child.prototype.constructor = Child;
-// constructor其实没有什么用处，只是JavaScript语言设计的历史遗留物。
-// 由于constructor属性是可以变更的，所以未必真的指向对象的构造函数，只是一个提示。
-// The constructor property does not cause any particular effects in your program
+Child.prototype = Object.create(Parent.prototype); // 防止Child原型添加方法时会影响到父原型
+Child.prototype.constructor = Child; // 把constructor改回Child，constructor其实没有什么用处，只是JavaScript语言设计的历史遗留物。
+// 由于constructor属性是可以变更的，所以未必真的指向对象的构造函数，只是一个提示。一般不会对你的程序产生什么影响。
+const child = new Child('Mike');
 ```
 
 ## 讲一讲js的this指针？
