@@ -103,6 +103,77 @@ float 属性早期用于图文混排, 实现文字环绕的效果。
 <div style={{float: 'right', width: '100px', height: '90px', background: 'rgba(0, 0,123, 0.5)'}}>div6(f)</div>
 </div>
 
+## 常见选择器？
+* 星号`*`定义所有元素，建议绝对不要在最终的产品代码中使用。因为会给浏览器增加大量不必要的负荷。
+* 星形`*`也可以用于子元素选择器，这段代码会定义`#container div`所有子元素的样式。
+```
+#container * {
+ border: 1px solid black;
+}
+```
+* X Y 后代选择器。假如说你只想选择无序列表里的链接，而不是所有的链接，这种情况下你就应该使用后代选择器。
+```
+li a {
+text-decoration: none;
+}
+```
+* X + Y 邻近元素选择器，只会选中紧接在另一个元素后的元素。只有每个ul后面的第一个段落是红色的。
+```
+ul + p {
+ color: red;
+}
+```
+* X > Y 只会选中直接后代。X Y会选中所有子孙后代。
+```
+div#container > ul {
+    border: 1px solid black;
+}
+```
+* X ~ Y 兄弟节点，只要在ul后的p兄弟元素都会被选中。
+```
+ul ~ p {
+ color: red;
+}
+```
+* X[title] 带有title属性的链接标签才会被匹配。没有title属性的标签不会受到影响。
+```
+a[title] {
+ color: green;
+}
+```
+* X[href="foo"] 定义了所以指向http://net.tutsplus.com的链接都是nettuts品牌的绿色。其他的链接不受影响。
+```
+a[href="http://net.tutsplus.com"] {
+color: #1f6053; /* nettuts green */
+}
+```
+* X:after 伪类before和after属于高级用法。几乎每一天都有人找到高效而有创意的新用法。这两个伪类可以在元素前面和后面添加内容。
+> 根据CSS3选择器规范，语法上你应该使用双冒号来::来指定伪类。然而，为了兼容多数浏览器，单冒号也被承认。实际上，在目前的情况下，使用单冒号的选择是明智的。
+* X:hover 用户交互伪类
+* X:not(selector) 否定伪类非常有用。比如，我希望选中所有的div元素，除了一个id为container的div。
+```
+div:not(#container) {
+ color: blue;
+}
+```
+* X::pseudoElement 我们可以使用伪元素（用::表示）来定义某些片段元素，比如第一行或第一个字母。要记住的是这只能用于块状（block）元素。
+```
+p::first-line {
+ font-weight: bold;
+ font-size: 1.2em;
+}
+```
+* X:nth-child(n) nth-child指序列里的第n个元素，从1数起。如果你想匹配列表里的第二个元素，可以使用li:nth-child(2)。
+我们甚至可以使用这种方法来选择一系列的子元素。比如li:nth-child(4n)可以选择排在4的倍数的元素。
+nth-last-child这个技巧跟上面的一样，但是从集合的最后一个数起。
+```
+li:nth-child(3) {
+ color: red;
+}
+```
+* X:first-child 可以用于选中母元素的第一个子元素，常常用于去掉第一个或最后一个元素的边框。last-child是first-child的反面，可以匹配最后一个子元素。
+
+
 ## 清除浮动的方法？
 在文档流中，父元素的高度默认是由子元素撑开的。当父元素如果不设置高度，而且父元素内所有的子元素都设置了浮动，没有了子元素来撑起父元素的高度，
 父元素的高度将会是0，引起高度坍塌。导致页面布局混乱。

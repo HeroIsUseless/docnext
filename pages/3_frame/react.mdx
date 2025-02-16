@@ -14,7 +14,7 @@
 ## react的diff算法是什么？
 React 的 Diff 算法是 React 核心机制之一，用于高效地比较新旧虚拟 DOM（Virtual DOM）之间的差异，并将这些差异应用到真实 DOM 中。
 Diff 算法的目标是最小化 DOM 操作的开销，从而提升应用的性能。React 的 Diff 算法主要分为三个部分：元素类型比较、属性比较和子节点比较。
-* 元素类型比较：React 首先比较新旧虚拟 DOM 的元素类型（如 <div>、<span> 等）：如果类型不同（如从 <div> 变为 <span>），React 会直接替换整个 DOM 节点。
+* 元素类型比较：React 首先比较新旧虚拟 DOM 的元素类型（如 `<div>、<span>` 等）：如果类型不同（如从 `<div>` 变为 `<span>`），React 会直接替换整个 DOM 节点。
 如果类型相同，React 会进入下一步，比较属性。
 * 属性比较：如果元素类型相同，React 会比较新旧虚拟 DOM 的属性（如 className、style ）：如果属性发生变化，React 会更新真实 DOM 的对应属性。
 * 子节点比较：React 使用key属性来比较子节点的变化，如果 key 相同，React 会认为是同一个元素，只需更新它的属性或子元素。
