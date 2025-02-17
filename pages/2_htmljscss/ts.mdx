@@ -12,6 +12,38 @@ type PersonKeys = keyof Person // 'name' | 'age'
 ```
 * in 用于对联合类型进行迭代
 ```
-{[P in Genders]: string}
+{[P in PersonKeys]: string}
 ```
 * readonly 不可以对象属性重新赋值
+## 手写Partial
+```
+type MyPartial<T> = {
+    [P in keyof T]?: T[P];
+}
+```
+## 手写Pick
+```
+type MyPick<T, K extends keyof T> = {
+    [P in K]: T[P];
+};
+```
+## 条件类型
+```
+T extends U ? X : Y
+type IsNumber<T> = [T] extends [number] ? boolean : string;
+```
+* 分配性条件类型: 当 T 是一个联合类型（如 A | B | C）时，TypeScript 会将 T 分配到联合类型的每一个成员上，分别进行条件判断。
+* 非分配性条件类型: 如果希望避免分配性行为，可以使用 [] 包裹 T，使其成为一个单一的类型，而不是联合类型。
+## 手写Exclude 用于从类型 T 中排除掉那些可以分配给类型 U 的部分。
+```
+type Exclude<T, U> = T extends U ? never : T;
+type A = "a" | "b" | "c";
+type B = "a" | "b";
+type Result = MyExclude<A, B>; // "c"
+```
+## 手写Omit
+```
+type MyOmit<T, K extends keyof T> = {
+    [P in Exclude<keyof T, K]: T[P];
+}
+```
