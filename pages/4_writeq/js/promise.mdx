@@ -5,25 +5,29 @@
 function MyPromise(fn) {
     this.status = 'pending';
     this.res = undefined;
-    this.thenCb;
-    this.catchCb;
+    this.thenCbs = [];
+    this.catchCbs = [];
     this.then = (cb) => {
-        this.thenCb = cb;
-        this.status == 'resolved' && this.thenCb(this.res);
+        this.thenCbs.push(cb);
+        if (this.status == 'resolved') {
+          this.thenCbs.forEach(thenCb => thenCb(this.res));
+        }
     }
     this.catch = (cb) => {
-        this.catchCb = cb;
-        this.status == 'rejected' && this.catchCb(this.res);
+        this.catchCbs.push(cb);
+        if (this.status == 'rejected') {
+          this.catchCbs.forEach(catchCb => catchCb(this.res));
+        }
     }
     const resolve = (res) => {
         this.status = 'resolved';
         this.res = res;
-        this.thenCb && this.thenCb(this.res);
+        this.thenCbs.forEach(thenCb => thenCb(this.res));
     }
     const reject = (res) => {
         this.status = 'rejected';
         this.res = res;
-        this.catchCb && this.catchCb(this.res);
+        this.catchCbs.forEach(catchCb => catchCb(this.res));
     }
     fn(resolve, reject)
 }
@@ -85,7 +89,7 @@ function MyPromise(fn) {
         return new MyPromise((resolve, reject) => {
             const catchCb = () => {
                 const res = cb(this.res)
-                reject(res)
+                resolve(res) // 可以理解为函数的执行意味着错误的处理，错误处理了就圆满了，后面就没错误了
             }
             this.catchCbs.push(catchCb)
             if (this.status === 'rejected') {
