@@ -359,3 +359,11 @@ TCP粘包是指发送方发送的若干包数据到接收方接收时粘成一�
 * 对于发送方引起的粘包现象，用户可通过编程设置来避免，TCP提供了强制数据立即传送的操作指令push，
 TCP软件收到该操作指令后，就立即将本段数据发送出去，而不必等待发送缓冲区满（否则会一直等待缓冲区满再发送，这就是粘包的原因：Nagle 算法）；
 * 对于接收方引起的粘包，例如数据放在缓冲区未及时取走，多个数据放一起就粘包了。可以加入头尾标志，加入消息长度信息。
+
+## post的payload有几种？
+基本上这种payload放到post数据包的最后，post数据包基本上是yaml格式的，最后的payload不少yaml
+* 第一种：application/json 这是最常见的json格式，也是非常友好的深受小伙伴喜欢的一种，如下
+`{“input1”:“xxx”,“input2”:“ooo”,“remember”:false}`
+* 第二种：application/x-www-form-urlencoded 浏览器的原生 form 表单，如果不设置 enctype 属性，那么最终就会以 application/x-www-form-urlencoded 方式提交数
+`input1=xxx&input2=ooo&remember=false`
+* 第三种就是raw，raw是任意格式的文本，或binary是二进制数据，通常用来上传文件`content-type:application/octet-stream`
