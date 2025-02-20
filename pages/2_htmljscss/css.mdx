@@ -69,6 +69,12 @@
 
 ## clientHeight,scrollHeight,offsetHeight ,以及scrollTop, offsetTop,clientTop的区别？
 
+## flex相关？
+* flex-wrap 用于控制项目是否换行，nowrap表示不换行；取值：nowrap(默认) | wrap | wrap-reverse
+* flex-grow用于决定项目在有剩余空间的情况下是否放大。默认为0，即如果存在剩余空间，也不放大。注意，即便设置了固定宽度，也会放大。
+* flex-shrink用于决定项目在空间不足时是否缩小。默认都是1，即空间不足时大家一起等比缩小；注意，即便设置了固定宽度，也会缩小。但如果某个元素flex-shrink设置为0，则即便空间不够，自身也不缩小。
+* flex 取值：默认0 1 auto，flex属性是flex-grow，flex-shrink与flex-basis三个属性的简写，用于定义项目放大，缩小与宽度。
+* flex-basis 取值：默认auto，用于设置元素宽度，默认auto时，项目会保持默认宽度，或者以width为自身的宽度，但如果设置了flex-basis，权重会width属性高，因此会覆盖widtn属性。
 ## BFC是什么？
 BFC即块级格式化上下文(Block Formatting Contexts)，具有 BFC 特性的元素可以看作是隔离了的独立容器，容器里面的元素不会在布局上影响到外面的元素，并且 BFC 具有普通容器所没有的一些特性。
 
