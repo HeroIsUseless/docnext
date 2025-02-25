@@ -77,6 +77,12 @@ Promise 有三种状态：Pending（进行中）、Resolved（已解决，又称
 * promise的回调函数是同步的，then是异步的，then()方法会return一个新的promise。
 * promise在resolve后，resolve后的代码也会执行，并且先于then函数执行，因为这算同步代码。
 * 在新建promise对象的回调函数里再定义一个promise对象，内部的promise的resolve/then永远先执行。resolve() 必须等到其内部全部的.then()执行完毕后才能够执行。
+* 如果一个promise的resolve是promise里的setTimeout回调里执行的，那么这个promise将会在这个setTimeout后resolve。
+* 要严格一点来说，其实应该是每次执行栈执行的代码就是一个宏任务。包括每次从事件队列中获取一个事件回调并放到执行栈中执行，微任务也属于宏任务的一部分。
+* 你可能会问为什么为什么我们有了宏任务还需要微任务，因为宏任务太耗费性能，而微任务的执行效率很高，所以平常在开发的时候有异步事务就优先考虑微任务。
+* V8 引擎不会将微任务交给浏览器的其他线程处理，而是存在自己的一个队列中。补充说一句，想要实现多线程，可以借助web worker技术。
+* 宏任务队列不止一个，确切的说，一种宏任务一个队列，最先执行的是IO交互队列，因为浏览器要确保流畅性。
+* 宏任务来源和调度机制复杂，但所有这些任务最终都会被放入浏览器的主线程任务队列中。主线程会按照任务的优先级和顺序依次执行它们。从这个角度看，宏任务队列本身是统一的，只是任务的来源和调度机制让它们看起来像是“多种队列”。
 * async函数行为很简单，就是看函数的返回值是否为Promise，如果不是Promise，则用resolve转成Promise（并且是resolved状态）。但是一旦有await的话，就会变成pending状态。
 * async语法糖，await上面可以看作是同步的，await下面可以看作被包裹在func().then中，有多少await包裹几次。
 * 如果await的promise没有resolve，那么将卡住，不再向下执行。
@@ -88,7 +94,7 @@ JS是一门单线程的语言，事件循环是JS的异步执行机制。事件�
 * 如果任务队列中有待处理的任务，那么就将它移出队列并放入调用堆栈并执行这个任务。
 
 任务队列分为宏任务队列和微任务队列。在一个事件循环迭代中，首先执行一个宏任务，然后执行所有的微任务。当所有的微任务完成后，再执行下一个宏任务。
-> 宏任务包括如setTimeout，setInterval，setImmediate，I/O，UI rendering（requestAmination之类的）等（setTimeout里的回调函数算宏任务），
+> 宏任务包括如setTimeout，setInterval，setImmediate，I/O，UI rendering（requestAmination之类的），xhr等，
 而微任务包括如Promise,MutationObserver等（注意promise内的回调函数会当作同步代码立即执行，then/catch里才是微任务）
 （微任务中如果新建了一个微任务，那么将继续执行微任务而不去执行宏任务）。
 

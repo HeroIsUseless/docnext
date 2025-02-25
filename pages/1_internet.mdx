@@ -93,6 +93,10 @@ CSRF（Cross-site request forgery），跨站请求伪造，利用用户的登�
 还可以使用双重Cookie，再加一个‘urlcookie’，发送时，传到url的参数上，
 由于第三方恶意网站是获取不到cookie的内容的，因此无法设置url参数的具体值，所以能防CSRF攻击。
 
+从cookie最初的定义来说，把登陆数据放到cookie本来就是cookie最初设计的目的，而且cookie相比localStorage更快（不用渲染页面），更方便，另外设置httpOnly可以防止XSS攻击。
+但是现在业务需求都非常复杂了，放在
+localstorage里能获得更精细的手动控制。现在的cookie往往就存一个服务器的sessionID用来维持会话。
+
 ## XSS 攻击是什么？
 Cross Site Script，跨站脚本攻击：攻击者在网站上注入恶意脚本代码，然后在用户浏览网页时，这些脚本对用户浏览器进行控制或者获取用户隐私数据。
 比如攻击者在社区或论坛上写下一篇包含恶意 JavaScript 代码的文章或评论，文章或评论发表后，所有访问该文章或评论的用户，
