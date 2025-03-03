@@ -46,6 +46,7 @@ function MyPromise(fn) {
   this.res = undefined;
   this.cbs = [];
   this.then = (cb) => {
+    // 如果cb不是函数，那么将resolve上一个then的数据
     return new MyPromise((resolve) => {
       const thenCb = () => {
           const res = cb(this.res);

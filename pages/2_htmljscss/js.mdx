@@ -86,6 +86,8 @@ Promise 有三种状态：Pending（进行中）、Resolved（已解决，又称
 * async函数行为很简单，就是看函数的返回值是否为Promise，如果不是Promise，则用resolve转成Promise（并且是resolved状态）。但是一旦有await的话，就会变成pending状态。
 * async语法糖，await上面可以看作是同步的，await下面可以看作被包裹在func().then中，有多少await包裹几次。
 * 如果await的promise没有resolve，那么将卡住，不再向下执行。
+* 如果上一个promise被卡住，下一个promise也不会卡住，而是会继续执行下一个promise。
+* then 函数的参数如果是一个数字（或其他别的反正不是函数），那么这个数字会被忽略，then 函数会返回一个新的 Promise，并且这个 Promise 会继承前一个 Promise 的状态和结果。
 
 ## 什么是事件循环机制？
 JS是一门单线程的语言，事件循环是JS的异步执行机制。事件循环的工作流程是
