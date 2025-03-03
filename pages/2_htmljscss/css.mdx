@@ -17,21 +17,7 @@
 * link是html标签，页面载入时同时加载，除了加载css外，还可以定义RSS等其他事务，无兼容问题；
 * @import属于CSS范畴，在页面完全加载以后加载，只能加载CSS；
 * link方式的样式的权重高于@import的权重
-## 文字换行有什么办法？
-* 使用`word-wrap`属性，可以控制文本的换行方式。
-    * normal: 只在合适的时候换行，不会在单词内部换行，如果一个单词长度超出了容器长度，单词将超出边界；
-    * break-word: 比容器长的单词将在单词内部换行；
-* word-break属性关注单词内的换行方式，一般在设置`word-wrap: break-word`时使用，它有以下几种取值：
-    * normal: 默认属性值，不允许在单词中间截断。
-    * break-all: 表示都全部单词内换行，即便这个单词并没有长得超出了边界。处理中文则不会生效。
-    * keep-all: 指CJK（中/日、韩）文本超出区域不断行，但会在标点出折行。
-* white-space是用来控制文本中空格和换行的属性。
-    * normal:默认属性值，表示文本中连续多个空格换行都会被合并为一个空格；
-    * nowrap:表示文本不会被自动换行；
-    * pre:表示文本中连续多个空格换行都会被保留，不会自动换行。
-    * pre-wrap:表示文本中连续多个空格换行会被保留，超出容器宽度时，会发生换行。
-    * pre-line:表示文本中连续多个空格会被合并成一个空格，但是换行会被保留，会自动换行。
-> 如果文字不换行，可以用`text-overflow:ellipsis;`显示省略符号来代表被修剪的文本。
+
 ## 盒模型是什么？
 页面中的所有元素都可以看成一个盒子，由4个属性组成的（content（内容），padding（内边距），border（边框），margin（外边距）），
 有标准盒模型和ie盒模型，在标准盒模型中，元素的宽度和高度等于内容区域的宽度和高度，
@@ -41,6 +27,7 @@
 <div style={{boxSizing: 'content-box', width: '150px', height: '100px', padding: '20px', border: '10px solid black', margin: '10px', fontSize: '12px'}}><span>box-sizing: content-box</span></div>
 <div style={{boxSizing: 'border-box', width: '150px', height: '100px', padding: '20px', border: '10px solid black', margin: '10px', fontSize: '12px'}}><span>box-sizing: border-box</span></div>
 </div>
+
 ## 讲一讲css3新特点？
 > 2001年5月23日W3C完成了CSS3的工作草案（但至今没有定稿），主要包括盒子模型、列表模块、超链接方式、语言模块、背景和边框、文字特效、多栏布局等模块。
 * 盒模型
@@ -56,6 +43,7 @@
 * 新增弹性布局，网格布局，多列布局
 * 媒体查询
 * 添加了伪类/伪元素/多重/属性选择器，例如`:hover`，`::before ::after ::selection first-line/letter`，`ele1, ele2`，`[attr=value]`。
+
 ## css的渲染优先级？
 * 选择器都有一个权值，权值越大越优先
     * 内联样式表的权值最高 1000
@@ -75,6 +63,7 @@
 * flex-shrink用于决定项目在空间不足时是否缩小。默认都是1，即空间不足时大家一起等比缩小；注意，即便设置了固定宽度，也会缩小。但如果某个元素flex-shrink设置为0，则即便空间不够，自身也不缩小。
 * flex 取值：默认0 1 auto，flex属性是flex-grow，flex-shrink与flex-basis三个属性的简写，用于定义项目放大，缩小与宽度。
 * flex-basis 取值：默认auto，用于设置元素宽度，默认auto时，项目会保持默认宽度，或者以width为自身的宽度，但如果设置了flex-basis，权重会width属性高，因此会覆盖widtn属性。
+
 ## BFC是什么？
 BFC即块级格式化上下文(Block Formatting Contexts)，具有 BFC 特性的元素可以看作是隔离了的独立容器，容器里面的元素不会在布局上影响到外面的元素，并且 BFC 具有普通容器所没有的一些特性。
 
@@ -93,6 +82,7 @@ BFC 特性及应用
     <div style={{margin: '20px', width: '50px', height: '50px', backgroundColor: 'rgba(0, 0,255,0.5)'}}></div>
     <div style={{margin: '20px', width: '50px', height: '50px', backgroundColor: 'rgba(0, 0,255,0.5)'}}></div>
 </div>
+
 ## 了解float浮动布局吗？
 float 属性早期用于图文混排, 实现文字环绕的效果。
 
@@ -191,6 +181,7 @@ li:nth-child(3) {
 * 转成BFC，其高度能被其内部的浮动元素撑开。
 * 在浮动元素后面添加一个元素，并为其添加`clear: both;`样式。这个元素可以是实际的DOM元素，也可以是一个看不见的元素。缺点是它需要在你的HTML中添加额外的元素。
 * 使用::after或::before伪元素并为其添加`clear: both;`样式来清除浮动。这种方法的优点是不需要在HTML中添加额外的元素，但缺点是它可能会影响到其他样式（如背景和边框的渲染）。
+
 ## 外边距合并是什么意思？
 当两个外边距相邻时，它们会合并为较大的那一个。 合并会发生在普通文档流的相邻块级元素的垂直外边距上。阻止外边距合并的方法有：
 * 使用内边距或透明边框代替外边距
@@ -297,6 +288,23 @@ window.devicePixelRatio（dpr） ，它是设备上物理像素和设备独立�
 在用户不参与的情况下，我们不能靠程序在网页上获取到准确的浏览器物理长度 1 厘米。
 
 # 低频
+
+## 文字换行有什么办法？
+* 使用`word-wrap`属性，可以控制文本的换行方式。
+    * normal: 只在合适的时候换行，不会在单词内部换行，如果一个单词长度超出了容器长度，单词将超出边界；
+    * break-word: 比容器长的单词将在单词内部换行；
+* word-break属性关注单词内的换行方式，一般在设置`word-wrap: break-word`时使用，它有以下几种取值：
+    * normal: 默认属性值，不允许在单词中间截断。
+    * break-all: 表示都全部单词内换行，即便这个单词并没有长得超出了边界。处理中文则不会生效。
+    * keep-all: 指CJK（中/日、韩）文本超出区域不断行，但会在标点出折行。
+* white-space是用来控制文本中空格和换行的属性。
+    * normal:默认属性值，表示文本中连续多个空格换行都会被合并为一个空格；
+    * nowrap:表示文本不会被自动换行；
+    * pre:表示文本中连续多个空格换行都会被保留，不会自动换行。
+    * pre-wrap:表示文本中连续多个空格换行会被保留，超出容器宽度时，会发生换行。
+    * pre-line:表示文本中连续多个空格会被合并成一个空格，但是换行会被保留，会自动换行。
+> 如果文字不换行，可以用`text-overflow:ellipsis;`显示省略符号来代表被修剪的文本。
+
 ## 动画？
 ## 无样式内容闪烁（FOUC）Flash of Unstyle Content 如何解决？
 @import导入CSS文件会等到文档加载完后再加载CSS样式表。因此，在页面DOM加载完成到CSS导入完成之间会有一段时间页面上的内容是没有样式的。

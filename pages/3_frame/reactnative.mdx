@@ -37,6 +37,10 @@ Native调用JS本质上就是Native指针指向JS函数，具体是native调用c
 
 首先之前就算是同步的也都变成异步的了，一个主要原因就是 C++ 中的函数没办法完整映射到 JavaScript 中，所以现在把一些同步native函数处理映射到JS中，那么就可以调同步的了。JSI取代了bridge，JSI是用C++写的，JS同步调用JSI的C++函数，JSI再调用native的函数，这样之前通过 Bridge 的异步通信，就成功的转变成了通过 JSI 的同步调用。耗时大的自然仍需要异步调用，但是耗时小的现在也可以同步调用了。
 
+## react native的虚拟树？
+实际上有两部分，第一部分是JS侧的，叫virtual tree，主要用于react的调和diff；第二部分是native的shadow tree，因为rn用的是native的组件，但并没有用
+native的排版，排版还是按照HTML排版来的，因此在native是使用yoga引擎来对shadow tree进行布局排版，最后再渲染到真实UI上。
+
 ## 什么是Metro？
 Metro 类似于webpack，是一个针对 React Native的JavaScript模块打包器，他接收一个entry file (入口文件) 和一些配置作为参数，
 返回给你一个单独的JavaScript文件，这个文件包含了你写的所有的JavaScript 代码和所有的依赖。
